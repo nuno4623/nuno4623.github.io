@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<!--
+  ┌─ 단독 HTML형 워크시트 템플릿 ────────────────────────────────────────┐
+  │ 학생이 입력 → "🖼 이미지로 저장" 버튼으로 PNG 제출하는 방식.             │
+  │ 새 워크시트 만드는 법:                                                 │
+  │   1) 이 파일을 lessons/<학년>/<주제>/<이름>.html 로 복사               │
+  │   2) 아래 [바꾸기] 표시된 곳(제목/색/문항)을 수정                       │
+  │   3) STORAGE_KEY 를 파일마다 고유하게 변경                             │
+  │   4) push → QR·안내페이지·배포는 자동                                  │
+  │ 색만 바꾸려면 :root 의 --theme / --theme-light 두 값만 고치면 됨.       │
+  └──────────────────────────────────────────────────────────────────────┘
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>워크시트 제목</title> <!-- [바꾸기] 안내페이지에 표시되는 이름 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root {
+    --theme: #1565C0;        /* [바꾸기] 대표 색 */
+    --theme-light: #E3F2FD;  /* [바꾸기] 소감칸 배경(대표색의 옅은 톤) */
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Noto Sans KR','Apple SD Gothic Neo',sans-serif; background:#F0F4F8; padding:16px; min-height:100vh; }
+  .top-bar { display:flex; gap:10px; align-items:center; background:#fff; border-radius:14px; padding:12px 18px; margin-bottom:14px; box-shadow:0 2px 8px rgba(0,0,0,.07); flex-wrap:wrap; }
+  .top-bar label { font-size:13px; font-weight:700; color:#555; white-space:nowrap; }
+  .top-bar input { border:1.5px solid #D0E4E8; border-radius:8px; padding:5px 10px; font-size:14px; font-family:inherit; outline:none; transition:border-color .2s; }
+  .top-bar input:focus { border-color:var(--theme); }
+  .top-bar input.wide { width:160px; } .top-bar input.narrow { width:70px; }
+  .save-btn { margin-left:auto; background:var(--theme); color:#fff; border:none; border-radius:10px; padding:8px 18px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .save-btn:hover { opacity:.85; }
+  #worksheet { background:#fff; border-radius:18px; box-shadow:0 4px 20px rgba(0,0,0,.09); overflow:hidden; }
+  .ws-header { background:var(--theme); padding:20px 28px 16px; display:flex; align-items:flex-end; justify-content:space-between; }
+  .ws-header .period-tag { background:rgba(255,255,255,.22); color:#fff; font-size:12px; font-weight:700; padding:3px 12px; border-radius:99px; letter-spacing:.08em; margin-bottom:6px; display:inline-block; }
+  .ws-header .main-title { font-size:22px; font-weight:900; color:#fff; line-height:1.2; }
+  .ws-header .period-name { font-size:32px; font-weight:900; color:rgba(255,255,255,.25); line-height:1; }
+  .ws-body { display:grid; grid-template-columns:1fr 1fr; gap:0; }
+  .section { padding:16px 20px; border-right:1.5px solid #EEF3F5; border-bottom:1.5px solid #EEF3F5; display:flex; flex-direction:column; gap:8px; }
+  .section:nth-child(even) { border-right:none; }
+  .section.full { grid-column:1 / -1; border-right:none; border-bottom:none; background:var(--theme-light); }
+  .sec-label { display:flex; align-items:center; gap:8px; }
+  .sec-num { width:22px; height:22px; border-radius:50%; background:var(--theme); color:#fff; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .sec-title { font-size:13px; font-weight:800; color:var(--theme); letter-spacing:.04em; }
+  .sec-hint { font-size:11px; color:#AAB8BD; margin-left:30px; line-height:1.5; }
+  textarea.input-area { width:100%; border:1.5px solid #E0EAED; border-radius:10px; padding:10px 12px; font-size:14px; font-family:inherit; color:#2C3E44; resize:none; outline:none; line-height:1.7; background:#FAFCFD; overflow:hidden; min-height:80px; transition:border-color .2s; }
+  textarea.input-area:focus { border-color:var(--theme); background:#fff; }
+  .capture-div { display:none; width:100%; border:1.5px solid #E0EAED; border-radius:10px; padding:10px 12px; font-size:14px; font-family:inherit; color:#2C3E44; line-height:1.7; background:#FAFCFD; min-height:80px; white-space:pre-wrap; word-break:break-word; }
+</style>
+</head>
+<body>
+<div class="top-bar" id="topbar">
+  <label>반</label><input class="narrow" id="cls" type="text" placeholder="예) 3반" oninput="save()">
+  <label>모둠</label><input class="narrow" id="grp" type="text" placeholder="예) 2모둠" oninput="save()">
+  <label>모둠원</label><input class="wide" id="members" type="text" placeholder="이름 (쉼표로 구분)" oninput="save()">
+  <button class="save-btn" onclick="saveImage()">🖼 이미지로 저장</button>
+</div>
+
+<div id="worksheet">
+  <div class="ws-header">
+    <div>
+      <div class="period-tag">학년 · 주제</div>          <!-- [바꾸기] 상단 태그 -->
+      <div class="main-title">워크시트<br>제목</div>       <!-- [바꾸기] 큰 제목 -->
+    </div>
+    <div style="text-align:right;">
+      <div class="period-name">주제</div>                 <!-- [바꾸기] 안내페이지 표시 이름(= period-name) -->
+      <div id="header-info" style="color:rgba(255,255,255,.75);font-size:13px;margin-top:4px;"></div>
+    </div>
+  </div>
+
+  <!-- [바꾸기] 아래 .section 문항을 원하는 만큼 추가/수정. id 는 f1,f2,... 순서대로. -->
+  <div class="ws-body">
+    <div class="section">
+      <div class="sec-label"><div class="sec-num">1</div><div class="sec-title">문항 1</div></div>
+      <div class="sec-hint">안내 문구</div>
+      <textarea class="input-area" id="f1" placeholder="예) …" oninput="autoResize(this);save()"></textarea>
+      <div class="capture-div" id="c1"></div>
+    </div>
+    <div class="section">
+      <div class="sec-label"><div class="sec-num">2</div><div class="sec-title">문항 2</div></div>
+      <div class="sec-hint">안내 문구</div>
+      <textarea class="input-area" id="f2" placeholder="예) …" oninput="autoResize(this);save()"></textarea>
+      <div class="capture-div" id="c2"></div>
+    </div>
+    <div class="section full">
+      <div class="sec-label"><div class="sec-num">3</div><div class="sec-title">소감 / 정리</div></div>
+      <div class="sec-hint">자유롭게 작성</div>
+      <textarea class="input-area" id="f3" placeholder="예) …" oninput="autoResize(this);save()"></textarea>
+      <div class="capture-div" id="c3"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'ws_TEMPLATE';           // [바꾸기] 파일마다 고유값!
+  const N = 3;                                  // [바꾸기] 문항(textarea) 개수
+  const fields = ['cls','grp','members', ...Array.from({length:N}, (_,i)=>'f'+(i+1))];
+
+  function autoResize(el){ el.style.height='auto'; el.style.height=el.scrollHeight+'px'; }
+  function save(){ const d={}; fields.forEach(id=>d[id]=document.getElementById(id).value); localStorage.setItem(STORAGE_KEY,JSON.stringify(d)); updateHeader(); }
+  function load(){ const raw=localStorage.getItem(STORAGE_KEY); if(!raw) return; const d=JSON.parse(raw); fields.forEach(id=>{const el=document.getElementById(id); if(el&&d[id]){el.value=d[id]; if(el.tagName==='TEXTAREA') autoResize(el);}}); updateHeader(); }
+  function updateHeader(){ const c=cls.value,g=grp.value,m=members.value; let t=''; if(c)t+=c+' '; if(g)t+=g; if(m)t+=' · '+m; document.getElementById('header-info').textContent=t; }
+
+  async function saveImage(){
+    for(let i=1;i<=N;i++){ const ta=document.getElementById('f'+i), cd=document.getElementById('c'+i); cd.textContent=ta.value||' '; ta.style.display='none'; cd.style.display='block'; }
+    document.getElementById('topbar').style.display='none'; updateHeader();
+    try{
+      const el=document.getElementById('worksheet');
+      const canvas=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:'#fff',windowWidth:el.scrollWidth,windowHeight:el.scrollHeight});
+      const a=document.createElement('a'); a.download=STORAGE_KEY+'.png'; a.href=canvas.toDataURL('image/png'); a.click();
+    } finally {
+      for(let i=1;i<=N;i++){ document.getElementById('f'+i).style.display=''; document.getElementById('c'+i).style.display='none'; }
+      document.getElementById('topbar').style.display='';
+    }
+  }
+  load();
+</script>
+</body>
+</html>

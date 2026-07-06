@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시대별 음악문화 조사</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+    background: #F0F4F8;
+    padding: 16px;
+    min-height: 100vh;
+  }
+
+  /* 상단 입력 */
+  .top-bar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: #fff;
+    border-radius: 14px;
+    padding: 12px 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    flex-wrap: wrap;
+  }
+
+  .top-bar label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #555;
+    white-space: nowrap;
+  }
+
+  .top-bar input {
+    border: 1.5px solid #D0E4E8;
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .top-bar input:focus { border-color: #00838F; }
+  .top-bar input.wide { width: 160px; }
+  .top-bar input.narrow { width: 70px; }
+
+  .save-btn {
+    margin-left: auto;
+    background: #00838F;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: opacity 0.2s;
+  }
+  .save-btn:hover { opacity: 0.85; }
+
+  /* 워크시트 메인 */
+  #worksheet {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.09);
+    overflow: hidden;
+  }
+
+  /* 헤더 */
+  .ws-header {
+    background: #00838F;
+    padding: 20px 28px 16px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .ws-header .period-tag {
+    background: rgba(255,255,255,0.22);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 99px;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+    display: inline-block;
+  }
+
+  .ws-header .main-title {
+    font-size: 22px;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.2;
+  }
+
+  .ws-header .period-name {
+    font-size: 32px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.25);
+    line-height: 1;
+  }
+
+  /* 본문 그리드 */
+  .ws-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  .section {
+    padding: 16px 20px;
+    border-right: 1.5px solid #EEF3F5;
+    border-bottom: 1.5px solid #EEF3F5;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .section:nth-child(even) { border-right: none; }
+  .section.full {
+    grid-column: 1 / -1;
+    border-right: none;
+    border-bottom: none;
+    background: #E0F7FA;
+  }
+
+  .sec-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sec-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #00838F;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .sec-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: #00838F;
+    letter-spacing: 0.04em;
+  }
+
+  .sec-hint {
+    font-size: 11px;
+    color: #AAB8BD;
+    margin-left: 30px;
+    line-height: 1.5;
+  }
+
+  /* 입력용 textarea (화면 표시용) */
+  textarea.input-area {
+    width: 100%;
+    border: 1.5px solid #E0EAED;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #2C3E44;
+    resize: none;
+    outline: none;
+    line-height: 1.7;
+    transition: border-color 0.2s;
+    background: #FAFCFD;
+    overflow: hidden;
+    min-height: 80px;
+  }
+
+  textarea.input-area:focus {
+    border-color: #00838F;
+    background: #fff;
+  }
+
+  /* 저장용 div (캡처 시 표시) */
+  .capture-div {
+    display: none;
+    width: 100%;
+    border: 1.5px solid #E0EAED;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #2C3E44;
+    line-height: 1.7;
+    background: #FAFCFD;
+    min-height: 80px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+</style>
+</head>
+<body>
+
+<!-- 상단 입력 -->
+<div class="top-bar" id="topbar">
+  <label>반</label>
+  <input class="narrow" id="cls" type="text" placeholder="예) 3반" oninput="save()">
+  <label>모둠</label>
+  <input class="narrow" id="grp" type="text" placeholder="예) 2모둠" oninput="save()">
+  <label>모둠원</label>
+  <input class="wide" id="members" type="text" placeholder="이름 입력 (쉼표로 구분)" oninput="save()">
+  <button class="save-btn" onclick="saveImage()">🖼 이미지로 저장</button>
+</div>
+
+<!-- 워크시트 본문 -->
+<div id="worksheet">
+
+  <div class="ws-header">
+    <div>
+      <div class="period-tag">5학년 음악 · 시대별 음악문화 조사</div>
+      <div class="main-title">근현대<br>음악문화 탐구</div>
+    </div>
+    <div style="text-align:right;">
+      <div class="period-name">근현대</div>
+      <div id="header-info" style="color:rgba(255,255,255,0.75);font-size:13px;margin-top:4px;"></div>
+    </div>
+  </div>
+
+  <div class="ws-body">
+
+    <div class="section">
+      <div class="sec-label"><div class="sec-num">1</div><div class="sec-title">시대 배경</div></div>
+      <div class="sec-hint">이 시대는 어떤 시대인가요? (2~3줄로 정리)</div>
+      <textarea class="input-area" id="f1" placeholder="예) 삼국이 통일된 이후…" oninput="autoResize(this);save()"></textarea>
+      <div class="capture-div" id="c1"></div>
+    </div>
+
+    <div class="section">
+      <div class="sec-label"><div class="sec-num">2</div><div class="sec-title">대표 악기</div></div>
+      <div class="sec-hint">어떤 악기가 있었나요? 이름과 특징을 적어요 (2~3개)</div>
+      <textarea class="input-area" id="f2" placeholder="예) 가야금 — 12줄 현악기, …" oninput="autoResize(this);save()"></textarea>
+      <div class="capture-div" id="c2"></div>
+    </div>
+
+    <div class="section">
+      <div class="sec-label"><div class="sec-num">3</div><div class="sec-title">대표 음악 장르</div></div>
+      <div class="sec-hint">어떤 종류의 음악이 있었나요?</div>
+      <textarea class="input-area" id="f3" placeholder="예) 향악, 당악, 향가…" oninput="autoResize(this);save()"></textarea>
+      <div class="capture-div" id="c3"></div>
+    </div>
+
+    <div class="section">
+      <div class="sec-label"><div class="sec-num">4</div><div class="sec-title">대표 인물 / 작품</div></div>
+      <div class="sec-hint">누가, 무엇을 남겼나요?</div>
+      <textarea class="input-area" id="f4" placeholder="예) 우륵 — 가야금 12곡…" oninput="autoResize(this);save()"></textarea>
+      <div class="capture-div" id="c4"></div>
+    </div>
+
+    <div class="section">
+      <div class="sec-label"><div class="sec-num">5</div><div class="sec-title">음악의 쓰임</div></div>
+      <div class="sec-hint">어떤 상황에서 연주했나요? (궁중, 민간, 제례 등)</div>
+      <textarea class="input-area" id="f5" placeholder="예) 궁중 연회, 불교 의식…" oninput="autoResize(this);save()"></textarea>
+      <div class="capture-div" id="c5"></div>
+    </div>
+
+    <div class="section">
+      <div class="sec-label"><div class="sec-num">6</div><div class="sec-title">지금까지 이어진 것</div></div>
+      <div class="sec-hint">현재 우리 음악과 연결되는 점은?</div>
+      <textarea class="input-area" id="f6" placeholder="예) 가야금은 지금도 국악기로…" oninput="autoResize(this);save()"></textarea>
+      <div class="capture-div" id="c6"></div>
+    </div>
+
+    <div class="section full">
+      <div class="sec-label"><div class="sec-num">7</div><div class="sec-title">우리 모둠의 소감 — 이 시대 음악이 오늘날 우리에게 주는 의미는?</div></div>
+      <div class="sec-hint">조사하면서 흥미로웠던 점 + 이 시대 음악문화가 지금 우리에게 왜 소중한지 자신의 생각으로 적어요</div>
+      <textarea class="input-area" id="f7" placeholder="예) 조사하면서 ○○이 인상적이었고, 이 시대 음악은 오늘날 우리에게 …" oninput="autoResize(this);save()"></textarea>
+      <div class="capture-div" id="c7"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'music_ws_modern';
+  const fields = ['cls','grp','members','f1','f2','f3','f4','f5','f6','f7'];
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }
+
+  function save() {
+    const data = {};
+    fields.forEach(id => { data[id] = document.getElementById(id).value; });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    updateHeader();
+  }
+
+  function load() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    fields.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && data[id]) {
+        el.value = data[id];
+        if (el.tagName === 'TEXTAREA') autoResize(el);
+      }
+    });
+    updateHeader();
+  }
+
+  function updateHeader() {
+    const cls = document.getElementById('cls').value;
+    const grp = document.getElementById('grp').value;
+    const mem = document.getElementById('members').value;
+    let txt = '';
+    if (cls) txt += cls + ' ';
+    if (grp) txt += grp;
+    if (mem) txt += ' · ' + mem;
+    document.getElementById('header-info').textContent = txt;
+  }
+
+  async function saveImage() {
+    // textarea → capture-div 전환
+    for (let i = 1; i <= 7; i++) {
+      const ta = document.getElementById('f' + i);
+      const cd = document.getElementById('c' + i);
+      cd.textContent = ta.value || ' ';
+      ta.style.display = 'none';
+      cd.style.display = 'block';
+    }
+    // 상단 입력바 숨김
+    document.getElementById('topbar').style.display = 'none';
+    // 헤더 정보 업데이트
+    updateHeader();
+
+    try {
+      const el = document.getElementById('worksheet');
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#fff',
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: el.scrollWidth,
+        windowHeight: el.scrollHeight
+      });
+      const link = document.createElement('a');
+      link.download = 'modern_음악문화탐구.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } finally {
+      // 원래대로 복원
+      for (let i = 1; i <= 7; i++) {
+        document.getElementById('f' + i).style.display = '';
+        document.getElementById('c' + i).style.display = 'none';
+      }
+      document.getElementById('topbar').style.display = '';
+    }
+  }
+
+  load();
+</script>
+</body>
+</html>

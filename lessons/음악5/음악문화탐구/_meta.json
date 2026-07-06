@@ -1,0 +1,13 @@
+{
+  "badge": "5학년 음악 · 음악문화 탐구",
+  "title": "시대별 음악문화 조사",
+  "lead": "모둠별로 아래 QR 코드를 스캔해서 시대별 워크시트를 열고, 조사한 내용을 채운 뒤 🖼 이미지로 저장 하세요.",
+  "items": [
+    { "file": "samguk.html",  "name": "삼국시대", "sub": "고구려·백제·신라" },
+    { "file": "unified.html", "name": "통일신라", "sub": "삼국 통일 이후" },
+    { "file": "goryeo.html",  "name": "고려시대", "sub": "불교문화의 융성" },
+    { "file": "joseon1.html", "name": "조선전기", "sub": "유교와 아악 정비" },
+    { "file": "joseon2.html", "name": "조선후기", "sub": "판소리·민속악 발달" },
+    { "file": "modern.html",  "name": "근현대",   "sub": "서양음악의 유입" }
+  ]
+}

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<!--
+  ┌─ 앱스스크립트 제출형 워크시트 템플릿 ──────────────────────────────────┐
+  │ 학생이 입력 → "제출하기" → Google Sheets 에 자동 기록.                  │
+  │ 준비: templates/appsscript/README.md 대로 Apps Script 웹앱을 배포하고   │
+  │       아래 ENDPOINT 에 그 URL 을 붙여넣기.                              │
+  │ 새 워크시트: 이 파일 복사 → [바꾸기] 부분(제목/색/문항) 수정 →          │
+  │       WS_ID 를 고유하게(시트 탭 이름이 됨) → push (배포·QR 자동).        │
+  └──────────────────────────────────────────────────────────────────────┘
+-->
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>워크시트 제목</title> <!-- [바꾸기] -->
+<style>
+  :root { --theme:#00838F; --theme-light:#E0F7FA; } /* [바꾸기] 대표 색 */
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Noto Sans KR','Apple SD Gothic Neo',sans-serif; background:#F0F4F8; padding:16px; min-height:100vh; }
+  .top-bar { display:flex; gap:10px; align-items:center; background:#fff; border-radius:14px; padding:12px 18px; margin-bottom:14px; box-shadow:0 2px 8px rgba(0,0,0,.07); flex-wrap:wrap; }
+  .top-bar label { font-size:13px; font-weight:700; color:#555; white-space:nowrap; }
+  .top-bar input { border:1.5px solid #D0E4E8; border-radius:8px; padding:5px 10px; font-size:14px; font-family:inherit; outline:none; }
+  .top-bar input:focus { border-color:var(--theme); }
+  .top-bar input.wide { width:160px; } .top-bar input.narrow { width:70px; }
+  .submit-btn { margin-left:auto; background:var(--theme); color:#fff; border:none; border-radius:10px; padding:8px 20px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; }
+  .submit-btn:disabled { opacity:.5; cursor:default; }
+  #worksheet { background:#fff; border-radius:18px; box-shadow:0 4px 20px rgba(0,0,0,.09); overflow:hidden; }
+  .ws-header { background:var(--theme); padding:20px 28px 16px; }
+  .ws-header .period-tag { background:rgba(255,255,255,.22); color:#fff; font-size:12px; font-weight:700; padding:3px 12px; border-radius:99px; letter-spacing:.08em; margin-bottom:6px; display:inline-block; }
+  .ws-header .main-title { font-size:22px; font-weight:900; color:#fff; line-height:1.2; }
+  .ws-body { display:grid; grid-template-columns:1fr 1fr; gap:0; }
+  .section { padding:16px 20px; border-right:1.5px solid #EEF3F5; border-bottom:1.5px solid #EEF3F5; display:flex; flex-direction:column; gap:8px; }
+  .section:nth-child(even) { border-right:none; }
+  .section.full { grid-column:1 / -1; border-right:none; border-bottom:none; background:var(--theme-light); }
+  .sec-label { display:flex; align-items:center; gap:8px; }
+  .sec-num { width:22px; height:22px; border-radius:50%; background:var(--theme); color:#fff; font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .sec-title { font-size:13px; font-weight:800; color:var(--theme); }
+  .sec-hint { font-size:11px; color:#AAB8BD; margin-left:30px; line-height:1.5; }
+  textarea.input-area { width:100%; border:1.5px solid #E0EAED; border-radius:10px; padding:10px 12px; font-size:14px; font-family:inherit; color:#2C3E44; resize:none; outline:none; line-height:1.7; background:#FAFCFD; overflow:hidden; min-height:80px; }
+  textarea.input-area:focus { border-color:var(--theme); background:#fff; }
+  .toast { position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(20px); background:#22303A; color:#fff; padding:12px 22px; border-radius:12px; font-size:14px; font-weight:700; opacity:0; pointer-events:none; transition:.3s; z-index:50; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <label>반</label><input class="narrow" id="cls" type="text" placeholder="예) 3반" oninput="save()">
+  <label>모둠</label><input class="narrow" id="grp" type="text" placeholder="예) 2모둠" oninput="save()">
+  <label>모둠원</label><input class="wide" id="members" type="text" placeholder="이름 (쉼표로 구분)" oninput="save()">
+  <button class="submit-btn" id="submitBtn" onclick="submitForm()">📤 제출하기</button>
+</div>
+
+<div id="worksheet">
+  <div class="ws-header">
+    <div class="period-tag">학년 · 주제</div>       <!-- [바꾸기] -->
+    <div class="main-title">워크시트 제목</div>       <!-- [바꾸기] -->
+  </div>
+  <!-- [바꾸기] 문항 추가/수정. textarea id 는 f1,f2,... 순서대로. -->
+  <div class="ws-body">
+    <div class="section">
+      <div class="sec-label"><div class="sec-num">1</div><div class="sec-title">문항 1</div></div>
+      <div class="sec-hint">안내 문구</div>
+      <textarea class="input-area" id="f1" placeholder="예) …" oninput="autoResize(this);save()"></textarea>
+    </div>
+    <div class="section">
+      <div class="sec-label"><div class="sec-num">2</div><div class="sec-title">문항 2</div></div>
+      <div class="sec-hint">안내 문구</div>
+      <textarea class="input-area" id="f2" placeholder="예) …" oninput="autoResize(this);save()"></textarea>
+    </div>
+    <div class="section full">
+      <div class="sec-label"><div class="sec-num">3</div><div class="sec-title">소감 / 정리</div></div>
+      <div class="sec-hint">자유롭게 작성</div>
+      <textarea class="input-area" id="f3" placeholder="예) …" oninput="autoResize(this);save()"></textarea>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✅ 제출 완료!</div>
+
+<!-- 숨은 폼 + iframe 으로 POST (CORS 문제 없이 Apps Script 로 전송) -->
+<iframe name="sink" style="display:none"></iframe>
+<form id="postform" method="POST" target="sink" style="display:none"></form>
+
+<script>
+  // ▼▼▼ [바꾸기] Apps Script 웹앱 배포 URL 붙여넣기 (README 참고) ▼▼▼
+  const ENDPOINT = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+  const WS_ID = 'ws-template';   // [바꾸기] 워크시트 고유 이름(= 시트 탭 이름)
+  const N = 3;                    // [바꾸기] 문항 개수
+  // ▲▲▲
+
+  const STORAGE_KEY = 'submit_' + WS_ID;
+  const fields = ['cls','grp','members', ...Array.from({length:N},(_,i)=>'f'+(i+1))];
+  function autoResize(el){ el.style.height='auto'; el.style.height=el.scrollHeight+'px'; }
+  function save(){ const d={}; fields.forEach(id=>d[id]=document.getElementById(id).value); localStorage.setItem(STORAGE_KEY,JSON.stringify(d)); }
+  function load(){ const raw=localStorage.getItem(STORAGE_KEY); if(!raw) return; const d=JSON.parse(raw); fields.forEach(id=>{const el=document.getElementById(id); if(el&&d[id]){el.value=d[id]; if(el.tagName==='TEXTAREA') autoResize(el);}}); }
+  function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+
+  function submitForm(){
+    if(ENDPOINT.indexOf('PASTE_')===0){ toast('⚠ ENDPOINT 미설정'); return; }
+    const btn=document.getElementById('submitBtn');
+    const f=document.getElementById('postform'); f.action=ENDPOINT; f.innerHTML='';
+    const add=(k,v)=>{ const i=document.createElement('input'); i.type='hidden'; i.name=k; i.value=v; f.appendChild(i); };
+    add('ws', WS_ID);
+    add('cls', cls.value); add('grp', grp.value); add('members', members.value);
+    for(let i=1;i<=N;i++){ add('a'+i, document.getElementById('f'+i).value); }
+    btn.disabled=true; btn.textContent='제출 중…';
+    f.submit();
+    setTimeout(()=>{ toast('✅ 제출 완료!'); btn.textContent='✅ 제출됨'; }, 900);
+  }
+  load();
+</script>
+</body>
+</html>
