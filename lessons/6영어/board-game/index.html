@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>6학년 영어 부루마블</title>
+<!-- 외부 요청은 이 폰트 1건만 예외 허용 (스펙) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{
+  --board-bg:#f8f4e9;      /* 보드 바탕: 크림(종이 질감) */
+  --board-frame:#1e3a5f;   /* 보드 외곽 프레임: 딥 네이비 */
+  --cell-bg:#ffffff;       /* 칸 기본 바탕 */
+  --cell-line:#d8d2c4;     /* 칸 구분선 */
+  --center-bg:#eef3ea;     /* 중앙 필드: 연한 그린 */
+  --gold:#f5c542;          /* 황금열쇠/포인트 강조 */
+  --team-1:#e53935; --team-2:#1e88e5; --team-3:#fdd835; --team-4:#43a047;
+  --ink:#22303a; --muted:#7a8a93;
+  --jua:'Jua','Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  --sys:'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:var(--sys);background:#e8e2d4;color:var(--ink);overflow:hidden;
+  line-height:1.45; /* 폰트 폴백 시에도 레이아웃 유지 */
+  touch-action:manipulation}
+button{font-family:inherit;line-height:1.45;cursor:pointer;touch-action:manipulation}
+.jua{font-family:var(--jua)}
+.screen{position:fixed;inset:0;display:none}
+.screen.on{display:flex}
+
+/* ───────── 시작 화면 ───────── */
+#startScreen{align-items:center;justify-content:center;background:
+  radial-gradient(circle at 20% 15%, #fdf9ec 0%, #efe8d6 60%, #e4dcc6 100%);overflow:auto}
+.setup-card{background:#fff;border-radius:24px;box-shadow:0 12px 40px rgba(30,58,95,.18);
+  padding:30px 28px 26px;width:min(560px,94vw);margin:16px auto;border-top:10px solid var(--board-frame)}
+.setup-title{font-family:var(--jua);font-size:34px;color:var(--board-frame);text-align:center;letter-spacing:.02em}
+.setup-sub{text-align:center;color:var(--muted);font-size:14px;margin:4px 0 20px}
+.field{margin-bottom:18px}
+.field>label{display:block;font-weight:800;font-size:14px;margin-bottom:8px;color:var(--board-frame)}
+select{width:100%;min-height:52px;font-size:16px;border:2px solid var(--cell-line);border-radius:12px;
+  padding:0 14px;background:#fff;font-family:inherit;color:var(--ink)}
+.seg{display:flex;gap:8px}
+.seg button{flex:1;min-height:52px;border:2px solid var(--cell-line);background:#fff;border-radius:12px;
+  font-size:17px;font-weight:800;color:var(--muted)}
+.seg button.sel{background:var(--board-frame);border-color:var(--board-frame);color:#fff}
+.team-names{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.team-name-row{display:flex;align-items:center;gap:8px;border:2px solid var(--cell-line);border-radius:12px;padding:6px 10px}
+.team-name-row .dot{width:18px;height:18px;border-radius:50%;flex-shrink:0;border:2px solid rgba(0,0,0,.12)}
+.team-name-row input{border:none;outline:none;width:100%;min-height:38px;font-size:16px;font-family:inherit}
+#startBtn{width:100%;min-height:60px;border:none;border-radius:14px;background:var(--gold);
+  color:#5c4300;font-family:var(--jua);font-size:24px;box-shadow:0 4px 0 #cfa32a;margin-top:4px}
+#startBtn:active{transform:translateY(2px);box-shadow:0 2px 0 #cfa32a}
+
+/* 이어하기 다이얼로그 */
+#resumeBox{position:fixed;inset:0;background:rgba(30,58,95,.55);display:none;align-items:center;justify-content:center;z-index:60}
+#resumeBox.on{display:flex}
+.resume-card{background:#fff;border-radius:20px;padding:28px 24px;width:min(420px,90vw);text-align:center}
+.resume-card h2{font-family:var(--jua);font-size:24px;color:var(--board-frame);margin-bottom:6px}
+.resume-card p{color:var(--muted);font-size:14px;margin-bottom:18px}
+.resume-card .btns{display:flex;gap:10px}
+.resume-card button{flex:1;min-height:58px;border-radius:12px;font-size:17px;font-weight:800;border:2px solid var(--cell-line);background:#fff}
+.resume-card button.primary{background:var(--board-frame);border-color:var(--board-frame);color:#fff}
+
+/* ───────── 게임 화면 ───────── */
+#gameScreen{background:#e8e2d4;padding:10px;gap:10px}
+@media (orientation:landscape){
+  #gameScreen{flex-direction:row;align-items:center;justify-content:center}
+  #boardWrap{height:calc(100vh - 20px);width:calc(100vh - 20px);max-width:62vw;max-height:62vw}
+  #teamPanel{width:min(300px,32vw);max-height:calc(100vh - 20px);overflow:auto}
+}
+@media (orientation:portrait){
+  #gameScreen{flex-direction:column;align-items:center;justify-content:flex-start;overflow:auto}
+  #boardWrap{width:calc(100vw - 20px);height:calc(100vw - 20px);max-width:calc(100vh - 190px);max-height:calc(100vh - 190px)}
+  #teamPanel{width:calc(100vw - 20px);display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+}
+#boardWrap{position:relative;flex-shrink:0}
+#board{position:absolute;inset:0;background:var(--board-frame);border-radius:18px;padding:1.6%;
+  display:grid;grid-template-columns:1.4fr repeat(5,1fr) 1.4fr;grid-template-rows:1.4fr repeat(5,1fr) 1.4fr;gap:0}
+.cell{position:relative;background:var(--cell-bg);border:1px solid var(--cell-line);
+  display:flex;flex-direction:column;overflow:hidden;user-select:none}
+.cell .band{height:28%;flex-shrink:0;position:relative}
+.cell .flag{position:absolute;top:0;right:6%;width:0;height:0;
+  border-left:7px solid transparent;border-right:7px solid transparent;border-top:12px solid currentColor;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+.cell .body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 3px;text-align:center;min-height:0}
+.cell .uname{font-family:var(--jua);font-size:clamp(9px,1.7vmin,15px);color:var(--ink);line-height:1.15}
+.cell .utitle{font-size:clamp(6px,1.05vmin,10px);color:var(--muted);line-height:1.15;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cell.corner{background:var(--board-bg)}
+.cell.corner .icon{font-size:clamp(16px,3.6vmin,34px);line-height:1.1}
+.cell.corner .uname{font-size:clamp(10px,1.9vmin,17px)}
+.cell.key{background:rgba(245,197,66,.2)}
+.cell.key .icon{font-size:clamp(13px,2.6vmin,24px);line-height:1.1}
+.cell.selectable{cursor:pointer;animation:selPulse 1s ease-in-out infinite;outline:3px dashed var(--gold);outline-offset:-4px;z-index:2}
+@keyframes selPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.12)}}
+#centerField{grid-area:2/2/7/7;background:var(--center-bg);border:1px solid var(--cell-line);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2vmin;padding:2%;position:relative;z-index:1}
+#gameTitle{font-family:var(--jua);font-size:clamp(16px,3.4vmin,32px);color:var(--board-frame);letter-spacing:.03em}
+#timer{font-family:var(--jua);font-size:clamp(22px,4.6vmin,44px);color:var(--ink);
+  background:#fff;border-radius:12px;padding:.2em .6em;border:2px solid var(--cell-line)}
+#timer.low{color:#c62828;border-color:#c62828;animation:blink 1s step-end infinite}
+@keyframes blink{50%{opacity:.45}}
+#curTeam{display:flex;align-items:center;gap:8px;font-weight:800;font-size:clamp(13px,2.2vmin,19px)}
+#curTeam .dot{width:1.1em;height:1.1em;border-radius:50%;border:2px solid rgba(0,0,0,.15)}
+/* 주사위 (div+dot) */
+#dice{width:clamp(48px,9vmin,84px);height:clamp(48px,9vmin,84px);background:#fff;border-radius:16%;
+  border:2px solid var(--cell-line);box-shadow:0 3px 8px rgba(0,0,0,.15);
+  display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:12%}
+#dice.rolling{animation:diceShake .12s linear infinite}
+@keyframes diceShake{0%{transform:rotate(-8deg) translateY(-2px)}50%{transform:rotate(8deg) translateY(2px)}100%{transform:rotate(-8deg) translateY(-2px)}}
+#dice .pip{border-radius:50%;background:var(--ink);opacity:0;place-self:center;width:70%;aspect-ratio:1}
+#dice .pip.on{opacity:1}
+#rollBtn{min-height:52px;min-width:60%;border:none;border-radius:14px;background:var(--gold);color:#5c4300;
+  font-family:var(--jua);font-size:clamp(15px,2.8vmin,24px);box-shadow:0 4px 0 #cfa32a;padding:0 1em}
+#rollBtn:disabled{opacity:.45;box-shadow:none}
+#rollBtn:not(:disabled):active{transform:translateY(2px);box-shadow:0 2px 0 #cfa32a}
+#centerMsg{min-height:1.5em;font-weight:800;font-size:clamp(11px,2vmin,17px);color:var(--board-frame);text-align:center}
+
+/* 말(토큰) */
+#tokenLayer{position:absolute;inset:0;pointer-events:none;z-index:5}
+.token{position:absolute;width:4.2%;height:4.2%;border-radius:50%;border:2px solid #fff;
+  box-shadow:0 2px 5px rgba(0,0,0,.4);transform:translate(-50%,-50%);
+  transition:left .15s ease, top .15s ease}
+.token.fly{transition:left .45s cubic-bezier(.4,0,.2,1), top .45s cubic-bezier(.4,0,.2,1)}
+.token.hop{animation:hop .15s ease}
+@keyframes hop{50%{margin-top:-1.6%}}
+
+/* 팀 패널 */
+#teamPanel{display:flex;flex-direction:column;gap:8px}
+.tcard{background:#fff;border-radius:14px;padding:10px 14px;box-shadow:0 3px 10px rgba(0,0,0,.08);
+  border-left:8px solid var(--tc,#999);display:flex;align-items:center;gap:10px;transition:box-shadow .2s,transform .2s}
+.tcard.cur{box-shadow:0 0 0 3px var(--tc,#999),0 6px 16px rgba(0,0,0,.15);transform:scale(1.02)}
+.tcard .dot{width:20px;height:20px;border-radius:50%;background:var(--tc);border:2px solid rgba(0,0,0,.12);flex-shrink:0}
+.tcard .info{flex:1;min-width:0}
+.tcard .tname{font-family:var(--jua);font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tcard .tmeta{font-size:12px;color:var(--muted)}
+.tcard .tscore{font-family:var(--jua);font-size:24px;color:var(--board-frame);min-width:2.4em;text-align:right}
+.tcard .badges{display:flex;gap:4px}
+.tcard .stat{font-size:11px;background:#f0f0f0;border-radius:8px;padding:1px 6px}
+.tcard .stat.x2{background:var(--gold);font-weight:800}
+.tcard .stat.rest{background:#cfe8f7}
+
+/* 토스트 */
+#toast{position:fixed;left:50%;top:12%;transform:translateX(-50%);background:var(--board-frame);color:#fff;
+  font-family:var(--jua);font-size:clamp(15px,2.6vmin,22px);padding:.55em 1.2em;border-radius:99px;
+  box-shadow:0 6px 20px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .25s;z-index:80;text-align:center;max-width:90vw}
+#toast.on{opacity:1}
+
+/* ───────── 문제 모달 ───────── */
+#qModal{position:fixed;inset:0;background:rgba(30,58,95,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:12px}
+#qModal.on{display:flex}
+#qCard{background:#fff;border-radius:20px;border-top:10px solid var(--uc,#888);width:min(640px,96vw);
+  max-height:92vh;overflow:auto;padding:20px 20px 18px;position:relative}
+#qCard.shake{animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-7px)}80%{transform:translateX(7px)}}
+.q-head{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.q-badge{background:var(--uc,#888);color:#fff;font-size:12px;font-weight:800;border-radius:99px;padding:4px 12px}
+.q-badge.kind{background:#fff;color:var(--uc,#888);border:2px solid var(--uc,#888)}
+.q-badge.x2{background:var(--gold);color:#5c4300}
+.q-text{font-size:clamp(17px,2.6vmin,23px);font-weight:800;line-height:1.5;margin-bottom:16px;word-break:keep-all}
+.q-text .blank{display:inline-block;min-width:2.4em;border-bottom:3px solid var(--uc,#888);color:var(--uc,#888);
+  text-align:center;font-weight:900;background:rgba(0,0,0,.04);border-radius:4px 4px 0 0;padding:0 .2em}
+.q-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.q-opts button{min-height:64px;border:2px solid var(--cell-line);border-radius:14px;background:#fff;
+  font-size:clamp(14px,2.2vmin,18px);font-weight:700;padding:8px 10px;word-break:keep-all;color:var(--ink)}
+.q-opts button:disabled{cursor:default}
+.q-opts button.right{background:#e8f5e9;border-color:#43a047;color:#1b5e20}
+.q-opts button.wrong{background:#ffebee;border-color:#e53935;color:#b71c1c}
+/* 문장 배열 */
+.q-arrange .slots{min-height:64px;border:2px dashed var(--cell-line);border-radius:14px;background:#fafaf6;
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px;margin-bottom:12px}
+.q-arrange .pool{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;justify-content:center}
+.chip{min-height:52px;border:2px solid var(--uc,#888);border-radius:12px;background:#fff;color:var(--ink);
+  font-size:clamp(15px,2.4vmin,19px);font-weight:800;padding:8px 14px}
+.slots .chip{background:var(--uc,#888);color:#fff;border-color:var(--uc,#888)}
+.q-confirm{width:100%;min-height:58px;border:none;border-radius:14px;background:var(--board-frame);color:#fff;
+  font-family:var(--jua);font-size:20px}
+.q-confirm:disabled{opacity:.35}
+.q-feedback{text-align:center;font-family:var(--jua);font-size:clamp(20px,3.4vmin,30px);min-height:1.4em;margin-top:14px}
+.q-feedback.ok{color:#2e7d32}
+.q-feedback.no{color:#c62828}
+.q-answer{text-align:center;font-size:clamp(15px,2.4vmin,20px);font-weight:800;color:var(--board-frame);
+  background:#f4f7fa;border-radius:12px;padding:10px;margin-top:10px;display:none}
+.q-answer.on{display:block}
+.q-answer .blank{border-bottom:3px solid #2e7d32;color:#2e7d32;background:#e8f5e9;border-radius:4px;padding:0 .2em}
+
+/* 황금열쇠 카드 */
+#cardOverlay{position:fixed;inset:0;background:rgba(30,58,95,.55);display:none;align-items:center;justify-content:center;z-index:50}
+#cardOverlay.on{display:flex}
+#keyCard{width:min(300px,80vw);aspect-ratio:3/4;perspective:900px}
+#keyCard .inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .6s}
+#keyCard.flip .inner{transform:rotateY(180deg)}
+#keyCard .face{position:absolute;inset:0;border-radius:18px;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:18px;text-align:center}
+#keyCard .front{background:linear-gradient(135deg,#f5c542,#e8a820);color:#5c4300;font-family:var(--jua)}
+#keyCard .front .k{font-size:64px}
+#keyCard .front .t{font-size:26px}
+#keyCard .back{background:#fff;transform:rotateY(180deg);border:4px solid var(--gold)}
+#keyCard .back .icon{font-size:52px}
+#keyCard .back .title{font-family:var(--jua);font-size:24px;color:var(--board-frame)}
+#keyCard .back .desc{font-size:14px;color:var(--muted)}
+
+/* 컨페티 */
+.confetti{position:fixed;width:10px;height:14px;top:-20px;z-index:90;pointer-events:none;
+  animation:confFall 1.1s ease-in forwards}
+@keyframes confFall{to{transform:translateY(110vh) rotate(540deg);opacity:.6}}
+
+/* ───────── 결과 화면 ───────── */
+#resultScreen{align-items:center;justify-content:center;background:
+  radial-gradient(circle at 50% 0%, #fdf9ec 0%, #efe8d6 70%);overflow:auto}
+.result-card{background:#fff;border-radius:24px;box-shadow:0 12px 40px rgba(30,58,95,.18);
+  padding:28px 26px;width:min(540px,94vw);margin:16px auto;text-align:center;border-top:10px solid var(--gold)}
+.result-card h1{font-family:var(--jua);font-size:32px;color:var(--board-frame);margin-bottom:4px}
+.result-card .sub{color:var(--muted);font-size:14px;margin-bottom:18px}
+.rank-list{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.rank-row{display:flex;align-items:center;gap:12px;background:#fafaf6;border-radius:14px;padding:12px 16px;
+  border-left:8px solid var(--tc)}
+.rank-row.first{background:rgba(245,197,66,.18);box-shadow:0 0 0 2px var(--gold)}
+.rank-row .medal{font-size:26px;width:36px}
+.rank-row .dot{width:16px;height:16px;border-radius:50%;background:var(--tc);border:2px solid rgba(0,0,0,.12)}
+.rank-row .rname{font-family:var(--jua);font-size:19px;flex:1;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-row .rlands{font-size:13px;color:var(--muted)}
+.rank-row .rscore{font-family:var(--jua);font-size:24px;color:var(--board-frame)}
+#againBtn{width:100%;min-height:58px;border:none;border-radius:14px;background:var(--board-frame);
+  color:#fff;font-family:var(--jua);font-size:22px}
+
+/* 모션 최소화 */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ───── 시작 화면 ───── -->
+<div id="startScreen" class="screen on">
+  <div class="setup-card">
+    <div class="setup-title">🎲 영어 부루마블</div>
+    <p class="setup-sub">주사위를 굴려 땅을 차지하고 문제를 풀어요!</p>
+    <div class="field">
+      <label>과목</label>
+      <select id="subjectSel"></select>
+    </div>
+    <div class="field">
+      <label>팀 수</label>
+      <div class="seg" id="teamCountSeg">
+        <button data-n="2">2팀</button><button data-n="3" class="sel">3팀</button><button data-n="4">4팀</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>팀 이름</label>
+      <div class="team-names" id="teamNames"></div>
+    </div>
+    <div class="field">
+      <label>게임 시간</label>
+      <div class="seg" id="timeSeg">
+        <button data-m="15">15분</button><button data-m="20" class="sel">20분</button><button data-m="25">25분</button>
+      </div>
+    </div>
+    <button id="startBtn">게임 시작!</button>
+  </div>
+</div>
+
+<!-- 이어하기 -->
+<div id="resumeBox">
+  <div class="resume-card">
+    <h2>진행 중인 게임이 있어요</h2>
+    <p id="resumeInfo"></p>
+    <div class="btns">
+      <button id="newGameBtn">새 게임</button>
+      <button id="resumeBtn" class="primary">이어하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ───── 게임 화면 ───── -->
+<div id="gameScreen" class="screen">
+  <div id="boardWrap">
+    <div id="board"></div>
+    <div id="tokenLayer"></div>
+  </div>
+  <div id="teamPanel"></div>
+</div>
+
+<!-- 문제 모달 -->
+<div id="qModal"><div id="qCard"></div></div>
+
+<!-- 황금열쇠 카드 -->
+<div id="cardOverlay">
+  <div id="keyCard"><div class="inner">
+    <div class="face front"><div class="k">🔑</div><div class="t">황금열쇠</div></div>
+    <div class="face back"><div class="icon" id="kcIcon"></div><div class="title" id="kcTitle"></div><div class="desc" id="kcDesc"></div></div>
+  </div></div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ───── 결과 화면 ───── -->
+<div id="resultScreen" class="screen">
+  <div class="result-card">
+    <h1>🏆 게임 결과</h1>
+    <p class="sub" id="resultSub">수고했어요!</p>
+    <div class="rank-list" id="rankList"></div>
+    <button id="againBtn">다시 하기</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ============================================================
+ * 데이터 (이 블록만 교체하면 타 학년/과목 확장 가능)
+ * ============================================================ */
+const SUBJECTS = {
+  eng6: {
+    name: "6학년 영어 (1~6단원)",
+    units: [
+      { id: 1, title: "What Grade Are You In?", color: "#7c4dff", questions: [
+        { t:"c", q:"'What grade are you in?'에 알맞은 대답은?", o:["I'm in the sixth grade.","I'm ten years old.","It's on May 7th.","I like spring."], a:0 },
+        { t:"b", q:"What ___ are you in?", o:["grade","season","spell","club"], a:0 },
+        { t:"c", q:"'How do you spell your name?'의 뜻은?", o:["네 이름은 철자가 어떻게 되니?","네 이름이 뭐니?","너는 몇 학년이니?","너는 어디에 사니?"], a:0 },
+        { t:"b", q:"I'm in the ___ grade. (나는 6학년이야.)", o:["sixth","six","third","second"], a:0 },
+        { t:"c", q:"first - second - ___ - fourth", o:["third","three","fifth","second"], a:0 },
+        { t:"c", q:"'행운'을 뜻하는 단어는?", o:["luck","drum","song","wear"], a:0 },
+        { t:"b", q:"How do you ___ your name?", o:["spell","grade","show","ski"], a:0 },
+        { t:"c", q:"'동아리'를 뜻하는 단어는?", o:["club","guitar","show","hard"], a:0 },
+        { t:"c", q:"대답이 'L-I-N-H.'라면 질문은?", o:["How do you spell your name?","What grade are you in?","When is your birthday?","What season do you like?"], a:0 },
+        { t:"o", ko:"너는 몇 학년이니?", w:["What","grade","are","you","in?"] },
+        { t:"o", ko:"나는 6학년이야.", w:["I'm","in","the","sixth","grade."] },
+        { t:"o", ko:"네 이름은 철자가 어떻게 되니?", w:["How","do","you","spell","your","name?"] }
+      ]},
+      { id: 2, title: "What Season Do You Like?", color: "#00bfa5", questions: [
+        { t:"c", q:"'What season do you like?'에 알맞은 대답은?", o:["I like spring.","I like pizza.","Yes, I do.","It's sunny."], a:0 },
+        { t:"b", q:"What ___ do you like?", o:["season","grade","color","sport"], a:0 },
+        { t:"c", q:"'겨울'을 뜻하는 단어는?", o:["winter","spring","fall","summer"], a:0 },
+        { t:"b", q:"I like spring. I can see beautiful ___.", o:["flowers","rivers","cards","fields"], a:0 },
+        { t:"b", q:"Good ___! (칭찬하기)", o:["job","luck","trip","sky"], a:0 },
+        { t:"c", q:"다음 중 계절이 아닌 것은?", o:["river","spring","fall","winter"], a:0 },
+        { t:"c", q:"'warm'의 뜻은?", o:["따뜻한","추운","맑은","밝은"], a:0 },
+        { t:"b", q:"I like winter. It's ___. (추워서 좋아)", o:["cold","warm","hot","clear"], a:0 },
+        { t:"c", q:"'가을'을 뜻하는 단어는?", o:["fall","field","trip","card"], a:0 },
+        { t:"o", ko:"너는 무슨 계절을 좋아하니?", w:["What","season","do","you","like?"] },
+        { t:"o", ko:"나는 봄을 좋아해.", w:["I","like","spring."] },
+        { t:"o", ko:"나는 아름다운 꽃을 볼 수 있어.", w:["I","can","see","beautiful","flowers."] }
+      ]},
+      { id: 3, title: "When Is Your Birthday?", color: "#ff7043", questions: [
+        { t:"c", q:"'When is your birthday?'에 알맞은 대답은?", o:["It's on May 7th.","It's next to the bank.","I'm in the sixth grade.","Because I'm happy."], a:0 },
+        { t:"b", q:"___ is your birthday?", o:["When","What","Where","Why"], a:0 },
+        { t:"c", q:"'I can't wait!'의 뜻은?", o:["정말 기대돼!","기다릴 수 있어!","걱정하지 마!","잘했어!"], a:0 },
+        { t:"c", q:"'5월'을 뜻하는 단어는?", o:["May","March","June","July"], a:0 },
+        { t:"b", q:"It's ___ May 7th.", o:["on","in","at","of"], a:0 },
+        { t:"c", q:"'twenty-one'은 숫자로?", o:["21","12","31","22"], a:0 },
+        { t:"c", q:"'earth'의 뜻은?", o:["지구","종이","포스터","세계"], a:0 },
+        { t:"c", q:"'July 3rd'를 바르게 읽으면?", o:["7월 3일","6월 3일","7월 13일","3월 7일"], a:0 },
+        { t:"b", q:"Turn ___ the lights. (불을 꺼라)", o:["off","on","up","down"], a:0 },
+        { t:"o", ko:"네 생일은 언제니?", w:["When","is","your","birthday?"] },
+        { t:"o", ko:"5월 7일이야.", w:["It's","on","May","7th."] },
+        { t:"o", ko:"정말 기대돼!", w:["I","can't","wait!"] }
+      ]},
+      { id: 4, title: "Why Are You Happy?", color: "#ec407a", questions: [
+        { t:"c", q:"'Why are you happy?'에 알맞은 대답은?", o:["Because I got a black belt.","Yes, I am.","It's on May 7th.","I like spring."], a:0 },
+        { t:"b", q:"___ are you happy?", o:["Why","When","What","Where"], a:0 },
+        { t:"c", q:"'Don't worry.'의 뜻은?", o:["걱정하지 마.","서두르지 마.","뛰지 마.","늦지 마."], a:0 },
+        { t:"b", q:"Because I ___ a black belt. (검은 띠를 땄어)", o:["got","get","go","give"], a:0 },
+        { t:"c", q:"이유를 물어볼 때 쓰는 말은?", o:["Why","How","Who","Which"], a:0 },
+        { t:"c", q:"'because'의 뜻은?", o:["왜냐하면","그러나","그래서","그리고"], a:0 },
+        { t:"c", q:"'wrong'의 뜻은?", o:["틀린","맞은","기쁜","슬픈"], a:0 },
+        { t:"b", q:"Why are you sad? - Because I have a ___. (시험)", o:["test","belt","break","birdhouse"], a:0 },
+        { t:"c", q:"'congratulation'의 뜻은?", o:["축하","위로","걱정","약속"], a:0 },
+        { t:"o", ko:"너는 왜 기쁘니?", w:["Why","are","you","happy?"] },
+        { t:"o", ko:"검은 띠를 땄기 때문이야.", w:["Because","I","got","a","black","belt."] },
+        { t:"o", ko:"너는 왜 슬프니?", w:["Why","are","you","sad?"] }
+      ]},
+      { id: 5, title: "Where Is ABC Library?", color: "#42a5f5", questions: [
+        { t:"c", q:"'Where is ABC Library?'에 알맞은 대답은?", o:["Go straight one block and turn right.","It's on May 7th.","Because I'm hungry.","I like the library."], a:0 },
+        { t:"b", q:"Go ___ one block. (곧장 가세요)", o:["straight","street","stop","store"], a:0 },
+        { t:"c", q:"'Turn left.'의 뜻은?", o:["왼쪽으로 도세요.","오른쪽으로 도세요.","곧장 가세요.","멈추세요."], a:0 },
+        { t:"b", q:"It's ___ to the bank. (은행 옆에 있어)", o:["next","near","left","up"], a:0 },
+        { t:"c", q:"'병원'을 뜻하는 단어는?", o:["hospital","restaurant","restroom","bank"], a:0 },
+        { t:"c", q:"'식당'을 뜻하는 단어는?", o:["restaurant","restroom","store","town"], a:0 },
+        { t:"c", q:"'block'의 뜻은?", o:["블록(구역)","건물","길","다리"], a:0 },
+        { t:"b", q:"___ is the restroom?", o:["Where","When","Why","What"], a:0 },
+        { t:"c", q:"'left'의 반대말은?", o:["right","straight","stop","under"], a:0 },
+        { t:"o", ko:"도서관은 어디에 있니?", w:["Where","is","the","library?"] },
+        { t:"o", ko:"은행에서 오른쪽으로 도세요.", w:["Turn","right","at","the","bank."] },
+        { t:"o", ko:"그것은 은행 옆에 있어.", w:["It's","next","to","the","bank."] }
+      ]},
+      { id: 6, title: "He Has Blue Eyes", color: "#ffb300", questions: [
+        { t:"c", q:"'What does he look like?'에 알맞은 대답은?", o:["He has blue eyes.","He likes blue.","He is at home.","He is my aunt."], a:0 },
+        { t:"b", q:"What does she look ___?", o:["like","at","for","up"], a:0 },
+        { t:"c", q:"'She is wearing a yellow shirt.'의 뜻은?", o:["그녀는 노란 셔츠를 입고 있다.","그녀는 노란 셔츠를 좋아한다.","그녀는 노란 셔츠를 샀다.","그녀는 노란 셔츠를 빨았다."], a:0 },
+        { t:"b", q:"He ___ blue eyes.", o:["has","is","have","does"], a:0 },
+        { t:"c", q:"'머리카락'을 뜻하는 단어는?", o:["hair","hand","head","eye"], a:0 },
+        { t:"c", q:"'원피스'를 뜻하는 단어는?", o:["dress","shirt","pants","skirt"], a:0 },
+        { t:"c", q:"'short'의 반대말은?", o:["long","small","same","tall"], a:0 },
+        { t:"b", q:"He is ___ a blue shirt. (입고 있다)", o:["wearing","having","looking","doing"], a:0 },
+        { t:"c", q:"'daughter'의 뜻은?", o:["딸","아들","이모","엄마"], a:0 },
+        { t:"o", ko:"그는 어떻게 생겼니?", w:["What","does","he","look","like?"] },
+        { t:"o", ko:"그녀는 긴 머리를 가졌어.", w:["She","has","long","hair."] },
+        { t:"o", ko:"그는 파란 바지를 입고 있어.", w:["He","is","wearing","blue","pants."] }
+      ]}
+    ]
+  }
+  // eng4: 4학년 확장 시 동일 구조로 블록 추가
+};
+
+/* ============================================================
+ * 게임 엔진
+ * ============================================================ */
+const SAVE_KEY = 'bbm-eng6-save-v1';
+const TEAM_COLORS = ['#e53935','#1e88e5','#fdd835','#43a047'];
+const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* 보드 24칸 정의 (시계 반대 방향, index 0 = 출발) */
+const CELL_DEFS = (() => {
+  const d = [];
+  d[0]  = {type:'start', name:'출발', icon:'▶'};
+  [1,2,3].forEach(i => d[i] = {type:'unit', unit:1});
+  d[4]  = {type:'key', name:'황금열쇠', icon:'🔑'};
+  d[5]  = {type:'unit', unit:2};
+  d[6]  = {type:'island', name:'무인도', icon:'🏝'};
+  [7,8].forEach(i => d[i] = {type:'unit', unit:2});
+  [9,10,11].forEach(i => d[i] = {type:'unit', unit:3});
+  d[12] = {type:'travel', name:'세계여행', icon:'✈'};
+  [13,14,15].forEach(i => d[i] = {type:'unit', unit:4});
+  d[16] = {type:'key', name:'황금열쇠', icon:'🔑'};
+  d[17] = {type:'unit', unit:5};
+  d[18] = {type:'double', name:'더블찬스', icon:'★'};
+  [19,20].forEach(i => d[i] = {type:'unit', unit:5});
+  [21,22,23].forEach(i => d[i] = {type:'unit', unit:6});
+  return d;
+})();
+
+/* index → 7×7 그리드 좌표 */
+function gridPos(i){
+  if (i <= 6)  return {r:6, c:6-i};        // 아래줄: col 6→0
+  if (i <= 11) return {r:6-(i-6), c:0};    // 왼쪽줄: row 5→1
+  if (i <= 18) return {r:0, c:i-12};       // 윗줄: col 0→6
+  return {r:i-18, c:6};                    // 오른쪽줄: row 1→5
+}
+
+/* 황금열쇠 카드 풀 */
+const KEY_CARDS = [
+  {id:'bonus',   icon:'💰', title:'+80점 보너스', desc:'선생님의 칭찬! 80점을 받아요.'},
+  {id:'fine',    icon:'💸', title:'-40점 벌금',   desc:'앗, 숙제를 깜빡! 40점을 잃어요.'},
+  {id:'fwd2',    icon:'⏩', title:'앞으로 2칸',   desc:'앞으로 2칸 이동해요.'},
+  {id:'back2',   icon:'⏪', title:'뒤로 2칸',     desc:'뒤로 2칸 이동해요.'},
+  {id:'tostart', icon:'▶',  title:'출발로 이동',  desc:'출발 칸으로 가서 +50점을 받아요.'},
+  {id:'again',   icon:'🎲', title:'한 번 더 굴리기', desc:'주사위를 한 번 더 굴려요!'},
+  {id:'x2',      icon:'✨', title:'다음 문제 점수 2배', desc:'다음 문제의 획득/손실 점수가 2배!'},
+  {id:'toisland',icon:'🏝', title:'무인도로 이동', desc:'무인도로 가서 한 턴 쉬어요.'}
+];
+
+/* ── 상태 ── */
+let subject, teams, turn, decks, owners, timeLeft, totalTime;
+let busy = false, timeUp = false, rollAgain = false, timerId = null;
+let cellEls = [], tokenEls = [];
+
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, REDUCED ? 0 : ms));
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function hexToRgba(hex, alpha){
+  const h = hex.replace('#','');
+  return `rgba(${parseInt(h.slice(0,2),16)},${parseInt(h.slice(2,4),16)},${parseInt(h.slice(4,6),16)},${alpha})`;
+}
+function unitOf(id){ return subject.units.find(u => u.id === id); }
+
+/* ── 저장/복원 ── */
+function save(){
+  try{
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      v:1, subjectKey, teams, turn, decks, owners, timeLeft, totalTime, savedAt:Date.now()
+    }));
+  }catch(e){/* 저장 실패해도 게임은 계속 */}
+}
+function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+function loadSave(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(!raw) return null;
+    const s = JSON.parse(raw);
+    if(s && s.v === 1 && SUBJECTS[s.subjectKey] && Array.isArray(s.teams) && s.timeLeft > 0) return s;
+  }catch(e){}
+  return null;
+}
+
+/* ============================================================
+ * 시작 화면
+ * ============================================================ */
+let subjectKey = 'eng6';
+let selTeamCount = 3, selMinutes = 20;
+
+function initStartScreen(){
+  const sel = $('subjectSel');
+  sel.innerHTML = Object.entries(SUBJECTS)
+    .map(([k,v]) => `<option value="${k}">${esc(v.name)}</option>`).join('');
+  sel.value = subjectKey;
+  sel.onchange = () => { subjectKey = sel.value; };
+
+  $('teamCountSeg').querySelectorAll('button').forEach(b => b.onclick = () => {
+    selTeamCount = +b.dataset.n;
+    $('teamCountSeg').querySelectorAll('button').forEach(x => x.classList.toggle('sel', x===b));
+    renderNameInputs();
+  });
+  $('timeSeg').querySelectorAll('button').forEach(b => b.onclick = () => {
+    selMinutes = +b.dataset.m;
+    $('timeSeg').querySelectorAll('button').forEach(x => x.classList.toggle('sel', x===b));
+  });
+  renderNameInputs();
+  $('startBtn').onclick = startNewGame;
+}
+function renderNameInputs(){
+  const box = $('teamNames');
+  const prev = [...box.querySelectorAll('input')].map(i => i.value);
+  box.innerHTML = '';
+  for(let i=0;i<selTeamCount;i++){
+    const row = document.createElement('div');
+    row.className = 'team-name-row';
+    row.innerHTML = `<span class="dot" style="background:${TEAM_COLORS[i]}"></span>`;
+    const inp = document.createElement('input');
+    inp.maxLength = 10;
+    inp.value = prev[i] || `${i+1}모둠`;
+    row.appendChild(inp);
+    box.appendChild(row);
+  }
+}
+
+function startNewGame(){
+  subject = SUBJECTS[subjectKey];
+  const names = [...$('teamNames').querySelectorAll('input')].map((i,idx) => i.value.trim() || `${idx+1}모둠`);
+  teams = names.map((name,i) => ({ name, color:TEAM_COLORS[i], score:0, pos:0, lands:[], skip:false, doubleNext:false }));
+  turn = 0;
+  owners = {};                 // cellIndex → teamIndex
+  decks = {};                  // unitId → 남은 문제 index 배열
+  subject.units.forEach(u => decks[u.id] = shuffle(u.questions.map((_,i)=>i)));
+  totalTime = selMinutes * 60;
+  timeLeft = totalTime;
+  timeUp = false; busy = false; rollAgain = false;
+  clearSave();
+  enterGame();
+  save();
+}
+
+function resumeGame(s){
+  subjectKey = s.subjectKey;
+  subject = SUBJECTS[subjectKey];
+  teams = s.teams; turn = s.turn; decks = s.decks; owners = s.owners;
+  timeLeft = s.timeLeft; totalTime = s.totalTime;
+  timeUp = false; busy = false; rollAgain = false;
+  enterGame();
+}
+
+/* ============================================================
+ * 보드 렌더링
+ * ============================================================ */
+function buildBoard(){
+  const board = $('board');
+  board.innerHTML = '';
+  cellEls = [];
+  CELL_DEFS.forEach((def, i) => {
+    const {r,c} = gridPos(i);
+    const el = document.createElement('div');
+    el.className = 'cell';
+    el.dataset.idx = i;
+    el.style.gridRow = r+1;
+    el.style.gridColumn = c+1;
+    if(def.type === 'unit'){
+      const u = unitOf(def.unit);
+      el.innerHTML = `<div class="band" style="background:${u.color}"></div>
+        <div class="body"><div class="uname">${u.id}단원</div><div class="utitle">${esc(u.title)}</div></div>`;
+    }else if(def.type === 'key'){
+      el.classList.add('key');
+      el.innerHTML = `<div class="body"><div class="icon">🔑</div><div class="uname">황금열쇠</div></div>`;
+    }else{
+      el.classList.add('corner');
+      el.innerHTML = `<div class="body"><div class="icon">${def.icon}</div><div class="uname">${def.name}</div></div>`;
+    }
+    board.appendChild(el);
+    cellEls.push(el);
+  });
+  const center = document.createElement('div');
+  center.id = 'centerField';
+  center.innerHTML = `
+    <div id="gameTitle">🎲 영어 부루마블</div>
+    <div id="timer">--:--</div>
+    <div id="curTeam"><span class="dot"></span><span class="nm"></span></div>
+    <div id="dice">${'<span class="pip"></span>'.repeat(9)}</div>
+    <button id="rollBtn">주사위 굴리기</button>
+    <div id="centerMsg"></div>`;
+  board.appendChild(center);
+  $('rollBtn').onclick = onRoll;
+  setDice(6);
+  renderOwnership();
+}
+
+function renderOwnership(){
+  cellEls.forEach((el, i) => {
+    const def = CELL_DEFS[i];
+    if(def.type !== 'unit') return;
+    const band = el.querySelector('.band');
+    band.querySelectorAll('.flag').forEach(f => f.remove());
+    const owner = owners[i];
+    if(owner !== undefined && owner !== null && teams[owner]){
+      const flag = document.createElement('span');
+      flag.className = 'flag';
+      flag.style.color = teams[owner].color;
+      band.appendChild(flag);
+      el.style.background = hexToRgba(teams[owner].color, 0.08);
+    }else{
+      el.style.background = '';
+    }
+  });
+}
+
+/* 말(토큰) */
+function buildTokens(){
+  const layer = $('tokenLayer');
+  layer.innerHTML = '';
+  tokenEls = teams.map((t,i) => {
+    const el = document.createElement('div');
+    el.className = 'token';
+    el.style.background = t.color;
+    el.style.zIndex = 10 + i;
+    layer.appendChild(el);
+    return el;
+  });
+  positionAllTokens(false);
+}
+function cellCenter(idx){
+  const wrap = $('boardWrap'), cell = cellEls[idx];
+  const wr = wrap.getBoundingClientRect(), cr = cell.getBoundingClientRect();
+  return { x: (cr.left - wr.left + cr.width/2) / wr.width * 100,
+           y: (cr.top  - wr.top  + cr.height/2) / wr.height * 100 };
+}
+const TOKEN_OFF = [[-1,-1],[1,-1],[-1,1],[1,1]];
+function tokenXY(teamIdx){
+  const c = cellCenter(teams[teamIdx].pos);
+  return { x: c.x + TOKEN_OFF[teamIdx][0]*1.5, y: c.y + TOKEN_OFF[teamIdx][1]*1.5 };
+}
+function positionAllTokens(){
+  teams.forEach((_,i) => {
+    const p = tokenXY(i);
+    tokenEls[i].style.left = p.x + '%';
+    tokenEls[i].style.top  = p.y + '%';
+  });
+}
+async function hopToken(teamIdx){
+  const el = tokenEls[teamIdx], p = tokenXY(teamIdx);
+  el.classList.remove('fly');
+  el.classList.add('hop');
+  el.style.left = p.x + '%'; el.style.top = p.y + '%';
+  await sleep(150);
+  el.classList.remove('hop');
+}
+async function flyToken(teamIdx){
+  const el = tokenEls[teamIdx], p = tokenXY(teamIdx);
+  el.classList.add('fly');
+  el.style.left = p.x + '%'; el.style.top = p.y + '%';
+  await sleep(450);
+  el.classList.remove('fly');
+}
+window.addEventListener('resize', () => { if(teams && tokenEls.length) positionAllTokens(); });
+
+/* 팀 패널 */
+function buildPanel(){
+  const panel = $('teamPanel');
+  panel.innerHTML = '';
+  teams.forEach((t,i) => {
+    const card = document.createElement('div');
+    card.className = 'tcard';
+    card.style.setProperty('--tc', t.color);
+    card.innerHTML = `<span class="dot"></span>
+      <div class="info"><div class="tname">${esc(t.name)}</div><div class="tmeta"><span class="lands"></span></div></div>
+      <div class="badges"></div>
+      <div class="tscore">0</div>`;
+    panel.appendChild(card);
+  });
+  updatePanel();
+}
+function updatePanel(){
+  [...$('teamPanel').children].forEach((card,i) => {
+    const t = teams[i];
+    card.classList.toggle('cur', i === turn);
+    card.querySelector('.lands').textContent = `획득한 땅 ${t.lands.length}개`;
+    card.querySelector('.tscore').textContent = t.score;
+    const b = card.querySelector('.badges');
+    b.innerHTML = (t.doubleNext ? '<span class="stat x2">×2</span>' : '') +
+                  (t.skip ? '<span class="stat rest">🏝 쉼</span>' : '');
+  });
+}
+function animateScore(teamIdx, from, to){
+  const el = $('teamPanel').children[teamIdx].querySelector('.tscore');
+  if(REDUCED || from === to){ el.textContent = to; return; }
+  const start = performance.now(), dur = 500;
+  (function tick(now){
+    const p = Math.min(1, (now - start) / dur);
+    el.textContent = Math.round(from + (to - from) * p);
+    if(p < 1) requestAnimationFrame(tick);
+  })(start);
+}
+function addScore(teamIdx, delta){
+  const t = teams[teamIdx], from = t.score;
+  t.score += delta;
+  animateScore(teamIdx, from, t.score);
+  updatePanel();
+}
+
+/* HUD */
+function updateHud(){
+  const t = teams[turn];
+  $('curTeam').querySelector('.dot').style.background = t.color;
+  $('curTeam').querySelector('.nm').textContent = `${t.name} 차례!`;
+  $('rollBtn').disabled = busy || timeUp;
+  renderTimer();
+}
+function renderTimer(){
+  const m = Math.floor(Math.max(0,timeLeft)/60), s = Math.max(0,timeLeft)%60;
+  const el = $('timer');
+  el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  el.classList.toggle('low', timeLeft <= 60);
+}
+function centerMsg(msg){ $('centerMsg').textContent = msg || ''; }
+
+let toastTimer = null;
+function toast(msg, ms){
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('on');
+  clearTimeout(toastTimer);
+  const dur = ms || 1400;
+  toastTimer = setTimeout(() => el.classList.remove('on'), dur);
+  return sleep(dur * 0.85);
+}
+
+/* 타이머 */
+function startTimer(){
+  clearInterval(timerId);
+  renderTimer();
+  timerId = setInterval(() => {
+    timeLeft--;
+    renderTimer();
+    save();
+    if(timeLeft <= 0){
+      clearInterval(timerId);
+      timeUp = true;
+      $('rollBtn').disabled = true;
+      // 진행 중 이벤트(문제 모달 등)가 있으면 마저 처리 후 종료 (nextTurn 에서 처리)
+      if(!busy) showResult();
+      else toast('⏰ 시간 종료! 이번 문제까지만 진행해요');
+    }
+  }, 1000);
+}
+
+function enterGame(){
+  $('startScreen').classList.remove('on');
+  $('resultScreen').classList.remove('on');
+  $('gameScreen').classList.add('on');
+  buildBoard();
+  buildTokens();
+  buildPanel();
+  updateHud();
+  centerMsg('주사위를 굴려 시작하세요!');
+  startTimer();
+  requestAnimationFrame(positionAllTokens);
+}
+
+/* ============================================================
+ * 주사위 & 턴 진행
+ * ============================================================ */
+const PIP_MAP = {1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+function setDice(v){
+  const pips = $('dice').querySelectorAll('.pip');
+  pips.forEach((p,i) => p.classList.toggle('on', PIP_MAP[v].includes(i)));
+}
+function rollDice(){
+  return new Promise(res => {
+    const n = 1 + Math.floor(Math.random()*6);
+    if(REDUCED){ setDice(n); return res(n); }
+    const dice = $('dice');
+    dice.classList.add('rolling');
+    let ticks = 0;
+    const iv = setInterval(() => {
+      setDice(1 + Math.floor(Math.random()*6));
+      if(++ticks >= 10){          // 약 0.8초 롤링
+        clearInterval(iv);
+        dice.classList.remove('rolling');
+        setDice(n);
+        res(n);
+      }
+    }, 80);
+  });
+}
+
+async function onRoll(){
+  if(busy || timeUp) return;
+  busy = true;
+  updateHud();
+  centerMsg('');
+  const team = teams[turn];
+  const n = await rollDice();
+  await toast(`🎲 ${n}!`, 800);
+  await moveForward(turn, n);
+  await handleArrival(turn);
+  busy = false;
+  if(rollAgain && !timeUp){
+    rollAgain = false;
+    save();
+    updateHud();
+    centerMsg(`${team.name} 한 번 더!`);
+    return;
+  }
+  rollAgain = false;
+  nextTurn();
+}
+
+async function moveForward(teamIdx, steps){
+  const t = teams[teamIdx];
+  for(let i=0;i<steps;i++){
+    t.pos = (t.pos + 1) % 24;
+    await hopToken(teamIdx);
+    if(t.pos === 0){
+      addScore(teamIdx, 50);
+      toast('▶ 출발 통과! +50점');
+    }
+  }
+}
+async function moveBackward(teamIdx, steps){
+  const t = teams[teamIdx];
+  for(let i=0;i<steps;i++){
+    t.pos = (t.pos + 23) % 24;
+    await hopToken(teamIdx);
+  }
+}
+async function teleport(teamIdx, pos){
+  teams[teamIdx].pos = pos;
+  await flyToken(teamIdx);
+}
+
+function nextTurn(){
+  save();
+  if(timeUp){ showResult(); return; }
+  turn = (turn + 1) % teams.length;
+  // 무인도: 한 턴 쉬기 (모든 팀이 쉬는 극단 상황도 안전하게 처리)
+  let guard = 0;
+  while(teams[turn].skip && guard < teams.length){
+    teams[turn].skip = false;
+    toast(`🏝 ${teams[turn].name} 무인도에서 한 턴 쉬어요!`, 1600);
+    turn = (turn + 1) % teams.length;
+    guard++;
+  }
+  save();
+  updateHud();
+  updatePanel();
+  centerMsg(`${teams[turn].name} 차례예요!`);
+}
+
+/* ============================================================
+ * 칸 도착 이벤트
+ * ============================================================ */
+async function handleArrival(teamIdx){
+  const t = teams[teamIdx];
+  const def = CELL_DEFS[t.pos];
+  switch(def.type){
+    case 'start': break;   // 통과/도착 보너스는 이동 중 처리
+    case 'unit':  await handleUnitCell(teamIdx, def); break;
+    case 'key':   await handleGoldenKey(teamIdx); break;
+    case 'island':
+      t.skip = true;
+      updatePanel();
+      await toast(`🏝 무인도! ${t.name}, 다음 턴 쉬어요`, 1600);
+      break;
+    case 'travel': await handleWorldTravel(teamIdx); break;
+    case 'double':
+      t.doubleNext = true;
+      updatePanel();
+      await toast(`★ 더블찬스! ${t.name}의 다음 문제 점수 2배!`, 1600);
+      break;
+  }
+}
+
+function consumeDouble(teamIdx){
+  const t = teams[teamIdx];
+  if(t.doubleNext){ t.doubleNext = false; updatePanel(); return 2; }
+  return 1;
+}
+
+async function handleUnitCell(teamIdx, def){
+  const t = teams[teamIdx];
+  const unit = unitOf(def.unit);
+  const pos = t.pos;
+  const ownerIdx = owners[pos];
+
+  if(ownerIdx === undefined || ownerIdx === null){
+    // 주인 없는 땅: 문제 도전
+    const mult = consumeDouble(teamIdx);
+    const ok = await askQuestion(drawQuestion(unit), unit, '단원 문제', mult);
+    if(ok){
+      owners[pos] = teamIdx;
+      t.lands.push(pos);
+      addScore(teamIdx, 100 * mult);
+      renderOwnership();
+      await toast(`🚩 ${t.name} 땅 획득! +${100*mult}점`, 1500);
+    }else{
+      await toast('아쉬워요! 다음 기회에…', 1200);
+    }
+  }else if(ownerIdx === teamIdx){
+    addScore(teamIdx, 30);
+    await toast(`😊 내 땅이에요! +30점`, 1300);
+  }else{
+    // 남의 땅: 통행료 문제
+    const owner = teams[ownerIdx];
+    await toast(`${owner.name}의 땅! 통행료 문제 도전!`, 1400);
+    const mult = consumeDouble(teamIdx);
+    const ok = await askQuestion(drawQuestion(unit), unit, '통행료 문제', mult);
+    if(ok){
+      await toast('🎉 통행료 면제!', 1300);
+    }else{
+      addScore(teamIdx, -50 * mult);
+      addScore(ownerIdx, 50);
+      await toast(`💸 통행료! ${t.name} -${50*mult}점 / ${owner.name} +50점`, 1800);
+    }
+  }
+}
+
+async function handleGoldenKey(teamIdx){
+  const t = teams[teamIdx];
+  const card = KEY_CARDS[Math.floor(Math.random() * KEY_CARDS.length)];
+  await showKeyCard(card);
+  switch(card.id){
+    case 'bonus': addScore(teamIdx, 80); await toast('💰 +80점!', 1200); break;
+    case 'fine':  addScore(teamIdx, -40); await toast('💸 -40점…', 1200); break;
+    case 'fwd2':
+      await moveForward(teamIdx, 2);
+      await handleArrival(teamIdx);
+      break;
+    case 'back2':
+      await moveBackward(teamIdx, 2);
+      await handleArrival(teamIdx);
+      break;
+    case 'tostart':
+      await teleport(teamIdx, 0);
+      addScore(teamIdx, 50);
+      await toast('▶ 출발! +50점', 1300);
+      break;
+    case 'again':
+      rollAgain = true;
+      await toast('🎲 한 번 더 굴리기!', 1300);
+      break;
+    case 'x2':
+      t.doubleNext = true;
+      updatePanel();
+      await toast('✨ 다음 문제 점수 2배!', 1300);
+      break;
+    case 'toisland':
+      await teleport(teamIdx, 6);
+      t.skip = true;
+      updatePanel();
+      await toast('🏝 무인도로! 다음 턴 쉬어요', 1500);
+      break;
+  }
+}
+
+function showKeyCard(card){
+  return new Promise(res => {
+    $('kcIcon').textContent = card.icon;
+    $('kcTitle').textContent = card.title;
+    $('kcDesc').textContent = card.desc;
+    const kc = $('keyCard');
+    kc.classList.remove('flip');
+    $('cardOverlay').classList.add('on');
+    setTimeout(() => kc.classList.add('flip'), REDUCED ? 0 : 500);
+    setTimeout(() => {
+      $('cardOverlay').classList.remove('on');
+      res();
+    }, REDUCED ? 400 : 2600);
+  });
+}
+
+async function handleWorldTravel(teamIdx){
+  const t = teams[teamIdx];
+  await toast('✈ 세계여행! 이동할 칸을 터치하세요', 1800);
+  centerMsg('✈ 이동할 칸을 터치하세요!');
+  const dest = await new Promise(res => {
+    cellEls.forEach((el, i) => {
+      if(i === t.pos) return;
+      el.classList.add('selectable');
+      el.onclick = () => res(i);
+    });
+  });
+  cellEls.forEach(el => { el.classList.remove('selectable'); el.onclick = null; });
+  centerMsg('');
+  await teleport(teamIdx, dest);
+  await handleArrival(teamIdx);   // 도착 칸 이벤트 연쇄 처리
+}
+
+/* ============================================================
+ * 문제 출제
+ * ============================================================ */
+function drawQuestion(unit){
+  let deck = decks[unit.id];
+  if(!deck || deck.length === 0){
+    deck = decks[unit.id] = shuffle(unit.questions.map((_,i)=>i));  // 소진 시 리셋
+  }
+  const q = unit.questions[deck.pop()];
+  return prepQuestion(q);
+}
+/* 보기/단어 셔플 (정답이 전부 index 0 이므로 필수) */
+function prepQuestion(q){
+  if(q.t === 'o'){
+    const orig = q.w.join('');
+    const allSame = q.w.every(w => w === q.w[0]);
+    let sh = [...q.w];
+    if(q.w.length > 1 && !allSame){
+      do{ shuffle(sh); }while(sh.join('') === orig);
+    }
+    return { t:'o', ko:q.ko, w:q.w, shuffled:sh };
+  }
+  const order = shuffle(q.o.map((_,i)=>i));
+  return { t:q.t, q:q.q, o:order.map(i => q.o[i]), a:order.indexOf(q.a) };
+}
+
+function blankHtml(text, fill){
+  const parts = text.split('___').map(esc);
+  const filler = fill !== undefined ? `<span class="blank">${esc(fill)}</span>` : `<span class="blank">___</span>`;
+  return parts.join(filler);
+}
+
+/* 문제 모달: 정답 여부를 resolve */
+function askQuestion(q, unit, kindLabel, mult){
+  return new Promise(res => {
+    const modal = $('qModal'), cardEl = $('qCard');
+    cardEl.style.setProperty('--uc', unit.color);
+    cardEl.classList.remove('shake');
+
+    const head = `<div class="q-head">
+        <span class="q-badge">${unit.id}단원</span>
+        <span class="q-badge kind">${esc(kindLabel)}</span>
+        ${mult === 2 ? '<span class="q-badge x2">✨ 점수 2배!</span>' : ''}
+      </div>`;
+
+    let answerText;   // 정답 문장 노출용 HTML
+    function finish(ok){
+      const fb = cardEl.querySelector('.q-feedback');
+      fb.textContent = ok ? '🎉 정답이에요!' : '😢 아쉬워요, 오답!';
+      fb.classList.add(ok ? 'ok' : 'no');
+      if(ok) confetti(); else if(!REDUCED) cardEl.classList.add('shake');
+      setTimeout(() => {
+        const ans = cardEl.querySelector('.q-answer');
+        ans.innerHTML = answerText;
+        ans.classList.add('on');
+        setTimeout(() => { modal.classList.remove('on'); res(ok); }, 2000);  // 정답 문장 2초 노출
+      }, REDUCED ? 100 : 700);
+    }
+
+    if(q.t === 'o'){
+      /* 문장 배열 */
+      answerText = `정답: ${esc(q.w.join(' '))}`;
+      cardEl.innerHTML = `${head}
+        <div class="q-text">🧩 순서대로 배열하세요:<br>“${esc(q.ko)}”</div>
+        <div class="q-arrange">
+          <div class="slots"></div>
+          <div class="pool"></div>
+          <button class="q-confirm" disabled>확인</button>
+        </div>
+        <div class="q-feedback"></div><div class="q-answer"></div>`;
+      const slots = cardEl.querySelector('.slots');
+      const pool = cardEl.querySelector('.pool');
+      const confirmBtn = cardEl.querySelector('.q-confirm');
+      let done = false;
+
+      function refresh(){ confirmBtn.disabled = pool.children.length !== 0; }
+      q.shuffled.forEach(word => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'chip';
+        chip.textContent = word;
+        chip.onclick = () => {           // 칩 터치 → 배치 / 배치된 칩 터치 → 되돌리기
+          if(done) return;
+          (chip.parentElement === pool ? slots : pool).appendChild(chip);
+          refresh();
+        };
+        pool.appendChild(chip);
+      });
+      confirmBtn.onclick = () => {
+        if(done || pool.children.length) return;
+        done = true;
+        confirmBtn.disabled = true;
+        const arranged = [...slots.children].map(c => c.textContent);
+        finish(arranged.join('') === q.w.join(''));
+      };
+    }else{
+      /* 4지선다 / 빈칸 */
+      const qHtml = q.t === 'b' ? blankHtml(q.q) : esc(q.q);
+      answerText = q.t === 'b'
+        ? `정답: ${blankHtml(q.q, q.o[q.a])}`
+        : `정답: ${esc(q.o[q.a])}`;
+      cardEl.innerHTML = `${head}
+        <div class="q-text">${qHtml}</div>
+        <div class="q-opts">${q.o.map((o,i) =>
+          `<button type="button" data-i="${i}">${esc(o)}</button>`).join('')}</div>
+        <div class="q-feedback"></div><div class="q-answer"></div>`;
+      let done = false;
+      cardEl.querySelectorAll('.q-opts button').forEach(btn => {
+        btn.onclick = () => {
+          if(done) return;
+          done = true;
+          const pick = +btn.dataset.i;
+          const ok = pick === q.a;
+          cardEl.querySelectorAll('.q-opts button').forEach(b => {
+            b.disabled = true;
+            const i = +b.dataset.i;
+            if(i === q.a) b.classList.add('right');
+            else if(i === pick) b.classList.add('wrong');
+          });
+          finish(ok);
+        };
+      });
+    }
+    modal.classList.add('on');
+  });
+}
+
+/* 컨페티 (15개 이내) */
+function confetti(){
+  if(REDUCED) return;
+  const colors = ['#f5c542','#e53935','#1e88e5','#43a047','#ec407a','#7c4dff'];
+  for(let i=0;i<12;i++){
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = (10 + Math.random()*80) + 'vw';
+    c.style.background = colors[i % colors.length];
+    c.style.animationDelay = (Math.random()*0.25) + 's';
+    c.style.transform = `rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 1600);
+  }
+}
+
+/* ============================================================
+ * 결과 화면
+ * ============================================================ */
+function showResult(){
+  clearInterval(timerId);
+  clearSave();
+  $('gameScreen').classList.remove('on');
+  $('resultScreen').classList.add('on');
+  // 동점이면 획득 땅 수로 판정
+  const ranked = teams.map((t,i) => ({...t, idx:i}))
+    .sort((a,b) => b.score - a.score || b.lands.length - a.lands.length);
+  const medals = ['🥇','🥈','🥉','🎖'];
+  $('rankList').innerHTML = ranked.map((t,r) => `
+    <div class="rank-row ${r===0?'first':''}" style="--tc:${t.color}">
+      <span class="medal">${medals[r] || ''}</span>
+      <span class="dot"></span>
+      <span class="rname">${esc(t.name)}</span>
+      <span class="rlands">땅 ${t.lands.length}개</span>
+      <span class="rscore">${t.score}점</span>
+    </div>`).join('');
+  $('resultSub').textContent = `${ranked[0].name} 우승! 🎉`;
+  confetti();
+}
+$('againBtn').onclick = () => {
+  clearSave();
+  $('resultScreen').classList.remove('on');
+  $('startScreen').classList.add('on');
+};
+
+/* ============================================================
+ * 부팅: 저장된 게임 확인
+ * ============================================================ */
+initStartScreen();
+(function boot(){
+  const s = loadSave();
+  if(!s) return;
+  const m = Math.floor(s.timeLeft/60), sec = s.timeLeft%60;
+  $('resumeInfo').textContent =
+    `${SUBJECTS[s.subjectKey].name} · ${s.teams.map(t=>t.name).join(', ')} · 남은 시간 ${m}:${String(sec).padStart(2,'0')}`;
+  $('resumeBox').classList.add('on');
+  $('resumeBtn').onclick = () => { $('resumeBox').classList.remove('on'); resumeGame(s); };
+  $('newGameBtn').onclick = () => { clearSave(); $('resumeBox').classList.remove('on'); };
+})();
+</script>
+</body>
+</html>
