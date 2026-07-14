@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>6학년 영어 부루마블</title>
-<!-- 외부 요청은 Jua 폰트 1건 + 개인전 점수 제출용 Google Form POST 만 예외 허용 (스펙) -->
+<!-- 외부 요청 허용: Jua 폰트, 점수 제출용 Google Form POST, 같이하기(멀티) 설정 시에만 Firebase SDK -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
@@ -69,6 +69,12 @@ select{width:100%;min-height:52px;font-size:16px;border:2px solid var(--cell-lin
 .team-name-row{display:flex;align-items:center;gap:8px;border:2px solid var(--cell-line);border-radius:12px;padding:6px 10px}
 .team-name-row .dot{width:18px;height:18px;border-radius:50%;flex-shrink:0;border:2px solid rgba(0,0,0,.12)}
 .team-name-row input{border:none;outline:none;width:100%;min-height:38px;font-size:16px;font-family:inherit}
+/* 같이하기(멀티) 옵션 */
+.join-tabs{display:flex;gap:8px;margin-bottom:12px}
+.join-tabs button{flex:1;min-height:48px;border:2px solid var(--cell-line);background:#fff;border-radius:12px;font-weight:800;color:var(--muted)}
+.join-tabs button.sel{background:var(--board-frame);border-color:var(--board-frame);color:#fff}
+#roomCodeInput{width:100%;min-height:52px;font-size:22px;letter-spacing:.2em;text-align:center;
+  border:2px solid var(--cell-line);border-radius:12px;font-family:var(--jua);color:var(--ink)}
 #startBtn{width:100%;min-height:60px;border:none;border-radius:14px;background:var(--gold);
   color:#5c4300;font-family:var(--jua);font-size:24px;box-shadow:0 4px 0 #cfa32a;margin-top:4px}
 #startBtn:active{transform:translateY(2px);box-shadow:0 2px 0 #cfa32a}
@@ -256,6 +262,25 @@ select{width:100%;min-height:52px;font-size:16px;border:2px solid var(--cell-lin
 #againBtn{width:100%;min-height:58px;border:none;border-radius:14px;background:var(--board-frame);
   color:#fff;font-family:var(--jua);font-size:22px}
 
+/* ───────── 대기실(같이하기) ───────── */
+#lobbyScreen{align-items:center;justify-content:center;background:
+  radial-gradient(circle at 50% 10%, #fdf9ec 0%, #efe8d6 70%);overflow:auto}
+.lobby-card{background:#fff;border-radius:24px;box-shadow:0 12px 40px rgba(30,58,95,.18);
+  padding:28px 26px;width:min(460px,94vw);margin:16px auto;text-align:center;border-top:10px solid var(--board-frame)}
+.lobby-card h1{font-family:var(--jua);font-size:26px;color:var(--board-frame);margin-bottom:14px}
+#roomCodeDisplay{font-family:var(--jua);font-size:48px;letter-spacing:.18em;color:var(--board-frame);
+  background:#fafaf6;border:2px dashed var(--cell-line);border-radius:14px;padding:10px 0;margin-bottom:16px}
+#lobbyList{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.lobby-row{display:flex;align-items:center;gap:10px;background:#fafaf6;border-radius:12px;padding:10px 14px;text-align:left}
+.lobby-row .dot{width:16px;height:16px;border-radius:50%;flex-shrink:0;border:2px solid rgba(0,0,0,.12)}
+.lobby-row .lname{flex:1;font-weight:700;font-size:14px}
+.lobby-row .conn{color:#43a047;font-size:12px;font-weight:800}
+.lobby-row .conn.off{color:#c62828}
+#lobbyStartBtn{width:100%;min-height:58px;border:none;border-radius:14px;background:var(--gold);
+  color:#5c4300;font-family:var(--jua);font-size:22px;margin-bottom:10px}
+#lobbyLeaveBtn{width:100%;min-height:52px;border:2px solid var(--cell-line);border-radius:14px;background:#fff;
+  color:var(--muted);font-weight:800}
+
 /* 모션 최소화 */
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -276,6 +301,7 @@ select{width:100%;min-height:52px;font-size:16px;border:2px solid var(--cell-lin
     <div class="mode-tabs" id="modeTabs">
       <button data-mode="solo" class="sel">🧑 개인전</button>
       <button data-mode="group">👥 모둠전</button>
+      <button data-mode="multi" id="multiTabBtn" style="display:none">🌐 같이하기</button>
     </div>
 
     <!-- 개인전 옵션 -->
@@ -336,6 +362,50 @@ select{width:100%;min-height:52px;font-size:16px;border:2px solid var(--cell-lin
       </div>
     </div>
 
+    <!-- 같이하기(멀티) 옵션 -->
+    <div id="multiOpts" style="display:none">
+      <div class="field">
+        <div class="stepper-row">
+          <div class="stepper-box">
+            <label>반</label>
+            <div class="stepper" id="mClsStep">
+              <button data-d="-1">−</button><span class="st-val">1</span><button data-d="1">＋</button>
+            </div>
+          </div>
+          <div class="stepper-box">
+            <label>번호</label>
+            <div class="stepper" id="mNumStep">
+              <button data-d="-1">−</button><span class="st-val">1</span><button data-d="1">＋</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="join-tabs" id="joinTabs">
+        <button data-j="create" class="sel">방 만들기</button>
+        <button data-j="join">방 코드로 입장</button>
+      </div>
+      <div id="createBox">
+        <div class="field">
+          <label>참가 인원 (2~4명)</label>
+          <div class="seg" id="multiTeamCountSeg">
+            <button data-n="2">2명</button><button data-n="3" class="sel">3명</button><button data-n="4">4명</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>게임 시간</label>
+          <div class="seg" id="multiTimeSeg">
+            <button data-m="15">15분</button><button data-m="20" class="sel">20분</button><button data-m="25">25분</button>
+          </div>
+        </div>
+      </div>
+      <div id="joinBox" style="display:none">
+        <div class="field">
+          <label>방 코드 (4자리)</label>
+          <input id="roomCodeInput" maxlength="4" inputmode="numeric" placeholder="0000">
+        </div>
+      </div>
+    </div>
+
     <button id="startBtn">게임 시작!</button>
   </div>
 </div>
@@ -349,6 +419,17 @@ select{width:100%;min-height:52px;font-size:16px;border:2px solid var(--cell-lin
       <button id="newGameBtn">새 게임</button>
       <button id="resumeBtn" class="primary">이어하기</button>
     </div>
+  </div>
+</div>
+
+<!-- 같이하기 대기실 -->
+<div id="lobbyScreen" class="screen">
+  <div class="lobby-card">
+    <h1>🌐 대기실</h1>
+    <div id="roomCodeDisplay">----</div>
+    <div id="lobbyList"></div>
+    <button id="lobbyStartBtn" style="display:none">게임 시작!</button>
+    <button id="lobbyLeaveBtn">나가기</button>
   </div>
 </div>
 
@@ -398,6 +479,22 @@ select{width:100%;min-height:52px;font-size:16px;border:2px solid var(--cell-lin
 const SUBMIT_FORM = {
   url: "",
   entries: { cls: "", num: "", team: "", score: "", lands: "" }
+};
+
+/* ============================================================
+ * 같이하기(멀티) 설정 (Firebase Realtime Database)
+ * - 아래 값이 비어 있으면 "같이하기" 탭 자체가 숨겨지고, 개인전/모둠전은
+ *   Firebase 없이 지금까지와 완전히 동일하게 동작한다.
+ * - 설정 방법은 같은 폴더의 README.md 참고.
+ * ============================================================ */
+const FIREBASE_CONFIG = {
+  apiKey: "",
+  authDomain: "",
+  databaseURL: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
 };
 
 /* ============================================================
@@ -565,13 +662,20 @@ const KEY_CARDS = [
 
 /* ── 상태 ── */
 let subject, teams, turn, decks, owners, timeLeft, totalTime;
-let mode = 'solo';               // 'solo' | 'group'
-let playerIdx = 0;               // 개인전: 내 팀 index
-let player = {cls: 1, num: 1};   // 개인전: 반/번호
+let mode = 'solo';               // 'solo' | 'group' | 'multi'
+let playerIdx = 0;               // 개인전/같이하기: 내 팀 index
+let player = {cls: 1, num: 1};   // 개인전/같이하기: 반/번호 (제출·대기실 표시용)
 let botAcc = 0.6;                // 개인전: 봇 정답률
 let gameId = null;               // 제출 중복 방지용
 let busy = false, timeUp = false, rollAgain = false, timerId = null;
 let cellEls = [], tokenEls = [];
+
+/* ── 같이하기(멀티) 상태 ── */
+let fbApp = null, fbDb = null, fbReady = false;
+let curRoomCode = null, roomRef = null, roomListener = null;
+let isHost = false, gameStartedFromRoom = false, resultShown = false;
+let myPlayerRef = null, heartbeatId = null, watchdogId = null;
+let selMultiTeamCount = 3, selMultiMin = 20, joinType = 'create';
 
 const $ = id => document.getElementById(id);
 const sleep = ms => new Promise(r => setTimeout(r, REDUCED ? 0 : ms));
@@ -590,6 +694,38 @@ function isBot(i){ return mode === 'solo' && i !== playerIdx; }
 function submitConfigured(){
   return !!SUBMIT_FORM.url && Object.values(SUBMIT_FORM.entries).every(v => !!v);
 }
+function firebaseConfigured(){
+  return !!(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.databaseURL);
+}
+function loadScript(src){
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+async function initFirebase(){
+  if(!firebaseConfigured()) return false;
+  if(fbReady) return true;
+  try{
+    await loadScript('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
+    await loadScript('https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js');
+    fbApp = firebase.initializeApp(FIREBASE_CONFIG);
+    fbDb = firebase.database();
+    fbReady = true;
+  }catch(e){ fbReady = false; }
+  return fbReady;
+}
+function myUid(){
+  let id;
+  try{ id = localStorage.getItem('bbm-uid'); }catch(e){}
+  if(!id){
+    id = 'p' + Math.random().toString(36).slice(2, 10);
+    try{ localStorage.setItem('bbm-uid', id); }catch(e){}
+  }
+  return id;
+}
+function genRoomCode(){ return String(Math.floor(1000 + Math.random()*9000)); }
 
 /* ── 저장/복원 ── */
 function save(){
@@ -649,6 +785,8 @@ function initStartScreen(){
     $('modeTabs').querySelectorAll('button').forEach(x => x.classList.toggle('sel', x === b));
     $('soloOpts').style.display = mode === 'solo' ? '' : 'none';
     $('groupOpts').style.display = mode === 'group' ? '' : 'none';
+    $('multiOpts').style.display = mode === 'multi' ? '' : 'none';
+    updateStartBtnLabel();
   });
 
   stepperInit('clsStep', 1, 20, v => { player.cls = v; });
@@ -659,7 +797,39 @@ function initStartScreen(){
   segInit('teamCountSeg', 'n', v => { selTeamCount = +v; renderNameInputs(); });
   segInit('groupTimeSeg', 'm', v => { selGroupMin = +v; });
   renderNameInputs();
-  $('startBtn').onclick = startNewGame;
+
+  // 같이하기(멀티) 컨트롤 — Firebase 설정 시에만 탭이 보인다
+  stepperInit('mClsStep', 1, 20, v => { player.cls = v; });
+  stepperInit('mNumStep', 1, 40, v => { player.num = v; });
+  $('joinTabs').querySelectorAll('button').forEach(b => b.onclick = () => {
+    joinType = b.dataset.j;
+    $('joinTabs').querySelectorAll('button').forEach(x => x.classList.toggle('sel', x === b));
+    $('createBox').style.display = joinType === 'create' ? '' : 'none';
+    $('joinBox').style.display = joinType === 'join' ? '' : 'none';
+    updateStartBtnLabel();
+  });
+  segInit('multiTeamCountSeg', 'n', v => { selMultiTeamCount = +v; });
+  segInit('multiTimeSeg', 'm', v => { selMultiMin = +v; });
+  if(firebaseConfigured()){
+    $('multiTabBtn').style.display = '';
+    initFirebase();   // 백그라운드 사전 로드 (실패해도 개인전/모둠전엔 영향 없음)
+  }
+
+  $('startBtn').onclick = () => {
+    if(mode === 'multi'){ enterMultiFlow(); return; }
+    startNewGame();
+  };
+  $('lobbyStartBtn').onclick = hostStartMultiGame;
+  $('lobbyLeaveBtn').onclick = () => {
+    leaveRoom();
+    $('lobbyScreen').classList.remove('on');
+    $('startScreen').classList.add('on');
+  };
+}
+function updateStartBtnLabel(){
+  $('startBtn').textContent = (mode === 'multi')
+    ? (joinType === 'create' ? '방 만들기' : '방 참가하기')
+    : '게임 시작!';
 }
 function renderNameInputs(){
   const box = $('teamNames');
@@ -710,6 +880,219 @@ function resumeGame(s){
   timeLeft = s.timeLeft; totalTime = s.totalTime;
   timeUp = false; busy = false; rollAgain = false;
   enterGame();
+}
+
+/* ============================================================
+ * 같이하기(멀티) — Firebase Realtime Database
+ * 방(rooms/{code})에는 players(참가자)와 state(게임 진행 상태)를 둔다.
+ * 현재 턴인 플레이어의 기기만 state 를 쓰고, 나머지는 onValue 구독으로 렌더링만 한다.
+ * ============================================================ */
+async function enterMultiFlow(){
+  const btn = $('startBtn');
+  btn.disabled = true;
+  const ok = await initFirebase();
+  btn.disabled = false;
+  if(!ok){ toast('Firebase 연결에 실패했어요. 설정을 확인하세요.', 2200); return; }
+  if(joinType === 'create') await createRoom();
+  else await joinRoom($('roomCodeInput').value.trim());
+}
+
+async function createRoom(){
+  subjectKey = $('subjectSel').value;
+  subject = SUBJECTS[subjectKey];
+  curRoomCode = genRoomCode();
+  isHost = true;
+  gameStartedFromRoom = false; resultShown = false;
+  const uid = myUid();
+  roomRef = fbDb.ref('rooms/' + curRoomCode);
+  await roomRef.set({
+    phase: 'waiting',
+    hostUid: uid,
+    subjectKey,
+    teamCount: selMultiTeamCount,
+    duration: selMultiMin * 60,
+    createdAt: Date.now(),
+    players: { [uid]: { cls: player.cls, num: player.num, teamIdx: 0, connected: true, lastSeen: Date.now() } }
+  });
+  myPlayerRef = roomRef.child('players/' + uid);
+  myPlayerRef.onDisconnect().update({ connected: false });
+  saveMultiSession();
+  attachRoomListener();
+}
+
+async function joinRoom(code){
+  if(!/^\d{4}$/.test(code)){ toast('4자리 방 코드를 입력하세요.', 1800); return; }
+  const ref = fbDb.ref('rooms/' + code);
+  const snap = await ref.get();
+  if(!snap.exists()){ toast('방 코드를 찾을 수 없어요.', 1800); return; }
+  const room = snap.val();
+  if(room.phase !== 'waiting'){ toast('이미 시작됐거나 종료된 방이에요.', 1800); return; }
+  const count = Object.keys(room.players || {}).length;
+  if(count >= room.teamCount){ toast('방이 가득 찼어요.', 1800); return; }
+  curRoomCode = code;
+  isHost = false;
+  gameStartedFromRoom = false; resultShown = false;
+  subjectKey = room.subjectKey;
+  subject = SUBJECTS[subjectKey];
+  const uid = myUid();
+  roomRef = ref;
+  await ref.child('players/' + uid).set({ cls: player.cls, num: player.num, teamIdx: count, connected: true, lastSeen: Date.now() });
+  myPlayerRef = ref.child('players/' + uid);
+  myPlayerRef.onDisconnect().update({ connected: false });
+  saveMultiSession();
+  attachRoomListener();
+}
+
+function attachRoomListener(){
+  $('startScreen').classList.remove('on');
+  $('lobbyScreen').classList.add('on');
+  roomListener = roomRef.on('value', snap => {
+    const room = snap.val();
+    if(!room) return;   // 방장이 나가서 삭제됐거나 아직 반영 전
+    if(room.phase === 'waiting'){
+      renderLobby(room);
+    }else if(room.phase === 'playing'){
+      if(!gameStartedFromRoom){
+        gameStartedFromRoom = true;
+        mode = 'multi';
+        subjectKey = room.subjectKey; subject = SUBJECTS[subjectKey];
+        const me = (room.players || {})[myUid()];
+        if(me){ playerIdx = me.teamIdx; player = { cls: me.cls, num: me.num }; }  // 새로고침 재접속 시 반/번호 복원
+        applyRoomState(room.state);
+        $('lobbyScreen').classList.remove('on');
+        enterGame();
+        startHeartbeat();
+        if(isHost) startHostWatchdog();
+      }else if(turn !== playerIdx){
+        // 내 턴이 아닐 때만 원격 상태 반영 (내 턴 진행 중엔 로컬이 최신 상태)
+        applyRoomState(room.state);
+        renderOwnership();
+        positionAllTokens();
+        updatePanel();
+        updateHud();
+        centerMsg(turn === playerIdx ? '내 차례! 주사위를 굴리세요' : `${teams[turn].name} 차례를 기다리는 중…`);
+      }
+    }else if(room.phase === 'finished'){
+      if(gameStartedFromRoom) applyRoomState(room.state);
+      showResult();
+    }
+  });
+}
+
+function renderLobby(room){
+  $('roomCodeDisplay').textContent = curRoomCode;
+  const uid = myUid();
+  const list = Object.entries(room.players || {}).sort((a,b) => a[1].teamIdx - b[1].teamIdx);
+  $('lobbyList').innerHTML = list.map(([pid,p]) => `
+    <div class="lobby-row">
+      <span class="dot" style="background:${TEAM_COLORS[p.teamIdx]}"></span>
+      <span class="lname">${esc(p.cls)}반 ${esc(p.num)}번 ${pid===room.hostUid?'👑':''}${pid===uid?' (나)':''}</span>
+      <span class="conn ${p.connected?'':'off'}">${p.connected?'● 접속중':'○ 끊김'}</span>
+    </div>`).join('') || '<p style="color:var(--muted)">참가자를 기다리는 중…</p>';
+  const me = (room.players || {})[uid];
+  if(me) playerIdx = me.teamIdx;
+  $('lobbyStartBtn').style.display = (isHost && list.length >= 2) ? '' : 'none';
+}
+
+async function hostStartMultiGame(){
+  if(!isHost || !roomRef) return;
+  const snap = await roomRef.get();
+  const room = snap.val();
+  if(!room || room.phase !== 'waiting') return;
+  const teamCount = room.teamCount;
+  const subj = SUBJECTS[room.subjectKey];
+  const teams0 = Array.from({length: teamCount}, (_,i) => ({
+    name: `${i+1}팀`, color: TEAM_COLORS[i], score: 0, pos: 0, lands: [], skip: false, doubleNext: false
+  }));
+  const decks0 = {};
+  subj.units.forEach(u => decks0[u.id] = shuffle(u.questions.map((_,i)=>i)));
+  await roomRef.update({
+    phase: 'playing',
+    state: { teams: teams0, turn: 0, owners: {}, decks: decks0,
+             timeLeft: room.duration, totalTime: room.duration, rollAgain: false }
+  });
+}
+
+function applyRoomState(s){
+  teams = s.teams; turn = s.turn; owners = s.owners || {}; decks = s.decks;
+  timeLeft = s.timeLeft; totalTime = s.totalTime; rollAgain = !!s.rollAgain;
+}
+
+function syncMultiState(){
+  if(!roomRef) return;
+  roomRef.child('state').update({ teams, turn, owners, decks, timeLeft, rollAgain });
+}
+
+async function finishMultiGame(){
+  timeUp = true;
+  if(roomRef){
+    await roomRef.update({
+      phase: 'finished',
+      expiresAt: Date.now() + 24*3600*1000,
+      'state/timeLeft': 0, 'state/teams': teams, 'state/owners': owners
+    });
+  }
+  showResult();
+}
+
+function startHeartbeat(){
+  if(heartbeatId) clearInterval(heartbeatId);
+  heartbeatId = setInterval(() => {
+    if(myPlayerRef) myPlayerRef.update({ connected: true, lastSeen: Date.now() });
+  }, 8000);
+}
+
+function startHostWatchdog(){
+  if(watchdogId) clearInterval(watchdogId);
+  watchdogId = setInterval(async () => {
+    if(!isHost || !roomRef || timeUp) return;
+    const snap = await roomRef.child('players').get();
+    const players = snap.val() || {};
+    const cur = Object.values(players).find(p => p.teamIdx === turn);
+    if(cur && Date.now() - (cur.lastSeen || 0) > 45000){
+      hostForceSkipTurn();
+    }
+  }, 5000);
+}
+
+function hostForceSkipTurn(){
+  toast('⏭ 응답이 없어 다음 팀으로 넘어가요', 1500);
+  turn = (turn + 1) % teams.length;
+  let guard = 0;
+  while(teams[turn].skip && guard < teams.length){
+    teams[turn].skip = false;
+    turn = (turn + 1) % teams.length;
+    guard++;
+  }
+  syncMultiState();
+  beginTurn();
+}
+
+function stopMultiLoops(){
+  if(heartbeatId){ clearInterval(heartbeatId); heartbeatId = null; }
+  if(watchdogId){ clearInterval(watchdogId); watchdogId = null; }
+}
+
+function leaveRoom(){
+  stopMultiLoops();
+  if(roomRef && roomListener) roomRef.off('value', roomListener);
+  if(myPlayerRef) myPlayerRef.update({ connected: false });
+  clearMultiSession();
+  roomRef = null; roomListener = null; myPlayerRef = null;
+  curRoomCode = null; isHost = false; gameStartedFromRoom = false;
+}
+
+function saveMultiSession(){
+  try{ localStorage.setItem('bbm-multi-session', JSON.stringify({ code: curRoomCode, isHost })); }catch(e){}
+}
+function clearMultiSession(){
+  try{ localStorage.removeItem('bbm-multi-session'); }catch(e){}
+}
+function loadMultiSession(){
+  try{
+    const raw = localStorage.getItem('bbm-multi-session');
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
 }
 
 /* ============================================================
@@ -831,7 +1214,8 @@ function buildPanel(){
     const card = document.createElement('div');
     card.className = 'tcard';
     card.style.setProperty('--tc', t.color);
-    const tag = mode === 'solo' ? (i === playerIdx ? ' (나)' : ' 🤖') : '';
+    const tag = mode === 'solo' ? (i === playerIdx ? ' (나)' : ' 🤖')
+              : mode === 'multi' ? (i === playerIdx ? ' (나)' : '') : '';
     card.innerHTML = `<span class="dot"></span>
       <div class="info"><div class="tname">${esc(t.name)}${tag}</div><div class="tmeta"><span class="lands"></span></div></div>
       <div class="badges"></div>
@@ -873,7 +1257,7 @@ function updateHud(){
   const t = teams[turn];
   $('curTeam').querySelector('.dot').style.background = t.color;
   $('curTeam').querySelector('.nm').textContent = isBot(turn) ? `${t.name} (봇) 차례` : `${t.name} 차례!`;
-  $('rollBtn').disabled = busy || timeUp || isBot(turn);
+  $('rollBtn').disabled = busy || timeUp || isBot(turn) || (mode === 'multi' && turn !== playerIdx);
   renderTimer();
 }
 function renderTimer(){
@@ -902,6 +1286,19 @@ function startTimer(){
   timerId = setInterval(() => {
     timeLeft--;
     renderTimer();
+    if(mode === 'multi'){
+      if(isHost){
+        if(roomRef) roomRef.child('state/timeLeft').set(Math.max(0, timeLeft));
+        if(timeLeft <= 0){
+          clearInterval(timerId);
+          timeUp = true;
+          $('rollBtn').disabled = true;
+          if(!busy) finishMultiGame();
+          else toast('⏰ 시간 종료! 이번 문제까지만 진행해요');
+        }
+      }
+      return;   // 호스트가 아니면: 화면 표시만 로컬로, 종료 판정은 호스트 기기만 수행
+    }
     save();
     if(timeLeft <= 0){
       clearInterval(timerId);
@@ -959,6 +1356,10 @@ function beginTurn(){
   updateHud();
   updatePanel();
   if(timeUp){ return; }
+  if(mode === 'multi' && turn !== playerIdx){
+    centerMsg(`${teams[turn].name} 차례를 기다리는 중…`);   // 다른 플레이어 기기에서 진행, 나는 상태 수신만
+    return;
+  }
   if(isBot(turn)){
     centerMsg(`🤖 ${teams[turn].name} 진행 중…`);
     runBotTurn();       // await 하지 않음 — 스택을 비우고 비동기로 진행
@@ -968,7 +1369,7 @@ function beginTurn(){
 }
 
 async function onRoll(){
-  if(busy || timeUp || isBot(turn)) return;
+  if(busy || timeUp || isBot(turn) || (mode === 'multi' && turn !== playerIdx)) return;
   busy = true;
   updateHud();
   centerMsg('');
@@ -995,6 +1396,7 @@ function endTurn(){
   if(rollAgain && !timeUp){
     rollAgain = false;
     save();
+    if(mode === 'multi') syncMultiState();
     if(isBot(turn)){ runBotTurn(); return; }   // 봇의 '한 번 더'도 자동 진행
     updateHud();
     centerMsg(`${teams[turn].name} 한 번 더!`);
@@ -1029,7 +1431,11 @@ async function teleport(teamIdx, pos){
 
 function nextTurn(){
   save();
-  if(timeUp){ showResult(); return; }
+  if(timeUp){
+    if(mode === 'multi'){ if(isHost) finishMultiGame(); return; }
+    showResult();
+    return;
+  }
   turn = (turn + 1) % teams.length;
   // 무인도: 한 턴 쉬기 (모든 팀이 쉬는 극단 상황도 안전하게 처리)
   let guard = 0;
@@ -1040,6 +1446,7 @@ function nextTurn(){
     guard++;
   }
   save();
+  if(mode === 'multi') syncMultiState();
   beginTurn();
 }
 
@@ -1359,7 +1766,10 @@ function confetti(){
  * 결과 화면 & 점수 제출
  * ============================================================ */
 function showResult(){
+  if(resultShown) return;   // 같이하기: phase 리스너와 로컬 종료 판정이 겹쳐 들어와도 중복 방지
+  resultShown = true;
   clearInterval(timerId);
+  stopMultiLoops();
   clearSave();
   $('gameScreen').classList.remove('on');
   $('resultScreen').classList.add('on');
@@ -1367,15 +1777,16 @@ function showResult(){
   const ranked = teams.map((t,i) => ({...t, idx:i}))
     .sort((a,b) => b.score - a.score || b.lands.length - a.lands.length);
   const medals = ['🥇','🥈','🥉','🎖'];
+  const isMine = mode !== 'group';   // 개인전/같이하기: "내 팀" 표시
   $('rankList').innerHTML = ranked.map((t,r) => `
-    <div class="rank-row ${r===0?'first':''} ${mode==='solo'&&t.idx===playerIdx?'me':''}" style="--tc:${t.color}">
+    <div class="rank-row ${r===0?'first':''} ${isMine&&t.idx===playerIdx?'me':''}" style="--tc:${t.color}">
       <span class="medal">${medals[r] || ''}</span>
       <span class="dot"></span>
-      <span class="rname">${esc(t.name)}${mode==='solo' ? (t.idx===playerIdx?' (나)':' 🤖') : ''}</span>
+      <span class="rname">${esc(t.name)}${mode==='solo' ? (t.idx===playerIdx?' (나)':' 🤖') : (isMine&&t.idx===playerIdx?' (나)':'')}</span>
       <span class="rlands">땅 ${t.lands.length}개</span>
       <span class="rscore">${t.score}점</span>
     </div>`).join('');
-  if(mode === 'solo'){
+  if(isMine){
     const myRank = ranked.findIndex(t => t.idx === playerIdx) + 1;
     $('resultSub').textContent = `${player.cls}반 ${player.num}번 — ${myRank}위! ${myRank===1?'🎉':''}`;
   }else{
@@ -1387,7 +1798,7 @@ function showResult(){
 
 function setupSubmitBtn(){
   const btn = $('submitBtn');
-  const show = mode === 'solo' && submitConfigured();
+  const show = (mode === 'solo' || mode === 'multi') && submitConfigured();
   btn.classList.toggle('show', show);
   if(!show) return;
   const flagKey = 'bbm-submitted-' + gameId;
@@ -1419,6 +1830,8 @@ function setupSubmitBtn(){
 
 $('againBtn').onclick = () => {
   clearSave();
+  if(mode === 'multi') leaveRoom();
+  resultShown = false;
   $('resultScreen').classList.remove('on');
   $('startScreen').classList.add('on');
 };
@@ -1429,15 +1842,39 @@ $('againBtn').onclick = () => {
 initStartScreen();
 (function boot(){
   const s = loadSave();
-  if(!s) return;
-  const m = Math.floor(s.timeLeft/60), sec = s.timeLeft%60;
-  const who = s.mode === 'solo'
-    ? `개인전 · ${s.player.cls}반 ${s.player.num}번 (${s.playerIdx+1}팀)`
-    : `모둠전 · ${s.teams.map(t=>t.name).join(', ')}`;
-  $('resumeInfo').textContent = `${SUBJECTS[s.subjectKey].name} · ${who} · 남은 시간 ${m}:${String(sec).padStart(2,'0')}`;
-  $('resumeBox').classList.add('on');
-  $('resumeBtn').onclick = () => { $('resumeBox').classList.remove('on'); resumeGame(s); };
-  $('newGameBtn').onclick = () => { clearSave(); $('resumeBox').classList.remove('on'); };
+  if(s){
+    const m = Math.floor(s.timeLeft/60), sec = s.timeLeft%60;
+    const who = s.mode === 'solo'
+      ? `개인전 · ${s.player.cls}반 ${s.player.num}번 (${s.playerIdx+1}팀)`
+      : `모둠전 · ${s.teams.map(t=>t.name).join(', ')}`;
+    $('resumeInfo').textContent = `${SUBJECTS[s.subjectKey].name} · ${who} · 남은 시간 ${m}:${String(sec).padStart(2,'0')}`;
+    $('resumeBox').classList.add('on');
+    $('resumeBtn').onclick = () => { $('resumeBox').classList.remove('on'); resumeGame(s); };
+    $('newGameBtn').onclick = () => { clearSave(); $('resumeBox').classList.remove('on'); };
+    return;
+  }
+  // 같이하기 재접속: 새로고침 전에 참여 중이던 방이 있으면 자동 재입장 시도
+  if(firebaseConfigured()){
+    const ms = loadMultiSession();
+    if(ms && ms.code){
+      (async () => {
+        const ok = await initFirebase();
+        if(!ok) return;
+        const ref = fbDb.ref('rooms/' + ms.code);
+        const snap = await ref.get();
+        const room = snap.val();
+        if(!room || room.phase === 'finished'){ clearMultiSession(); return; }
+        curRoomCode = ms.code; isHost = !!ms.isHost; roomRef = ref;
+        const uid = myUid();
+        myPlayerRef = ref.child('players/' + uid);
+        myPlayerRef.update({ connected: true, lastSeen: Date.now() });
+        myPlayerRef.onDisconnect().update({ connected: false });
+        gameStartedFromRoom = false; resultShown = false;
+        attachRoomListener();
+        toast('진행 중이던 방에 다시 연결했어요', 1800);
+      })();
+    }
+  }
 })();
 </script>
 </body>
