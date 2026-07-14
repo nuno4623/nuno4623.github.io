@@ -488,13 +488,13 @@ const SUBMIT_FORM = {
  * - 설정 방법은 같은 폴더의 README.md 참고.
  * ============================================================ */
 const FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  databaseURL: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyA8lEqOBOsSI07bDG9vIIe9QIMDdqBD6rg",
+  authDomain: "quizmarble-c87b2.firebaseapp.com",
+  databaseURL: "https://quizmarble-c87b2-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "quizmarble-c87b2",
+  storageBucket: "quizmarble-c87b2.firebasestorage.app",
+  messagingSenderId: "54148882727",
+  appId: "1:54148882727:web:d85895a2e1a4534cb40902"
 };
 
 /* ============================================================
@@ -891,10 +891,18 @@ async function enterMultiFlow(){
   const btn = $('startBtn');
   btn.disabled = true;
   const ok = await initFirebase();
-  btn.disabled = false;
-  if(!ok){ toast('Firebase 연결에 실패했어요. 설정을 확인하세요.', 2200); return; }
-  if(joinType === 'create') await createRoom();
-  else await joinRoom($('roomCodeInput').value.trim());
+  if(!ok){ btn.disabled = false; toast('Firebase 연결에 실패했어요. 설정을 확인하세요.', 2200); return; }
+  try{
+    if(joinType === 'create') await createRoom();
+    else await joinRoom($('roomCodeInput').value.trim());
+  }catch(e){
+    // 가장 흔한 원인: DB 보안 규칙 미설정(Permission denied)
+    const denied = /permission|denied/i.test(String(e && e.message || e));
+    toast(denied ? '방을 만들 수 없어요. (DB 규칙 설정 필요 — 선생님께 문의)'
+                 : '연결 문제로 실패했어요. 잠시 후 다시 시도하세요.', 2600);
+  }finally{
+    btn.disabled = false;
+  }
 }
 
 async function createRoom(){
@@ -1013,9 +1021,24 @@ async function hostStartMultiGame(){
   });
 }
 
+/* Firebase Realtime Database 는 빈 배열/객체를 저장하지 않고 생략한다(읽으면 undefined).
+ * 또 인덱스가 0..n 연속이면 배열, 아니면 객체로 돌려주므로, 원격 상태를 받을 때 정규화한다. */
+function toArr(v){ return Array.isArray(v) ? v : (v && typeof v === 'object' ? Object.values(v) : []); }
 function applyRoomState(s){
-  teams = s.teams; turn = s.turn; owners = s.owners || {}; decks = s.decks;
-  timeLeft = s.timeLeft; totalTime = s.totalTime; rollAgain = !!s.rollAgain;
+  if(!s) return;
+  teams = toArr(s.teams).map(t => ({
+    name: t.name, color: t.color,
+    score: t.score || 0, pos: t.pos || 0,
+    lands: toArr(t.lands), skip: !!t.skip, doubleNext: !!t.doubleNext
+  }));
+  turn = s.turn || 0;
+  owners = s.owners || {};
+  decks = {};
+  const rawDecks = s.decks || {};
+  for(const k in rawDecks) decks[k] = toArr(rawDecks[k]);
+  timeLeft = typeof s.timeLeft === 'number' ? s.timeLeft : totalTime;
+  totalTime = s.totalTime || totalTime;
+  rollAgain = !!s.rollAgain;
 }
 
 function syncMultiState(){
