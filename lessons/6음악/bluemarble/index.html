@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>6학년 음악 부루마블</title>
+<!-- 외부 요청 허용: Jua 폰트, 점수 제출용 Google Form POST, 같이하기(멀티) 설정 시에만 Firebase SDK -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{
+  --board-bg:#f8f4e9;      /* 보드 바탕: 크림(종이 질감) */
+  --board-frame:#1e3a5f;   /* 보드 외곽 프레임: 딥 네이비 */
+  --cell-bg:#ffffff;       /* 칸 기본 바탕 */
+  --cell-line:#d8d2c4;     /* 칸 구분선 */
+  --center-bg:#eef3ea;     /* 중앙 필드: 연한 그린 */
+  --gold:#f5c542;          /* 황금열쇠/포인트 강조 */
+  --team-1:#e53935; --team-2:#1e88e5; --team-3:#fdd835; --team-4:#43a047;
+  --ink:#22303a; --muted:#7a8a93;
+  --jua:'Jua','Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  --sys:'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:var(--sys);background:#e8e2d4;color:var(--ink);overflow:hidden;
+  line-height:1.45; /* 폰트 폴백 시에도 레이아웃 유지 */
+  touch-action:manipulation}
+button{font-family:inherit;line-height:1.45;cursor:pointer;touch-action:manipulation}
+.jua{font-family:var(--jua)}
+.screen{position:fixed;inset:0;display:none}
+.screen.on{display:flex}
+
+/* ───────── 시작 화면 ───────── */
+#startScreen{align-items:center;justify-content:center;background:
+  radial-gradient(circle at 20% 15%, #fdf9ec 0%, #efe8d6 60%, #e4dcc6 100%);overflow:auto}
+.setup-card{background:#fff;border-radius:24px;box-shadow:0 12px 40px rgba(30,58,95,.18);
+  padding:26px 26px 24px;width:min(600px,94vw);margin:16px auto;border-top:10px solid var(--board-frame)}
+.setup-title{font-family:var(--jua);font-size:32px;color:var(--board-frame);text-align:center;letter-spacing:.02em}
+.setup-sub{text-align:center;color:var(--muted);font-size:14px;margin:4px 0 16px}
+.field{margin-bottom:16px}
+.field>label{display:block;font-weight:800;font-size:14px;margin-bottom:8px;color:var(--board-frame)}
+select{width:100%;min-height:52px;font-size:16px;border:2px solid var(--cell-line);border-radius:12px;
+  padding:0 14px;background:#fff;font-family:inherit;color:var(--ink)}
+.seg{display:flex;gap:8px}
+.seg button{flex:1;min-height:52px;border:2px solid var(--cell-line);background:#fff;border-radius:12px;
+  font-size:16px;font-weight:800;color:var(--muted);padding:4px}
+.seg button.sel{background:var(--board-frame);border-color:var(--board-frame);color:#fff}
+.seg button .small{display:block;font-size:11px;font-weight:600;opacity:.75}
+/* 모드 탭 */
+.mode-tabs{display:flex;gap:8px;margin-bottom:16px}
+.mode-tabs button{flex:1;min-height:58px;border:2px solid var(--cell-line);background:#fff;border-radius:14px;
+  font-family:var(--jua);font-size:19px;color:var(--muted)}
+.mode-tabs button.sel{background:var(--gold);border-color:#cfa32a;color:#5c4300}
+/* 반/번호 스테퍼 */
+.stepper-row{display:flex;gap:12px}
+.stepper-box{flex:1}
+.stepper{display:flex;align-items:center;gap:6px;border:2px solid var(--cell-line);border-radius:12px;padding:4px}
+.stepper button{width:52px;min-height:48px;border:none;border-radius:9px;background:#eef1f4;
+  font-size:24px;font-weight:900;color:var(--board-frame);flex-shrink:0}
+.stepper button:active{background:#dde3e9}
+.stepper .st-val{flex:1;text-align:center;font-family:var(--jua);font-size:26px}
+/* 배정 팀 표시 */
+#teamAssign{display:flex;align-items:center;justify-content:center;gap:12px;background:#fafaf6;
+  border:2px dashed var(--cell-line);border-radius:14px;padding:12px;min-height:64px}
+#teamAssign .big-dot{width:34px;height:34px;border-radius:50%;border:3px solid rgba(0,0,0,.12)}
+#teamAssign .tx{font-family:var(--jua);font-size:26px}
+.team-names{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.team-name-row{display:flex;align-items:center;gap:8px;border:2px solid var(--cell-line);border-radius:12px;padding:6px 10px}
+.team-name-row .dot{width:18px;height:18px;border-radius:50%;flex-shrink:0;border:2px solid rgba(0,0,0,.12)}
+.team-name-row input{border:none;outline:none;width:100%;min-height:38px;font-size:16px;font-family:inherit}
+/* 같이하기(멀티) 옵션 */
+.join-tabs{display:flex;gap:8px;margin-bottom:12px}
+.join-tabs button{flex:1;min-height:48px;border:2px solid var(--cell-line);background:#fff;border-radius:12px;font-weight:800;color:var(--muted)}
+.join-tabs button.sel{background:var(--board-frame);border-color:var(--board-frame);color:#fff}
+#roomCodeInput{width:100%;min-height:52px;font-size:22px;letter-spacing:.2em;text-align:center;
+  border:2px solid var(--cell-line);border-radius:12px;font-family:var(--jua);color:var(--ink)}
+#startBtn{width:100%;min-height:60px;border:none;border-radius:14px;background:var(--gold);
+  color:#5c4300;font-family:var(--jua);font-size:24px;box-shadow:0 4px 0 #cfa32a;margin-top:4px}
+#startBtn:active{transform:translateY(2px);box-shadow:0 2px 0 #cfa32a}
+
+/* 이어하기 다이얼로그 */
+#resumeBox{position:fixed;inset:0;background:rgba(30,58,95,.55);display:none;align-items:center;justify-content:center;z-index:60}
+#resumeBox.on{display:flex}
+.resume-card{background:#fff;border-radius:20px;padding:28px 24px;width:min(420px,90vw);text-align:center}
+.resume-card h2{font-family:var(--jua);font-size:24px;color:var(--board-frame);margin-bottom:6px}
+.resume-card p{color:var(--muted);font-size:14px;margin-bottom:18px}
+.resume-card .btns{display:flex;gap:10px}
+.resume-card button{flex:1;min-height:58px;border-radius:12px;font-size:17px;font-weight:800;border:2px solid var(--cell-line);background:#fff}
+.resume-card button.primary{background:var(--board-frame);border-color:var(--board-frame);color:#fff}
+
+/* ───────── 게임 화면 ───────── */
+#gameScreen{background:#e8e2d4;padding:10px;gap:10px}
+@media (orientation:landscape){
+  #gameScreen{flex-direction:row;align-items:center;justify-content:center}
+  #boardWrap{height:calc(100vh - 20px);width:calc(100vh - 20px);max-width:62vw;max-height:62vw}
+  #teamPanel{width:min(300px,32vw);max-height:calc(100vh - 20px);overflow:auto}
+}
+@media (orientation:portrait){
+  #gameScreen{flex-direction:column;align-items:center;justify-content:flex-start;overflow:auto}
+  #boardWrap{width:calc(100vw - 20px);height:calc(100vw - 20px);max-width:calc(100vh - 190px);max-height:calc(100vh - 190px)}
+  #teamPanel{width:calc(100vw - 20px);display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+}
+#boardWrap{position:relative;flex-shrink:0}
+#board{position:absolute;inset:0;background:var(--board-frame);border-radius:18px;padding:1.6%;
+  display:grid;grid-template-columns:1.4fr repeat(5,1fr) 1.4fr;grid-template-rows:1.4fr repeat(5,1fr) 1.4fr;gap:0}
+.cell{position:relative;background:var(--cell-bg);border:1px solid var(--cell-line);
+  display:flex;flex-direction:column;overflow:hidden;user-select:none}
+.cell .band{height:28%;flex-shrink:0;position:relative}
+.cell .flag{position:absolute;top:0;right:6%;width:0;height:0;
+  border-left:7px solid transparent;border-right:7px solid transparent;border-top:12px solid currentColor;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+.cell .body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 3px;text-align:center;min-height:0}
+.cell .uname{font-family:var(--jua);font-size:clamp(9px,1.7vmin,15px);color:var(--ink);line-height:1.15}
+.cell .cicon{font-size:clamp(10px,2.1vmin,20px);line-height:1.1}
+.cell .cval{font-size:clamp(7px,1.25vmin,11px);color:var(--muted);font-weight:800;line-height:1.1}
+.cell.corner{background:var(--board-bg)}
+.cell.corner .icon{font-size:clamp(16px,3.6vmin,34px);line-height:1.1}
+.cell.corner .uname{font-size:clamp(10px,1.9vmin,17px)}
+.cell.key{background:#fdf3d9} /* #f5c542 20% 를 흰색 위에 섞은 불투명 값 (보드 네이비 비침 방지) */
+.cell.key .icon{font-size:clamp(13px,2.6vmin,24px);line-height:1.1}
+.cell.selectable{cursor:pointer;animation:selPulse 1s ease-in-out infinite;outline:3px dashed var(--gold);outline-offset:-4px;z-index:2}
+@keyframes selPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.12)}}
+#centerField{grid-area:2/2/7/7;background:var(--center-bg);border:1px solid var(--cell-line);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2vmin;padding:2%;position:relative;z-index:1}
+#gameTitle{font-family:var(--jua);font-size:clamp(16px,3.4vmin,32px);color:var(--board-frame);letter-spacing:.03em}
+#timer{font-family:var(--jua);font-size:clamp(22px,4.6vmin,44px);color:var(--ink);
+  background:#fff;border-radius:12px;padding:.2em .6em;border:2px solid var(--cell-line)}
+#timer.low{color:#c62828;border-color:#c62828;animation:blink 1s step-end infinite}
+@keyframes blink{50%{opacity:.45}}
+#curTeam{display:flex;align-items:center;gap:8px;font-weight:800;font-size:clamp(13px,2.2vmin,19px)}
+#curTeam .dot{width:1.1em;height:1.1em;border-radius:50%;border:2px solid rgba(0,0,0,.15)}
+/* 주사위 (div+dot, 절대배치 — 그리드 fr 트랙 0px 버그 회피) */
+#dice{width:clamp(48px,9vmin,84px);height:clamp(48px,9vmin,84px);background:#fff;border-radius:16%;
+  border:2px solid var(--cell-line);box-shadow:0 3px 8px rgba(0,0,0,.15);position:relative}
+#dice.rolling{animation:diceShake .12s linear infinite}
+@keyframes diceShake{0%{transform:rotate(-8deg) translateY(-2px)}50%{transform:rotate(8deg) translateY(2px)}100%{transform:rotate(-8deg) translateY(-2px)}}
+#dice .pip{position:absolute;width:17%;height:17%;border-radius:50%;background:var(--ink);opacity:0;transform:translate(-50%,-50%)}
+#dice .pip:nth-child(3n+1){left:26%}
+#dice .pip:nth-child(3n+2){left:50%}
+#dice .pip:nth-child(3n){left:74%}
+#dice .pip:nth-child(-n+3){top:26%}
+#dice .pip:nth-child(n+4):nth-child(-n+6){top:50%}
+#dice .pip:nth-child(n+7){top:74%}
+#dice .pip.on{opacity:1}
+#rollBtn{min-height:52px;min-width:60%;border:none;border-radius:14px;background:var(--gold);color:#5c4300;
+  font-family:var(--jua);font-size:clamp(15px,2.8vmin,24px);box-shadow:0 4px 0 #cfa32a;padding:0 1em}
+#rollBtn:disabled{opacity:.45;box-shadow:none}
+#rollBtn:not(:disabled):active{transform:translateY(2px);box-shadow:0 2px 0 #cfa32a}
+#centerMsg{min-height:1.5em;font-weight:800;font-size:clamp(11px,2vmin,17px);color:var(--board-frame);text-align:center}
+
+/* 말(토큰) */
+#tokenLayer{position:absolute;inset:0;pointer-events:none;z-index:5}
+.token{position:absolute;width:4.2%;height:4.2%;border-radius:50%;border:2px solid #fff;
+  box-shadow:0 2px 5px rgba(0,0,0,.4);transform:translate(-50%,-50%);
+  transition:left .15s ease, top .15s ease}
+.token.fly{transition:left .45s cubic-bezier(.4,0,.2,1), top .45s cubic-bezier(.4,0,.2,1)}
+.token.hop{animation:hop .15s ease}
+@keyframes hop{50%{margin-top:-1.6%}}
+
+/* 팀 패널 */
+#teamPanel{display:flex;flex-direction:column;gap:8px}
+.tcard{background:#fff;border-radius:14px;padding:10px 14px;box-shadow:0 3px 10px rgba(0,0,0,.08);
+  border-left:8px solid var(--tc,#999);display:flex;align-items:center;gap:10px;transition:box-shadow .2s,transform .2s}
+.tcard.cur{box-shadow:0 0 0 3px var(--tc,#999),0 6px 16px rgba(0,0,0,.15);transform:scale(1.02)}
+.tcard .dot{width:20px;height:20px;border-radius:50%;background:var(--tc);border:2px solid rgba(0,0,0,.12);flex-shrink:0}
+.tcard .info{flex:1;min-width:0}
+.tcard .tname{font-family:var(--jua);font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tcard .tmeta{font-size:12px;color:var(--muted)}
+.tcard .tscore{font-family:var(--jua);font-size:24px;color:var(--board-frame);min-width:2.4em;text-align:right}
+.tcard .badges{display:flex;gap:4px}
+.tcard .stat{font-size:11px;background:#f0f0f0;border-radius:8px;padding:1px 6px}
+.tcard .stat.x2{background:var(--gold);font-weight:800}
+.tcard .stat.rest{background:#cfe8f7}
+
+/* 토스트 */
+#toast{position:fixed;left:50%;top:12%;transform:translateX(-50%);background:var(--board-frame);color:#fff;
+  font-family:var(--jua);font-size:clamp(15px,2.6vmin,22px);padding:.55em 1.2em;border-radius:99px;
+  box-shadow:0 6px 20px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .25s;z-index:80;text-align:center;max-width:90vw}
+#toast.on{opacity:1}
+
+/* ───────── 문제 모달 ───────── */
+#qModal{position:fixed;inset:0;background:rgba(30,58,95,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:12px}
+#qModal.on{display:flex}
+#qCard{background:#fff;border-radius:20px;border-top:10px solid var(--uc,#888);width:min(640px,96vw);
+  max-height:92vh;overflow:auto;padding:20px 20px 18px;position:relative}
+#qCard.shake{animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-7px)}80%{transform:translateX(7px)}}
+.q-head{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.q-badge{background:var(--uc,#888);color:#fff;font-size:12px;font-weight:800;border-radius:99px;padding:4px 12px}
+.q-badge.kind{background:#fff;color:var(--uc,#888);border:2px solid var(--uc,#888)}
+.q-badge.x2{background:var(--gold);color:#5c4300}
+.q-text{font-size:clamp(16px,2.5vmin,22px);font-weight:800;line-height:1.55;margin-bottom:16px;word-break:keep-all}
+.q-text .blank{display:inline-block;min-width:2.4em;border-bottom:3px solid var(--uc,#888);color:var(--uc,#888);
+  text-align:center;font-weight:900;background:rgba(0,0,0,.04);border-radius:4px 4px 0 0;padding:0 .2em}
+.q-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.q-opts button{min-height:64px;border:2px solid var(--cell-line);border-radius:14px;background:#fff;
+  font-size:clamp(14px,2.2vmin,18px);font-weight:700;padding:8px 10px;word-break:keep-all;color:var(--ink)}
+.q-opts button:disabled{cursor:default}
+.q-opts button.right{background:#e8f5e9;border-color:#43a047;color:#1b5e20}
+.q-opts button.wrong{background:#ffebee;border-color:#e53935;color:#b71c1c}
+/* 문장 배열 */
+.q-arrange .slots{min-height:64px;border:2px dashed var(--cell-line);border-radius:14px;background:#fafaf6;
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px;margin-bottom:12px}
+.q-arrange .pool{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;justify-content:center}
+.chip{min-height:52px;border:2px solid var(--uc,#888);border-radius:12px;background:#fff;color:var(--ink);
+  font-size:clamp(15px,2.4vmin,19px);font-weight:800;padding:8px 14px}
+.slots .chip{background:var(--uc,#888);color:#fff;border-color:var(--uc,#888)}
+.q-confirm{width:100%;min-height:58px;border:none;border-radius:14px;background:var(--board-frame);color:#fff;
+  font-family:var(--jua);font-size:20px}
+.q-confirm:disabled{opacity:.35}
+.q-feedback{text-align:center;font-family:var(--jua);font-size:clamp(20px,3.4vmin,30px);min-height:1.4em;margin-top:14px}
+.q-feedback.ok{color:#2e7d32}
+.q-feedback.no{color:#c62828}
+.q-answer{text-align:center;font-size:clamp(15px,2.4vmin,20px);font-weight:800;color:var(--board-frame);
+  background:#f4f7fa;border-radius:12px;padding:10px;margin-top:10px;display:none}
+.q-answer.on{display:block}
+.q-answer .blank{border-bottom:3px solid #2e7d32;color:#2e7d32;background:#e8f5e9;border-radius:4px;padding:0 .2em}
+
+/* 황금열쇠 카드 */
+#cardOverlay{position:fixed;inset:0;background:rgba(30,58,95,.55);display:none;align-items:center;justify-content:center;z-index:50}
+#cardOverlay.on{display:flex}
+#keyCard{width:min(300px,80vw);aspect-ratio:3/4;perspective:900px}
+#keyCard .inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .6s}
+#keyCard.flip .inner{transform:rotateY(180deg)}
+#keyCard .face{position:absolute;inset:0;border-radius:18px;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:18px;text-align:center}
+#keyCard .front{background:linear-gradient(135deg,#f5c542,#e8a820);color:#5c4300;font-family:var(--jua)}
+#keyCard .front .k{font-size:64px}
+#keyCard .front .t{font-size:26px}
+#keyCard .back{background:#fff;transform:rotateY(180deg);border:4px solid var(--gold)}
+#keyCard .back .icon{font-size:52px}
+#keyCard .back .title{font-family:var(--jua);font-size:24px;color:var(--board-frame)}
+#keyCard .back .desc{font-size:14px;color:var(--muted)}
+
+/* 컨페티 */
+.confetti{position:fixed;width:10px;height:14px;top:-20px;z-index:90;pointer-events:none;
+  animation:confFall 1.1s ease-in forwards}
+@keyframes confFall{to{transform:translateY(110vh) rotate(540deg);opacity:.6}}
+
+/* ───────── 결과 화면 ───────── */
+#resultScreen{align-items:center;justify-content:center;background:
+  radial-gradient(circle at 50% 0%, #fdf9ec 0%, #efe8d6 70%);overflow:auto}
+.result-card{background:#fff;border-radius:24px;box-shadow:0 12px 40px rgba(30,58,95,.18);
+  padding:28px 26px;width:min(540px,94vw);margin:16px auto;text-align:center;border-top:10px solid var(--gold)}
+.result-card h1{font-family:var(--jua);font-size:32px;color:var(--board-frame);margin-bottom:4px}
+.result-card .sub{color:var(--muted);font-size:14px;margin-bottom:18px}
+.rank-list{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.rank-row{display:flex;align-items:center;gap:12px;background:#fafaf6;border-radius:14px;padding:12px 16px;
+  border-left:8px solid var(--tc)}
+.rank-row.first{background:rgba(245,197,66,.18);box-shadow:0 0 0 2px var(--gold)}
+.rank-row.me{outline:3px solid var(--board-frame);outline-offset:-3px}
+.rank-row .medal{font-size:26px;width:36px}
+.rank-row .dot{width:16px;height:16px;border-radius:50%;background:var(--tc);border:2px solid rgba(0,0,0,.12)}
+.rank-row .rname{font-family:var(--jua);font-size:19px;flex:1;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-row .rlands{font-size:13px;color:var(--muted)}
+.rank-row .rscore{font-family:var(--jua);font-size:24px;color:var(--board-frame)}
+#submitBtn{width:100%;min-height:58px;border:none;border-radius:14px;background:#2e7d32;
+  color:#fff;font-family:var(--jua);font-size:21px;margin-bottom:10px;display:none}
+#submitBtn.show{display:block}
+#submitBtn:disabled{opacity:.5}
+#againBtn{width:100%;min-height:58px;border:none;border-radius:14px;background:var(--board-frame);
+  color:#fff;font-family:var(--jua);font-size:22px}
+
+/* ───────── 대기실(같이하기) ───────── */
+#lobbyScreen{align-items:center;justify-content:center;background:
+  radial-gradient(circle at 50% 10%, #fdf9ec 0%, #efe8d6 70%);overflow:auto}
+.lobby-card{background:#fff;border-radius:24px;box-shadow:0 12px 40px rgba(30,58,95,.18);
+  padding:28px 26px;width:min(460px,94vw);margin:16px auto;text-align:center;border-top:10px solid var(--board-frame)}
+.lobby-card h1{font-family:var(--jua);font-size:26px;color:var(--board-frame);margin-bottom:14px}
+#roomCodeDisplay{font-family:var(--jua);font-size:48px;letter-spacing:.18em;color:var(--board-frame);
+  background:#fafaf6;border:2px dashed var(--cell-line);border-radius:14px;padding:10px 0;margin-bottom:16px}
+#lobbyList{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.lobby-row{display:flex;align-items:center;gap:10px;background:#fafaf6;border-radius:12px;padding:10px 14px;text-align:left}
+.lobby-row .dot{width:16px;height:16px;border-radius:50%;flex-shrink:0;border:2px solid rgba(0,0,0,.12)}
+.lobby-row .lname{flex:1;font-weight:700;font-size:14px}
+.lobby-row .conn{color:#43a047;font-size:12px;font-weight:800}
+.lobby-row .conn.off{color:#c62828}
+#lobbyStartBtn{width:100%;min-height:58px;border:none;border-radius:14px;background:var(--gold);
+  color:#5c4300;font-family:var(--jua);font-size:22px;margin-bottom:10px}
+#lobbyLeaveBtn{width:100%;min-height:52px;border:2px solid var(--cell-line);border-radius:14px;background:#fff;
+  color:var(--muted);font-weight:800}
+
+/* 모션 최소화 */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ───── 시작 화면 ───── -->
+<div id="startScreen" class="screen on">
+  <div class="setup-card">
+    <div class="setup-title">🎲 음악 부루마블</div>
+    <p class="setup-sub">주사위를 굴려 도시를 차지하고 문제를 풀어요!</p>
+    <div class="field">
+      <label>과목</label>
+      <select id="subjectSel"></select>
+    </div>
+    <div class="mode-tabs" id="modeTabs">
+      <button data-mode="solo" class="sel">🧑 개인전</button>
+      <button data-mode="group">👥 모둠전</button>
+      <button data-mode="multi" id="multiTabBtn" style="display:none">🌐 같이하기</button>
+    </div>
+
+    <!-- 개인전 옵션 -->
+    <div id="soloOpts">
+      <div class="field">
+        <div class="stepper-row">
+          <div class="stepper-box">
+            <label>반</label>
+            <div class="stepper" id="clsStep">
+              <button data-d="-1">−</button><span class="st-val">1</span><button data-d="1">＋</button>
+            </div>
+          </div>
+          <div class="stepper-box">
+            <label>번호</label>
+            <div class="stepper" id="numStep">
+              <button data-d="-1">−</button><span class="st-val">1</span><button data-d="1">＋</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>배정된 팀 (번호로 자동 배정)</label>
+        <div id="teamAssign"><span class="big-dot"></span><span class="tx"></span></div>
+      </div>
+      <div class="field">
+        <label>난이도 (상대 봇의 실력)</label>
+        <div class="seg" id="diffSeg">
+          <button data-a="0.5">쉬움<span class="small">봇 정답률 50%</span></button>
+          <button data-a="0.6" class="sel">보통<span class="small">봇 정답률 60%</span></button>
+          <button data-a="0.7">어려움<span class="small">봇 정답률 70%</span></button>
+        </div>
+      </div>
+      <div class="field">
+        <label>게임 시간</label>
+        <div class="seg" id="soloTimeSeg">
+          <button data-m="10">10분</button><button data-m="15" class="sel">15분</button><button data-m="20">20분</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 모둠전 옵션 -->
+    <div id="groupOpts" style="display:none">
+      <div class="field">
+        <label>팀 수</label>
+        <div class="seg" id="teamCountSeg">
+          <button data-n="2">2팀</button><button data-n="3" class="sel">3팀</button><button data-n="4">4팀</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>팀 이름</label>
+        <div class="team-names" id="teamNames"></div>
+      </div>
+      <div class="field">
+        <label>게임 시간</label>
+        <div class="seg" id="groupTimeSeg">
+          <button data-m="15">15분</button><button data-m="20" class="sel">20분</button><button data-m="25">25분</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 같이하기(멀티) 옵션 -->
+    <div id="multiOpts" style="display:none">
+      <div class="field">
+        <div class="stepper-row">
+          <div class="stepper-box">
+            <label>반</label>
+            <div class="stepper" id="mClsStep">
+              <button data-d="-1">−</button><span class="st-val">1</span><button data-d="1">＋</button>
+            </div>
+          </div>
+          <div class="stepper-box">
+            <label>번호</label>
+            <div class="stepper" id="mNumStep">
+              <button data-d="-1">−</button><span class="st-val">1</span><button data-d="1">＋</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="join-tabs" id="joinTabs">
+        <button data-j="create" class="sel">방 만들기</button>
+        <button data-j="join">방 코드로 입장</button>
+      </div>
+      <div id="createBox">
+        <div class="field">
+          <label>참가 인원 (2~4명)</label>
+          <div class="seg" id="multiTeamCountSeg">
+            <button data-n="2">2명</button><button data-n="3" class="sel">3명</button><button data-n="4">4명</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>게임 시간</label>
+          <div class="seg" id="multiTimeSeg">
+            <button data-m="15">15분</button><button data-m="20" class="sel">20분</button><button data-m="25">25분</button>
+          </div>
+        </div>
+      </div>
+      <div id="joinBox" style="display:none">
+        <div class="field">
+          <label>방 코드 (4자리)</label>
+          <input id="roomCodeInput" maxlength="4" inputmode="numeric" placeholder="0000">
+        </div>
+      </div>
+    </div>
+
+    <button id="startBtn">게임 시작!</button>
+  </div>
+</div>
+
+<!-- 이어하기 -->
+<div id="resumeBox">
+  <div class="resume-card">
+    <h2>진행 중인 게임이 있어요</h2>
+    <p id="resumeInfo"></p>
+    <div class="btns">
+      <button id="newGameBtn">새 게임</button>
+      <button id="resumeBtn" class="primary">이어하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 같이하기 대기실 -->
+<div id="lobbyScreen" class="screen">
+  <div class="lobby-card">
+    <h1>🌐 대기실</h1>
+    <div id="roomCodeDisplay">----</div>
+    <div id="lobbyList"></div>
+    <button id="lobbyStartBtn" style="display:none">게임 시작!</button>
+    <button id="lobbyLeaveBtn">나가기</button>
+  </div>
+</div>
+
+<!-- ───── 게임 화면 ───── -->
+<div id="gameScreen" class="screen">
+  <div id="boardWrap">
+    <div id="board"></div>
+    <div id="tokenLayer"></div>
+  </div>
+  <div id="teamPanel"></div>
+</div>
+
+<!-- 문제 모달 -->
+<div id="qModal"><div id="qCard"></div></div>
+
+<!-- 황금열쇠 카드 -->
+<div id="cardOverlay">
+  <div id="keyCard"><div class="inner">
+    <div class="face front"><div class="k">🔑</div><div class="t">황금열쇠</div></div>
+    <div class="face back"><div class="icon" id="kcIcon"></div><div class="title" id="kcTitle"></div><div class="desc" id="kcDesc"></div></div>
+  </div></div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ───── 결과 화면 ───── -->
+<div id="resultScreen" class="screen">
+  <div class="result-card">
+    <h1>🏆 게임 결과</h1>
+    <p class="sub" id="resultSub">수고했어요!</p>
+    <div class="rank-list" id="rankList"></div>
+    <button id="submitBtn">📨 점수 제출</button>
+    <button id="againBtn">다시 하기</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ============================================================
+ * 개인전 점수 제출 설정 (Google Form)
+ * - url: Form 의 formResponse URL, entries: 각 문항의 entry ID
+ * - 값이 비어 있으면 결과 화면의 제출 버튼을 숨긴다.
+ *   예) url: "https://docs.google.com/forms/d/e/XXXX/formResponse",
+ *       entries: { cls:"entry.111", num:"entry.222", team:"entry.333",
+ *                  score:"entry.444", lands:"entry.555" }
+ * ============================================================ */
+const SUBMIT_FORM = {
+  url: "",
+  entries: { cls: "", num: "", team: "", score: "", lands: "" }
+};
+
+/* ============================================================
+ * 같이하기(멀티) 설정 (Firebase Realtime Database)
+ * - 아래 값이 비어 있으면 "같이하기" 탭 자체가 숨겨지고, 개인전/모둠전은
+ *   Firebase 없이 지금까지와 완전히 동일하게 동작한다.
+ * - 설정 방법은 같은 폴더의 README.md 참고.
+ * ============================================================ */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyA8lEqOBOsSI07bDG9vIIe9QIMDdqBD6rg",
+  authDomain: "quizmarble-c87b2.firebaseapp.com",
+  databaseURL: "https://quizmarble-c87b2-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "quizmarble-c87b2",
+  storageBucket: "quizmarble-c87b2.firebasestorage.app",
+  messagingSenderId: "54148882727",
+  appId: "1:54148882727:web:d85895a2e1a4534cb40902"
+};
+
+/* ============================================================
+ * 데이터 (이 블록만 교체하면 타 학년/과목 확장 가능)
+ * ============================================================ */
+const SUBJECTS = {
+  music6: {
+    name: "6학년 음악 (1학기)",
+    units: [
+      { id: 1, color: "#7c4dff", value: 80,
+        cities: [{n:"서울",f:"🇰🇷"},{n:"도쿄",f:"🇯🇵"},{n:"베이징",f:"🇨🇳"}],
+        questions: [
+        { t:"c", q:"'경복궁타령'에 쓰이는 장단은?", o:["자진타령장단", "굿거리장단", "세마치장단", "중중모리장단"], a:0, exp:"경복궁타령은 자진타령장단에 맞추어 부릅니다." },
+        { t:"c", q:"'경복궁타령'은 어느 지역의 민요일까요?", o:["경기 지역", "남도(전라) 지역", "제주 지역", "서도(평안) 지역"], a:0, exp:"경복궁타령은 경기 민요입니다." },
+        { t:"c", q:"'도움소 소리'에 쓰이는 장단은?", o:["중중모리장단", "자진모리장단", "휘모리장단", "진양조장단"], a:0, exp:"도움소 소리는 중중모리장단으로 부릅니다." },
+        { t:"c", q:"한 사람이 앞부분을 부르면 여러 사람이 뒷부분을 이어 부르는 형식은?", o:["메기고 받는 형식", "돌림노래 형식", "파트너 노래 형식", "합창 형식"], a:0, exp:"'도움소 소리'처럼 메기는소리와 받는소리로 주고받는 형식입니다." },
+        { t:"c", q:"'도움소 소리'의 바탕이 되는 토리는?", o:["메나리토리", "육자배기토리", "경토리", "수심가토리"], a:0, exp:"도움소 소리는 메나리토리로 되어 있습니다." },
+        { t:"c", q:"'너영나영'은 어느 지역의 민요일까요?", o:["제주 지역", "경기 지역", "남도(전라) 지역", "강원 지역"], a:0, exp:"너영나영은 제주 민요입니다." },
+        { t:"c", q:"전라도(남도) 지역 민요의 특징적인 토리는?", o:["육자배기토리", "메나리토리", "경토리", "수심가토리"], a:0, exp:"남도 민요는 육자배기토리가 특징입니다." },
+        { t:"c", q:"육자배기토리의 특징으로 알맞은 것은?", o:["굵게 떠는 소리와 꺾는 소리", "맑고 경쾌한 소리", "콧소리를 섞은 소리", "빠르고 높은 소리"], a:0, exp:"육자배기토리는 굵게 떠는 소리와 꺾는 소리가 특징입니다." },
+        { t:"c", q:"국악에서 가락을 꾸며 주는 표현 방법을 무엇이라고 할까요?", o:["시김새", "토리", "장단", "한배"], a:0, exp:"시김새는 가락을 꾸며 자연스럽고 멋있게 만들어 줍니다." },
+        { t:"c", q:"강원도·경상도 지역 민요에 나타나는 토리는?", o:["메나리토리", "육자배기토리", "경토리", "제주토리"], a:0, exp:"동부 지역(강원·경상) 민요는 메나리토리가 특징입니다." },
+        { t:"c", q:"메기고 받는 형식에서 여러 사람이 함께 부르는 부분은?", o:["받는소리", "메기는소리", "후렴소리", "이음소리"], a:0, exp:"한 사람이 메기는소리를, 여러 사람이 받는소리를 부릅니다." },
+        { t:"c", q:"민요에 대한 설명으로 알맞은 것은?", o:["백성들 사이에서 자연스럽게 전해 내려온 노래", "궁중에서만 부르던 노래", "한 사람의 작곡가가 만든 노래", "서양에서 들어온 노래"], a:0, exp:"민요는 지역마다 백성들의 삶 속에서 만들어져 전해 내려온 노래입니다." }
+      ]},
+      { id: 2, color: "#00bfa5", value: 90,
+        cities: [{n:"방콕",f:"🇹🇭"},{n:"싱가포르",f:"🇸🇬"},{n:"시드니",f:"🇦🇺"}],
+        questions: [
+        { t:"c", q:"우물 정(井) 자 모양의 칸에 음의 높이와 길이를 기록하는 악보는?", o:["정간보", "오선보", "가락선보", "구음보"], a:0, exp:"정간보는 칸(정간)으로 음의 길이를, 율명으로 음의 높이를 나타냅니다." },
+        { t:"c", q:"정간보를 만든 사람은 누구일까요?", o:["세종대왕", "장영실", "박연", "우륵"], a:0, exp:"정간보는 세종대왕이 만든 우리나라의 악보입니다." },
+        { t:"c", q:"황(黃), 태(太), 중(仲), 임(林), 남(南)처럼 국악에서 음이름을 나타내는 것은?", o:["율명", "계이름", "음표", "토리"], a:0, exp:"국악의 음이름을 율명이라고 합니다." },
+        { t:"c", q:"단소를 연주하는 바른 방법은?", o:["세로로 잡고 입김을 불어 연주한다", "가로로 잡고 입김을 불어 연주한다", "채로 두드려 연주한다", "줄을 뜯어 연주한다"], a:0, exp:"단소는 세로로 잡고 부는 관악기입니다." },
+        { t:"c", q:"정간보에서 한 칸(정간)이 나타내는 것은?", o:["한 박", "한 마디", "한 음의 높이", "한 장단"], a:0, exp:"정간 한 칸은 한 박을 나타냅니다." },
+        { t:"c", q:"시조 '동창이'에서 세 부분을 부르는 이름은?", o:["초장 - 중장 - 종장", "1절 - 2절 - 3절", "전주 - 간주 - 후주", "A - B - C"], a:0, exp:"시조는 초장, 중장, 종장의 세 부분으로 이루어집니다." },
+        { t:"c", q:"'동창이'를 감상할 때 무릎을 손으로 치며 맞추는 장단은?", o:["무릎장단", "어깨장단", "손뼉장단", "발장단"], a:0, exp:"무릎장단을 치며 시조의 장단을 느낄 수 있습니다." },
+        { t:"c", q:"평시조 '동창이'의 특징으로 알맞은 것은?", o:["가락을 느리게 길게 늘여 부른다", "빠르고 신나게 부른다", "말하듯이 짧게 부른다", "높은 소리로만 부른다"], a:0, exp:"평시조는 느린 속도로 가락을 길게 늘여 부릅니다." },
+        { t:"c", q:"가락선 그리기는 무엇을 표현하는 활동일까요?", o:["가락(음높이)의 움직임", "박자의 세기", "노랫말의 뜻", "악기의 종류"], a:0, exp:"가락이 올라가고 내려가는 움직임을 선으로 그려 표현합니다." },
+        { t:"c", q:"창작 국악곡이란 무엇일까요?", o:["국악의 특징을 살려 새롭게 만든 곡", "서양 악기로만 연주하는 곡", "옛날부터 전해 내려오는 민요", "외국 노래를 번역한 곡"], a:0, exp:"'아침 해'처럼 국악의 특징을 살려 새로 만든 곡입니다." },
+        { t:"c", q:"단소와 같이 입김을 불어 소리 내는 악기를 무엇이라고 할까요?", o:["관악기", "현악기", "타악기", "건반악기"], a:0, exp:"단소, 리코더처럼 불어서 소리 내는 악기는 관악기입니다." },
+        { t:"c", q:"정간보를 읽을 때 율명 '황(黃)'은 어떻게 읽을까요?", o:["황", "누를", "노랑", "합"], a:0, exp:"율명은 첫 글자만 따서 황, 태, 중, 임, 남으로 읽습니다." }
+      ]},
+      { id: 3, color: "#ff7043", value: 100,
+        cities: [{n:"카이로",f:"🇪🇬"},{n:"이스탄불",f:"🇹🇷"},{n:"두바이",f:"🇦🇪"}],
+        questions: [
+        { t:"c", q:"사장조의 으뜸음은?", o:["사(솔)", "다(도)", "바(파)", "가(라)"], a:0, exp:"사장조는 '사(솔)'음이 으뜸음입니다." },
+        { t:"c", q:"사장조의 조표는?", o:["올림표(#) 1개", "내림표(♭) 1개", "올림표(#) 2개", "조표 없음"], a:0, exp:"사장조는 '파'에 올림표가 1개 붙습니다." },
+        { t:"c", q:"바장조의 조표는?", o:["내림표(♭) 1개", "올림표(#) 1개", "내림표(♭) 2개", "조표 없음"], a:0, exp:"바장조는 '시'에 내림표가 1개 붙습니다." },
+        { t:"c", q:"바장조의 으뜸음은?", o:["바(파)", "사(솔)", "다(도)", "라"], a:0, exp:"바장조는 '바(파)'음이 으뜸음입니다." },
+        { t:"c", q:"가단조의 으뜸음은?", o:["가(라)", "다(도)", "사(솔)", "마(미)"], a:0, exp:"가단조는 '가(라)'음이 으뜸음입니다." },
+        { t:"c", q:"가단조의 조표는 몇 개일까요?", o:["없다(0개)", "올림표 1개", "내림표 1개", "올림표 2개"], a:0, exp:"가단조는 조표가 없습니다." },
+        { t:"c", q:"주요 3화음을 바르게 나타낸 것은?", o:["으뜸화음, 버금딸림화음, 딸림화음", "으뜸화음, 둘째화음, 셋째화음", "높은화음, 중간화음, 낮은화음", "장화음, 단화음, 반화음"], a:0, exp:"주요 3화음은 으뜸화음(I), 버금딸림화음(IV), 딸림화음(V)입니다." },
+        { t:"c", q:"으뜸화음이란 무엇일까요?", o:["으뜸음 위에 3도씩 쌓아 만든 화음", "가장 크게 연주하는 화음", "곡의 마지막에만 나오는 화음", "가장 높은 음으로 만든 화음"], a:0, exp:"으뜸음부터 3도 간격으로 음을 쌓아 만든 화음입니다." },
+        { t:"c", q:"노래가 A부분과 B부분, 두 부분으로 이루어진 형식은?", o:["AB형식", "ABA형식", "돌림형식", "변주형식"], a:0, exp:"'마음의 고향'처럼 서로 다른 두 부분으로 이루어진 형식입니다." },
+        { t:"c", q:"단조로 된 곡의 일반적인 느낌은?", o:["어둡고 쓸쓸한 느낌", "밝고 경쾌한 느낌", "시끄럽고 강한 느낌", "느낌이 없다"], a:0, exp:"'툼 발랄라이카' 같은 단조 곡은 어둡고 애잔한 느낌을 줍니다." },
+        { t:"c", q:"'기차를 타고'를 부를 때 구별하며 불러야 하는 것은?", o:["같은 가락과 다른 가락", "큰 소리와 작은 소리", "빠른 부분과 느린 부분", "높은 음과 낮은 음"], a:0, exp:"같은 가락과 다른 가락을 구별하며 노래 부릅니다." },
+        { t:"c", q:"'툼 발랄라이카'는 어떤 조로 된 곡일까요?", o:["가단조", "사장조", "바장조", "다장조"], a:0, exp:"'툼 발랄라이카'는 가단조 곡입니다." }
+      ]},
+      { id: 4, color: "#ec407a", value: 110,
+        cities: [{n:"파리",f:"🇫🇷"},{n:"런던",f:"🇬🇧"},{n:"로마",f:"🇮🇹"}],
+        questions: [
+        { t:"c", q:"4/4박자의 뜻으로 알맞은 것은?", o:["한 마디에 4분음표가 4개", "한 마디에 4분음표가 2개", "한 곡에 마디가 4개", "한 마디에 8분음표가 4개"], a:0, exp:"4/4박자는 4분음표를 한 박으로 하여 한 마디가 4박입니다." },
+        { t:"c", q:"4/4박자에서 가장 센 박은 몇 째 박일까요?", o:["첫째 박", "둘째 박", "셋째 박", "넷째 박"], a:0, exp:"4/4박자는 '강-약-중강-약'으로 첫째 박이 셉니다." },
+        { t:"c", q:"온음표는 몇 박일까요?", o:["4박", "2박", "1박", "3박"], a:0, exp:"온음표는 4박입니다." },
+        { t:"c", q:"4분쉼표는 몇 박을 쉴까요?", o:["1박", "2박", "반 박", "4박"], a:0, exp:"4분쉼표는 1박을 쉽니다." },
+        { t:"c", q:"8분음표 2개를 이으면 어떤 음표와 길이가 같을까요?", o:["4분음표", "2분음표", "온음표", "점4분음표"], a:0, exp:"8분음표는 반 박이므로 2개면 4분음표(1박)와 같습니다." },
+        { t:"c", q:"점4분음표의 길이는?", o:["1박 반", "1박", "2박", "반 박"], a:0, exp:"점4분음표는 4분음표(1박)에 그 절반(반 박)을 더한 1박 반입니다." },
+        { t:"c", q:"리듬꼴이란 무엇일까요?", o:["일정하게 나타나는 리듬의 모양", "노래의 빠르기", "음의 높낮이", "악기의 모양"], a:0, exp:"곡 속에서 반복되어 나타나는 리듬의 모양을 리듬꼴이라고 합니다." },
+        { t:"c", q:"노랫말을 바꾸어 부를 때 가장 주의할 점은?", o:["가락의 리듬(글자 수)에 어울리게 바꾼다", "글자 수를 마음대로 늘린다", "가락도 함께 바꾼다", "제목만 바꾼다"], a:0, exp:"원래 가락의 리듬에 맞도록 글자 수를 고려해 바꿉니다." },
+        { t:"c", q:"랩을 만들 때 살리면 좋은 것은?", o:["라임(운율)", "화음", "조표", "지휘"], a:0, exp:"끝소리를 맞추는 라임을 살리면 랩이 자연스러워집니다." },
+        { t:"c", q:"메기는소리의 노랫말을 바꾸어 부르는 활동을 한 제재곡은?", o:["너영나영", "경복궁타령", "아침 해", "기차를 타고"], a:0, exp:"'너영나영'에서 메기는소리 노랫말을 바꾸어 불렀습니다." },
+        { t:"c", q:"리듬을 만들어 악보에 나타낼 때 사용하는 것은?", o:["음표와 쉼표", "글자와 그림", "숫자와 기호", "색깔과 선"], a:0, exp:"음표와 쉼표를 사용해 리듬을 기보합니다." },
+        { t:"c", q:"4마디 리듬꼴을 만들 때 가장 먼저 정해야 할 것은?", o:["박자", "노랫말", "제목", "악기"], a:0, exp:"박자를 먼저 정해야 마디에 들어갈 박의 수가 정해집니다." }
+      ]},
+      { id: 5, color: "#42a5f5", value: 120,
+        cities: [{n:"베를린",f:"🇩🇪"},{n:"마드리드",f:"🇪🇸"},{n:"암스테르담",f:"🇳🇱"}],
+        questions: [
+        { t:"c", q:"부분 2부 합창이란?", o:["곡의 일부분을 두 성부로 나누어 부르는 것", "두 사람이 번갈아 부르는 것", "곡 전체를 혼자 부르는 것", "두 곡을 이어 부르는 것"], a:0, exp:"곡의 일부분에서 두 성부로 나뉘어 부르는 합창입니다." },
+        { t:"c", q:"합창에서 성부의 어울림을 위해 가장 중요한 것은?", o:["다른 성부의 소리를 들으며 부르기", "내 소리만 크게 부르기", "빠르게 부르기", "눈을 감고 부르기"], a:0, exp:"서로의 소리를 들으며 균형을 맞추어야 아름답게 어울립니다." },
+        { t:"c", q:"파트너 노래란?", o:["서로 다른 두 노래를 동시에 부르는 것", "짝과 마주 보고 부르는 것", "같은 노래를 두 번 부르는 것", "노래를 이어 부르는 것"], a:0, exp:"서로 다른 두 노래를 동시에 불러 어울림을 느끼는 활동입니다." },
+        { t:"c", q:"리코더 2중주란?", o:["두 성부를 리코더로 함께 연주하는 것", "리코더를 두 개 들고 연주하는 것", "두 번 반복해서 연주하는 것", "리코더와 단소를 함께 연주하는 것"], a:0, exp:"'학교 가는 길'처럼 두 성부를 나누어 함께 연주합니다." },
+        { t:"c", q:"리코더 소리를 깨끗하게 내는 방법은?", o:["'투-' 하고 혀를 사용하는 텅잉", "입김을 최대한 세게 분다", "구멍을 반만 막는다", "리코더를 흔들며 분다"], a:0, exp:"텅잉으로 소리의 시작을 깨끗하게 만듭니다." },
+        { t:"c", q:"리코더로 낮은음을 연주할 때 입김의 세기는?", o:["부드럽고 여리게 분다", "아주 세게 분다", "숨을 참는다", "짧게 끊어 분다"], a:0, exp:"낮은음은 입김을 여리고 부드럽게 불어야 잘 납니다." },
+        { t:"c", q:"기악 합주에서 가장 중요한 것은?", o:["박자를 맞추어 함께 연주하기", "혼자 돋보이게 연주하기", "가장 빠르게 연주하기", "악기를 자주 바꾸기"], a:0, exp:"서로 박자를 맞추어야 합주가 어우러집니다." },
+        { t:"c", q:"합창할 때 지휘자를 보는 이유는?", o:["빠르기와 셈여림을 함께 맞추기 위해", "가사를 알려 주기 때문에", "점수를 매기기 때문에", "노래를 대신 불러 주기 때문에"], a:0, exp:"지휘를 보며 시작, 빠르기, 셈여림을 함께 맞춥니다." },
+        { t:"c", q:"\"'넌 할 수 있어'라고 말해 주세요\"에서 노래와 함께 만들어 발표한 것은?", o:["랩", "동시", "그림", "율동"], a:0, exp:"노래에 어울리는 랩을 만들어 발표했습니다." },
+        { t:"c", q:"사장조 주요 3화음 반주에 맞추어 부른 제재곡은?", o:["함께 노래 불러요", "너영나영", "경복궁타령", "동창이"], a:0, exp:"'함께 노래 불러요'를 주요 3화음 반주에 맞추어 불렀습니다." },
+        { t:"c", q:"두 성부가 아름답게 어울릴 때의 느낌으로 알맞은 것은?", o:["소리가 풍성하고 조화롭다", "소리가 시끄럽고 복잡하다", "한 성부만 들린다", "박자가 흐트러진다"], a:0, exp:"성부가 어울리면 소리가 풍성하고 조화롭게 들립니다." },
+        { t:"c", q:"바장조의 주요 3화음 반주를 배운 제재곡은?", o:["마음의 고향", "아침 해", "기차를 타고", "도움소 소리"], a:0, exp:"'마음의 고향'에서 바장조 주요 3화음 반주를 익혔습니다." }
+      ]},
+      { id: 6, color: "#ffb300", value: 130,
+        cities: [{n:"뉴욕",f:"🇺🇸"},{n:"토론토",f:"🇨🇦"},{n:"리우",f:"🇧🇷"}],
+        questions: [
+        { t:"c", q:"모음곡 \"행성\"을 작곡한 사람은?", o:["홀스트", "베토벤", "모차르트", "비발디"], a:0, exp:"\"행성\"은 영국 작곡가 구스타브 홀스트의 작품입니다." },
+        { t:"c", q:"홀스트는 어느 나라의 작곡가일까요?", o:["영국", "독일", "이탈리아", "미국"], a:0, exp:"홀스트는 영국의 작곡가입니다." },
+        { t:"c", q:"\"행성\" 중 '목성'의 부제는?", o:["즐거움을 가져오는 자", "전쟁을 가져오는 자", "평화를 가져오는 자", "신비를 가져오는 자"], a:0, exp:"'목성'의 부제는 '즐거움(쾌락)을 가져오는 자'입니다." },
+        { t:"c", q:"'목성'을 감상할 때 주제 가락에서 파악하며 들은 것은?", o:["가락, 셈여림, 빠르기 등 음악 요소", "작곡가의 얼굴", "연주 장소", "악보의 두께"], a:0, exp:"주제 가락의 음악 요소를 파악하며 감상했습니다." },
+        { t:"c", q:"'목성'의 아름다운 주제 가락은 오늘날 어떻게 쓰이고 있을까요?", o:["노래나 행사 음악으로 편곡되어 널리 쓰인다", "지금은 연주가 금지되었다", "악보가 사라져 들을 수 없다", "게임에서만 사용된다"], a:0, exp:"'목성'의 중간 주제는 찬가, 행사 음악 등으로 편곡되어 사랑받고 있습니다." },
+        { t:"c", q:"저작권이란 무엇일까요?", o:["창작한 사람이 자신의 작품에 대해 갖는 권리", "음악을 크게 들을 수 있는 권리", "악기를 살 수 있는 권리", "공연장에 들어갈 권리"], a:0, exp:"음악, 글, 그림 등을 만든 사람이 갖는 권리입니다." },
+        { t:"c", q:"저작권을 보호하는 바른 실천 방법은?", o:["정당한 방법(합법 음원)으로 음악 듣기", "무료 사이트에서 몰래 내려받기", "친구 것을 복사해서 나누기", "출처 없이 마음대로 올리기"], a:0, exp:"합법적인 방법으로 음악을 이용하는 것이 저작권 보호입니다." },
+        { t:"c", q:"디지털 공간에서 음악을 감상할 때의 바른 태도는?", o:["바르고 고운 말로 댓글 쓰기", "기분 나쁘면 악플 달기", "다른 사람 영상 무단 복제하기", "아무 말이나 올리기"], a:0, exp:"디지털 공간에서도 바르게 의사소통해야 합니다." },
+        { t:"c", q:"생활 속 음악의 예로 알맞지 않은 것은?", o:["음악은 공연장에서만 들을 수 있다", "운동 경기의 응원가", "광고에 나오는 음악", "영화의 배경 음악"], a:0, exp:"음악은 공연장뿐 아니라 생활 곳곳에서 쓰입니다." },
+        { t:"c", q:"영화 속 음악의 중요한 역할은?", o:["장면의 분위기와 감정을 전달한다", "영화를 길게 만든다", "배우의 대사를 가린다", "화면을 밝게 한다"], a:0, exp:"영화 음악은 장면의 분위기와 인물의 감정을 살려 줍니다." },
+        { t:"c", q:"친구에게 음악을 추천할 때 고려할 점으로 알맞은 것은?", o:["친구의 취향과 상황", "노래의 가격", "가수의 키", "앨범의 두께"], a:0, exp:"친구가 좋아할 만한 음악을 상황에 맞게 추천합니다." },
+        { t:"c", q:"창작 국악곡 '아침 해'를 듣고 한 활동으로 알맞은 것은?", o:["곡의 느낌을 이야기하기", "가사를 영어로 번역하기", "악기를 분해하기", "지휘자 되어 보기"], a:0, exp:"창작 국악곡을 듣고 느낌을 이야기하며 감상했습니다." }
+      ]}
+    ]
+  }
+  // eng6: 다른 과목/학년 확장 시 동일 구조로 블록 추가
+};
+
+/* ============================================================
+ * 게임 엔진
+ * ============================================================ */
+const SAVE_KEY = 'bbm-music6-save-v2';
+/* 영어판과 Firebase 프로젝트를 공유하므로, 방 코드는 같아도 실제 DB 경로가
+ * 겹치지 않도록 이 과목 전용 접두사를 붙인다 (rooms/ABCD → rooms/music_ABCD). */
+const ROOM_PREFIX = 'music_';
+const TEAM_COLORS = ['#e53935','#1e88e5','#fdd835','#43a047'];
+const TEAM_LABELS = ['1팀 빨강','2팀 파랑','3팀 노랑','4팀 초록'];
+const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* 보드 24칸 정의 (시계 반대 방향, index 0 = 출발)
+ * 도시 칸은 단원 id + 그 단원 cities 배열의 순번(ci)만 기억 — 표시 정보는 데이터에서 조회 */
+const CELL_DEFS = (() => {
+  const d = [];
+  const used = {};
+  const city = id => {
+    const ci = used[id] = (used[id] || 0);
+    used[id]++;
+    return {type:'unit', unit:id, ci};
+  };
+  d[0]  = {type:'start', name:'출발', icon:'▶'};
+  [1,2,3].forEach(i => d[i] = city(1));
+  d[4]  = {type:'key', name:'황금열쇠', icon:'🔑'};
+  d[5]  = city(2);
+  d[6]  = {type:'island', name:'무인도', icon:'🏝'};
+  [7,8].forEach(i => d[i] = city(2));
+  [9,10,11].forEach(i => d[i] = city(3));
+  d[12] = {type:'travel', name:'세계여행', icon:'✈'};
+  [13,14,15].forEach(i => d[i] = city(4));
+  d[16] = {type:'key', name:'황금열쇠', icon:'🔑'};
+  d[17] = city(5);
+  d[18] = {type:'double', name:'더블찬스', icon:'★'};
+  [19,20].forEach(i => d[i] = city(5));
+  [21,22,23].forEach(i => d[i] = city(6));
+  return d;
+})();
+
+/* index → 7×7 그리드 좌표 */
+function gridPos(i){
+  if (i <= 6)  return {r:6, c:6-i};        // 아래줄: col 6→0
+  if (i <= 11) return {r:6-(i-6), c:0};    // 왼쪽줄: row 5→1
+  if (i <= 18) return {r:0, c:i-12};       // 윗줄: col 0→6
+  return {r:i-18, c:6};                    // 오른쪽줄: row 1→5
+}
+
+/* 황금열쇠 카드 풀 */
+const KEY_CARDS = [
+  {id:'bonus',   icon:'💰', title:'+80점 보너스', desc:'선생님의 칭찬! 80점을 받아요.'},
+  {id:'fine',    icon:'💸', title:'-40점 벌금',   desc:'앗, 숙제를 깜빡! 40점을 잃어요.'},
+  {id:'fwd2',    icon:'⏩', title:'앞으로 2칸',   desc:'앞으로 2칸 이동해요.'},
+  {id:'back2',   icon:'⏪', title:'뒤로 2칸',     desc:'뒤로 2칸 이동해요.'},
+  {id:'tostart', icon:'▶',  title:'출발로 이동',  desc:'출발 칸으로 가서 +50점을 받아요.'},
+  {id:'again',   icon:'🎲', title:'한 번 더 굴리기', desc:'주사위를 한 번 더 굴려요!'},
+  {id:'x2',      icon:'✨', title:'다음 문제 점수 2배', desc:'다음 문제의 획득/손실 점수가 2배!'},
+  {id:'toisland',icon:'🏝', title:'무인도로 이동', desc:'무인도로 가서 한 턴 쉬어요.'}
+];
+
+/* ── 상태 ── */
+let subject, teams, turn, decks, owners, timeLeft, totalTime;
+let mode = 'solo';               // 'solo' | 'group' | 'multi'
+let playerIdx = 0;               // 개인전/같이하기: 내 팀 index
+let player = {cls: 1, num: 1};   // 개인전/같이하기: 반/번호 (제출·대기실 표시용)
+let botAcc = 0.6;                // 개인전: 봇 정답률
+let gameId = null;               // 제출 중복 방지용
+let busy = false, timeUp = false, rollAgain = false, timerId = null;
+let cellEls = [], tokenEls = [];
+
+/* ── 같이하기(멀티) 상태 ── */
+let fbApp = null, fbDb = null, fbReady = false;
+let curRoomCode = null, roomRef = null, roomListener = null;
+let isHost = false, gameStartedFromRoom = false, resultShown = false;
+let myPlayerRef = null, heartbeatId = null, watchdogId = null;
+let selMultiTeamCount = 3, selMultiMin = 20, joinType = 'create';
+
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, REDUCED ? 0 : ms));
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const escBr = s => esc(s).replace(/\n/g,'<br>');   // 데이터의 \n → 줄바꿈 렌더링
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function hexToRgba(hex, alpha){
+  const h = hex.replace('#','');
+  return `rgba(${parseInt(h.slice(0,2),16)},${parseInt(h.slice(2,4),16)},${parseInt(h.slice(4,6),16)},${alpha})`;
+}
+function unitOf(id){ return subject.units.find(u => u.id === id); }
+function cityOf(def){ const u = unitOf(def.unit); return u.cities[def.ci]; }
+/* 번호 → 팀 배정: 번호 % 4 (0이면 4팀). 예: 7번 → 3팀 */
+function assignTeam(num){ const t = num % 4; return (t === 0 ? 4 : t) - 1; }
+function isBot(i){ return mode === 'solo' && i !== playerIdx; }
+function submitConfigured(){
+  return !!SUBMIT_FORM.url && Object.values(SUBMIT_FORM.entries).every(v => !!v);
+}
+function firebaseConfigured(){
+  return !!(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.databaseURL);
+}
+function loadScript(src){
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+async function initFirebase(){
+  if(!firebaseConfigured()) return false;
+  if(fbReady) return true;
+  try{
+    await loadScript('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
+    await loadScript('https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js');
+    fbApp = firebase.initializeApp(FIREBASE_CONFIG);
+    fbDb = firebase.database();
+    fbReady = true;
+  }catch(e){ fbReady = false; }
+  return fbReady;
+}
+function myUid(){
+  let id;
+  try{ id = localStorage.getItem('bbm-uid'); }catch(e){}
+  if(!id){
+    id = 'p' + Math.random().toString(36).slice(2, 10);
+    try{ localStorage.setItem('bbm-uid', id); }catch(e){}
+  }
+  return id;
+}
+function genRoomCode(){ return String(Math.floor(1000 + Math.random()*9000)); }
+
+/* ── 저장/복원 ── */
+function save(){
+  try{
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      v:2, subjectKey, mode, playerIdx, player, botAcc, gameId,
+      teams, turn, decks, owners, timeLeft, totalTime, savedAt:Date.now()
+    }));
+  }catch(e){/* 저장 실패해도 게임은 계속 */}
+}
+function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+function loadSave(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(!raw) return null;
+    const s = JSON.parse(raw);
+    if(s && s.v === 2 && SUBJECTS[s.subjectKey] && Array.isArray(s.teams) && s.timeLeft > 0) return s;
+  }catch(e){}
+  return null;
+}
+
+/* ============================================================
+ * 시작 화면
+ * ============================================================ */
+let subjectKey = 'music6';
+let selTeamCount = 3, selGroupMin = 20, selSoloMin = 15;
+
+function segInit(id, attr, cb){
+  $(id).querySelectorAll('button').forEach(b => b.onclick = () => {
+    $(id).querySelectorAll('button').forEach(x => x.classList.toggle('sel', x === b));
+    cb(b.dataset[attr]);
+  });
+}
+function stepperInit(id, min, max, cb){
+  const box = $(id), val = box.querySelector('.st-val');
+  box.querySelectorAll('button').forEach(b => b.onclick = () => {
+    let v = +val.textContent + (+b.dataset.d);
+    v = Math.max(min, Math.min(max, v));
+    val.textContent = v;
+    cb(v);
+  });
+}
+function renderAssign(){
+  const idx = assignTeam(player.num);
+  $('teamAssign').querySelector('.big-dot').style.background = TEAM_COLORS[idx];
+  $('teamAssign').querySelector('.tx').textContent = `${player.num}번 → ${TEAM_LABELS[idx]}`;
+}
+function initStartScreen(){
+  const sel = $('subjectSel');
+  sel.innerHTML = Object.entries(SUBJECTS)
+    .map(([k,v]) => `<option value="${k}">${esc(v.name)}</option>`).join('');
+  sel.value = subjectKey;
+  sel.onchange = () => { subjectKey = sel.value; };
+
+  $('modeTabs').querySelectorAll('button').forEach(b => b.onclick = () => {
+    mode = b.dataset.mode;
+    $('modeTabs').querySelectorAll('button').forEach(x => x.classList.toggle('sel', x === b));
+    $('soloOpts').style.display = mode === 'solo' ? '' : 'none';
+    $('groupOpts').style.display = mode === 'group' ? '' : 'none';
+    $('multiOpts').style.display = mode === 'multi' ? '' : 'none';
+    updateStartBtnLabel();
+  });
+
+  stepperInit('clsStep', 1, 20, v => { player.cls = v; });
+  stepperInit('numStep', 1, 40, v => { player.num = v; renderAssign(); });
+  renderAssign();
+  segInit('diffSeg', 'a', v => { botAcc = +v; });
+  segInit('soloTimeSeg', 'm', v => { selSoloMin = +v; });
+  segInit('teamCountSeg', 'n', v => { selTeamCount = +v; renderNameInputs(); });
+  segInit('groupTimeSeg', 'm', v => { selGroupMin = +v; });
+  renderNameInputs();
+
+  // 같이하기(멀티) 컨트롤 — Firebase 설정 시에만 탭이 보인다
+  stepperInit('mClsStep', 1, 20, v => { player.cls = v; });
+  stepperInit('mNumStep', 1, 40, v => { player.num = v; });
+  $('joinTabs').querySelectorAll('button').forEach(b => b.onclick = () => {
+    joinType = b.dataset.j;
+    $('joinTabs').querySelectorAll('button').forEach(x => x.classList.toggle('sel', x === b));
+    $('createBox').style.display = joinType === 'create' ? '' : 'none';
+    $('joinBox').style.display = joinType === 'join' ? '' : 'none';
+    updateStartBtnLabel();
+  });
+  segInit('multiTeamCountSeg', 'n', v => { selMultiTeamCount = +v; });
+  segInit('multiTimeSeg', 'm', v => { selMultiMin = +v; });
+  if(firebaseConfigured()){
+    $('multiTabBtn').style.display = '';
+    initFirebase();   // 백그라운드 사전 로드 (실패해도 개인전/모둠전엔 영향 없음)
+  }
+
+  $('startBtn').onclick = () => {
+    if(mode === 'multi'){ enterMultiFlow(); return; }
+    startNewGame();
+  };
+  $('lobbyStartBtn').onclick = hostStartMultiGame;
+  $('lobbyLeaveBtn').onclick = () => {
+    leaveRoom();
+    $('lobbyScreen').classList.remove('on');
+    $('startScreen').classList.add('on');
+  };
+}
+function updateStartBtnLabel(){
+  $('startBtn').textContent = (mode === 'multi')
+    ? (joinType === 'create' ? '방 만들기' : '방 참가하기')
+    : '게임 시작!';
+}
+function renderNameInputs(){
+  const box = $('teamNames');
+  const prev = [...box.querySelectorAll('input')].map(i => i.value);
+  box.innerHTML = '';
+  for(let i=0;i<selTeamCount;i++){
+    const row = document.createElement('div');
+    row.className = 'team-name-row';
+    row.innerHTML = `<span class="dot" style="background:${TEAM_COLORS[i]}"></span>`;
+    const inp = document.createElement('input');
+    inp.maxLength = 10;
+    inp.value = prev[i] || `${i+1}모둠`;
+    row.appendChild(inp);
+    box.appendChild(row);
+  }
+}
+
+function startNewGame(){
+  subject = SUBJECTS[subjectKey];
+  if(mode === 'solo'){
+    playerIdx = assignTeam(player.num);
+    teams = TEAM_COLORS.map((c,i) => ({
+      name: `${i+1}팀`, color: c, score: 0, pos: 0, lands: [], skip: false, doubleNext: false
+    }));
+    totalTime = selSoloMin * 60;
+  }else{
+    const names = [...$('teamNames').querySelectorAll('input')].map((i,idx) => i.value.trim() || `${idx+1}모둠`);
+    teams = names.map((name,i) => ({ name, color:TEAM_COLORS[i], score:0, pos:0, lands:[], skip:false, doubleNext:false }));
+    totalTime = selGroupMin * 60;
+  }
+  turn = 0;
+  owners = {};
+  decks = {};
+  subject.units.forEach(u => decks[u.id] = shuffle(u.questions.map((_,i)=>i)));
+  timeLeft = totalTime;
+  gameId = String(Date.now());
+  timeUp = false; busy = false; rollAgain = false;
+  clearSave();
+  enterGame();
+  save();
+}
+
+function resumeGame(s){
+  subjectKey = s.subjectKey;
+  subject = SUBJECTS[subjectKey];
+  mode = s.mode; playerIdx = s.playerIdx; player = s.player; botAcc = s.botAcc; gameId = s.gameId;
+  teams = s.teams; turn = s.turn; decks = s.decks; owners = s.owners;
+  timeLeft = s.timeLeft; totalTime = s.totalTime;
+  timeUp = false; busy = false; rollAgain = false;
+  enterGame();
+}
+
+/* ============================================================
+ * 같이하기(멀티) — Firebase Realtime Database
+ * 방(rooms/{code})에는 players(참가자)와 state(게임 진행 상태)를 둔다.
+ * 현재 턴인 플레이어의 기기만 state 를 쓰고, 나머지는 onValue 구독으로 렌더링만 한다.
+ * ============================================================ */
+async function enterMultiFlow(){
+  const btn = $('startBtn');
+  btn.disabled = true;
+  const ok = await initFirebase();
+  if(!ok){ btn.disabled = false; toast('Firebase 연결에 실패했어요. 설정을 확인하세요.', 2200); return; }
+  try{
+    if(joinType === 'create') await createRoom();
+    else await joinRoom($('roomCodeInput').value.trim());
+  }catch(e){
+    // 가장 흔한 원인: DB 보안 규칙 미설정(Permission denied)
+    const denied = /permission|denied/i.test(String(e && e.message || e));
+    toast(denied ? '방을 만들 수 없어요. (DB 규칙 설정 필요 — 선생님께 문의)'
+                 : '연결 문제로 실패했어요. 잠시 후 다시 시도하세요.', 2600);
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function createRoom(){
+  subjectKey = $('subjectSel').value;
+  subject = SUBJECTS[subjectKey];
+  curRoomCode = genRoomCode();
+  isHost = true;
+  gameStartedFromRoom = false; resultShown = false;
+  const uid = myUid();
+  roomRef = fbDb.ref('rooms/' + ROOM_PREFIX + curRoomCode);
+  await roomRef.set({
+    phase: 'waiting',
+    hostUid: uid,
+    subjectKey,
+    teamCount: selMultiTeamCount,
+    duration: selMultiMin * 60,
+    createdAt: Date.now(),
+    players: { [uid]: { cls: player.cls, num: player.num, teamIdx: 0, connected: true, lastSeen: Date.now() } }
+  });
+  myPlayerRef = roomRef.child('players/' + uid);
+  myPlayerRef.onDisconnect().update({ connected: false });
+  saveMultiSession();
+  attachRoomListener();
+}
+
+async function joinRoom(code){
+  if(!/^\d{4}$/.test(code)){ toast('4자리 방 코드를 입력하세요.', 1800); return; }
+  const ref = fbDb.ref('rooms/' + ROOM_PREFIX + code);
+  const snap = await ref.get();
+  if(!snap.exists()){ toast('방 코드를 찾을 수 없어요.', 1800); return; }
+  const room = snap.val();
+  if(room.phase !== 'waiting'){ toast('이미 시작됐거나 종료된 방이에요.', 1800); return; }
+  const count = Object.keys(room.players || {}).length;
+  if(count >= room.teamCount){ toast('방이 가득 찼어요.', 1800); return; }
+  curRoomCode = code;
+  isHost = false;
+  gameStartedFromRoom = false; resultShown = false;
+  subjectKey = room.subjectKey;
+  subject = SUBJECTS[subjectKey];
+  const uid = myUid();
+  roomRef = ref;
+  await ref.child('players/' + uid).set({ cls: player.cls, num: player.num, teamIdx: count, connected: true, lastSeen: Date.now() });
+  myPlayerRef = ref.child('players/' + uid);
+  myPlayerRef.onDisconnect().update({ connected: false });
+  saveMultiSession();
+  attachRoomListener();
+}
+
+function attachRoomListener(){
+  $('startScreen').classList.remove('on');
+  $('lobbyScreen').classList.add('on');
+  roomListener = roomRef.on('value', snap => {
+    const room = snap.val();
+    if(!room) return;   // 방장이 나가서 삭제됐거나 아직 반영 전
+    if(room.phase === 'waiting'){
+      renderLobby(room);
+    }else if(room.phase === 'playing'){
+      if(!gameStartedFromRoom){
+        gameStartedFromRoom = true;
+        mode = 'multi';
+        subjectKey = room.subjectKey; subject = SUBJECTS[subjectKey];
+        const me = (room.players || {})[myUid()];
+        if(me){ playerIdx = me.teamIdx; player = { cls: me.cls, num: me.num }; }  // 새로고침 재접속 시 반/번호 복원
+        applyRoomState(room.state);
+        $('lobbyScreen').classList.remove('on');
+        enterGame();
+        startHeartbeat();
+        if(isHost) startHostWatchdog();
+      }else if(turn !== playerIdx){
+        // 내 턴이 아닐 때만 원격 상태 반영 (내 턴 진행 중엔 로컬이 최신 상태)
+        applyRoomState(room.state);
+        renderOwnership();
+        positionAllTokens();
+        updatePanel();
+        updateHud();
+        centerMsg(turn === playerIdx ? '내 차례! 주사위를 굴리세요' : `${teams[turn].name} 차례를 기다리는 중…`);
+      }
+    }else if(room.phase === 'finished'){
+      if(gameStartedFromRoom) applyRoomState(room.state);
+      showResult();
+    }
+  });
+}
+
+function renderLobby(room){
+  $('roomCodeDisplay').textContent = curRoomCode;
+  const uid = myUid();
+  const list = Object.entries(room.players || {}).sort((a,b) => a[1].teamIdx - b[1].teamIdx);
+  $('lobbyList').innerHTML = list.map(([pid,p]) => `
+    <div class="lobby-row">
+      <span class="dot" style="background:${TEAM_COLORS[p.teamIdx]}"></span>
+      <span class="lname">${esc(p.cls)}반 ${esc(p.num)}번 ${pid===room.hostUid?'👑':''}${pid===uid?' (나)':''}</span>
+      <span class="conn ${p.connected?'':'off'}">${p.connected?'● 접속중':'○ 끊김'}</span>
+    </div>`).join('') || '<p style="color:var(--muted)">참가자를 기다리는 중…</p>';
+  const me = (room.players || {})[uid];
+  if(me) playerIdx = me.teamIdx;
+  $('lobbyStartBtn').style.display = (isHost && list.length >= 2) ? '' : 'none';
+}
+
+async function hostStartMultiGame(){
+  if(!isHost || !roomRef) return;
+  const snap = await roomRef.get();
+  const room = snap.val();
+  if(!room || room.phase !== 'waiting') return;
+  const teamCount = room.teamCount;
+  const subj = SUBJECTS[room.subjectKey];
+  const teams0 = Array.from({length: teamCount}, (_,i) => ({
+    name: `${i+1}팀`, color: TEAM_COLORS[i], score: 0, pos: 0, lands: [], skip: false, doubleNext: false
+  }));
+  const decks0 = {};
+  subj.units.forEach(u => decks0[u.id] = shuffle(u.questions.map((_,i)=>i)));
+  await roomRef.update({
+    phase: 'playing',
+    state: { teams: teams0, turn: 0, owners: {}, decks: decks0,
+             timeLeft: room.duration, totalTime: room.duration, rollAgain: false }
+  });
+}
+
+/* Firebase Realtime Database 는 빈 배열/객체를 저장하지 않고 생략한다(읽으면 undefined).
+ * 또 인덱스가 0..n 연속이면 배열, 아니면 객체로 돌려주므로, 원격 상태를 받을 때 정규화한다. */
+function toArr(v){ return Array.isArray(v) ? v : (v && typeof v === 'object' ? Object.values(v) : []); }
+function applyRoomState(s){
+  if(!s) return;
+  teams = toArr(s.teams).map(t => ({
+    name: t.name, color: t.color,
+    score: t.score || 0, pos: t.pos || 0,
+    lands: toArr(t.lands), skip: !!t.skip, doubleNext: !!t.doubleNext
+  }));
+  turn = s.turn || 0;
+  owners = s.owners || {};
+  decks = {};
+  const rawDecks = s.decks || {};
+  for(const k in rawDecks) decks[k] = toArr(rawDecks[k]);
+  timeLeft = typeof s.timeLeft === 'number' ? s.timeLeft : totalTime;
+  totalTime = s.totalTime || totalTime;
+  rollAgain = !!s.rollAgain;
+}
+
+function syncMultiState(){
+  if(!roomRef) return;
+  roomRef.child('state').update({ teams, turn, owners, decks, timeLeft, rollAgain });
+}
+
+async function finishMultiGame(){
+  timeUp = true;
+  if(roomRef){
+    await roomRef.update({
+      phase: 'finished',
+      expiresAt: Date.now() + 24*3600*1000,
+      'state/timeLeft': 0, 'state/teams': teams, 'state/owners': owners
+    });
+  }
+  showResult();
+}
+
+function startHeartbeat(){
+  if(heartbeatId) clearInterval(heartbeatId);
+  heartbeatId = setInterval(() => {
+    if(myPlayerRef) myPlayerRef.update({ connected: true, lastSeen: Date.now() });
+  }, 8000);
+}
+
+function startHostWatchdog(){
+  if(watchdogId) clearInterval(watchdogId);
+  watchdogId = setInterval(async () => {
+    if(!isHost || !roomRef || timeUp) return;
+    const snap = await roomRef.child('players').get();
+    const players = snap.val() || {};
+    const cur = Object.values(players).find(p => p.teamIdx === turn);
+    if(cur && Date.now() - (cur.lastSeen || 0) > 45000){
+      hostForceSkipTurn();
+    }
+  }, 5000);
+}
+
+function hostForceSkipTurn(){
+  toast('⏭ 응답이 없어 다음 팀으로 넘어가요', 1500);
+  turn = (turn + 1) % teams.length;
+  let guard = 0;
+  while(teams[turn].skip && guard < teams.length){
+    teams[turn].skip = false;
+    turn = (turn + 1) % teams.length;
+    guard++;
+  }
+  syncMultiState();
+  beginTurn();
+}
+
+function stopMultiLoops(){
+  if(heartbeatId){ clearInterval(heartbeatId); heartbeatId = null; }
+  if(watchdogId){ clearInterval(watchdogId); watchdogId = null; }
+}
+
+function leaveRoom(){
+  stopMultiLoops();
+  if(roomRef && roomListener) roomRef.off('value', roomListener);
+  if(myPlayerRef) myPlayerRef.update({ connected: false });
+  clearMultiSession();
+  roomRef = null; roomListener = null; myPlayerRef = null;
+  curRoomCode = null; isHost = false; gameStartedFromRoom = false;
+}
+
+function saveMultiSession(){
+  try{ localStorage.setItem('bbm-multi-session-music6', JSON.stringify({ code: curRoomCode, isHost })); }catch(e){}
+}
+function clearMultiSession(){
+  try{ localStorage.removeItem('bbm-multi-session-music6'); }catch(e){}
+}
+function loadMultiSession(){
+  try{
+    const raw = localStorage.getItem('bbm-multi-session-music6');
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+
+/* ============================================================
+ * 보드 렌더링
+ * ============================================================ */
+function buildBoard(){
+  const board = $('board');
+  board.innerHTML = '';
+  cellEls = [];
+  CELL_DEFS.forEach((def, i) => {
+    const {r,c} = gridPos(i);
+    const el = document.createElement('div');
+    el.className = 'cell';
+    el.dataset.idx = i;
+    el.style.gridRow = r+1;
+    el.style.gridColumn = c+1;
+    if(def.type === 'unit'){
+      const u = unitOf(def.unit), city = cityOf(def);
+      el.innerHTML = `<div class="band" style="background:${u.color}"></div>
+        <div class="body"><div class="cicon">${city.f}</div><div class="uname">${esc(city.n)}</div><div class="cval">${u.value}점</div></div>`;
+    }else if(def.type === 'key'){
+      el.classList.add('key');
+      el.innerHTML = `<div class="body"><div class="icon">🔑</div><div class="uname">황금열쇠</div></div>`;
+    }else{
+      el.classList.add('corner');
+      el.innerHTML = `<div class="body"><div class="icon">${def.icon}</div><div class="uname">${def.name}</div></div>`;
+    }
+    board.appendChild(el);
+    cellEls.push(el);
+  });
+  const center = document.createElement('div');
+  center.id = 'centerField';
+  center.innerHTML = `
+    <div id="gameTitle">🎲 음악 부루마블</div>
+    <div id="timer">--:--</div>
+    <div id="curTeam"><span class="dot"></span><span class="nm"></span></div>
+    <div id="dice">${'<span class="pip"></span>'.repeat(9)}</div>
+    <button id="rollBtn">주사위 굴리기</button>
+    <div id="centerMsg"></div>`;
+  board.appendChild(center);
+  $('rollBtn').onclick = onRoll;
+  setDice(6);
+  renderOwnership();
+}
+
+function renderOwnership(){
+  cellEls.forEach((el, i) => {
+    const def = CELL_DEFS[i];
+    if(def.type !== 'unit') return;
+    const band = el.querySelector('.band');
+    band.querySelectorAll('.flag').forEach(f => f.remove());
+    const owner = owners[i];
+    if(owner !== undefined && owner !== null && teams[owner]){
+      const flag = document.createElement('span');
+      flag.className = 'flag';
+      flag.style.color = teams[owner].color;
+      band.appendChild(flag);
+      el.style.background = hexToRgba(teams[owner].color, 0.08);
+    }else{
+      el.style.background = '';
+    }
+  });
+}
+
+/* 말(토큰) */
+function buildTokens(){
+  const layer = $('tokenLayer');
+  layer.innerHTML = '';
+  tokenEls = teams.map((t,i) => {
+    const el = document.createElement('div');
+    el.className = 'token';
+    el.style.background = t.color;
+    el.style.zIndex = 10 + i;
+    layer.appendChild(el);
+    return el;
+  });
+  positionAllTokens();
+}
+function cellCenter(idx){
+  const wrap = $('boardWrap'), cell = cellEls[idx];
+  const wr = wrap.getBoundingClientRect(), cr = cell.getBoundingClientRect();
+  return { x: (cr.left - wr.left + cr.width/2) / wr.width * 100,
+           y: (cr.top  - wr.top  + cr.height/2) / wr.height * 100 };
+}
+const TOKEN_OFF = [[-1,-1],[1,-1],[-1,1],[1,1]];
+function tokenXY(teamIdx){
+  const c = cellCenter(teams[teamIdx].pos);
+  return { x: c.x + TOKEN_OFF[teamIdx][0]*1.5, y: c.y + TOKEN_OFF[teamIdx][1]*1.5 };
+}
+function positionAllTokens(){
+  teams.forEach((_,i) => {
+    const p = tokenXY(i);
+    tokenEls[i].style.left = p.x + '%';
+    tokenEls[i].style.top  = p.y + '%';
+  });
+}
+async function hopToken(teamIdx){
+  const el = tokenEls[teamIdx], p = tokenXY(teamIdx);
+  el.classList.remove('fly');
+  el.classList.add('hop');
+  el.style.left = p.x + '%'; el.style.top = p.y + '%';
+  await sleep(150);
+  el.classList.remove('hop');
+}
+async function flyToken(teamIdx){
+  const el = tokenEls[teamIdx], p = tokenXY(teamIdx);
+  el.classList.add('fly');
+  el.style.left = p.x + '%'; el.style.top = p.y + '%';
+  await sleep(450);
+  el.classList.remove('fly');
+}
+window.addEventListener('resize', () => { if(teams && tokenEls.length) positionAllTokens(); });
+
+/* 팀 패널 */
+function buildPanel(){
+  const panel = $('teamPanel');
+  panel.innerHTML = '';
+  teams.forEach((t,i) => {
+    const card = document.createElement('div');
+    card.className = 'tcard';
+    card.style.setProperty('--tc', t.color);
+    const tag = mode === 'solo' ? (i === playerIdx ? ' (나)' : ' 🤖')
+              : mode === 'multi' ? (i === playerIdx ? ' (나)' : '') : '';
+    card.innerHTML = `<span class="dot"></span>
+      <div class="info"><div class="tname">${esc(t.name)}${tag}</div><div class="tmeta"><span class="lands"></span></div></div>
+      <div class="badges"></div>
+      <div class="tscore">0</div>`;
+    panel.appendChild(card);
+  });
+  updatePanel();
+}
+function updatePanel(){
+  [...$('teamPanel').children].forEach((card,i) => {
+    const t = teams[i];
+    card.classList.toggle('cur', i === turn);
+    card.querySelector('.lands').textContent = `획득한 땅 ${t.lands.length}개`;
+    card.querySelector('.tscore').textContent = t.score;
+    const b = card.querySelector('.badges');
+    b.innerHTML = (t.doubleNext ? '<span class="stat x2">×2</span>' : '') +
+                  (t.skip ? '<span class="stat rest">🏝 쉼</span>' : '');
+  });
+}
+function animateScore(teamIdx, from, to){
+  const el = $('teamPanel').children[teamIdx].querySelector('.tscore');
+  if(REDUCED || from === to){ el.textContent = to; return; }
+  const start = performance.now(), dur = 500;
+  (function tick(now){
+    const p = Math.min(1, (now - start) / dur);
+    el.textContent = Math.round(from + (to - from) * p);
+    if(p < 1) requestAnimationFrame(tick);
+  })(start);
+}
+function addScore(teamIdx, delta){
+  const t = teams[teamIdx], from = t.score;
+  t.score += delta;
+  animateScore(teamIdx, from, t.score);
+  updatePanel();
+}
+
+/* HUD */
+function updateHud(){
+  const t = teams[turn];
+  $('curTeam').querySelector('.dot').style.background = t.color;
+  $('curTeam').querySelector('.nm').textContent = isBot(turn) ? `${t.name} (봇) 차례` : `${t.name} 차례!`;
+  $('rollBtn').disabled = busy || timeUp || isBot(turn) || (mode === 'multi' && turn !== playerIdx);
+  renderTimer();
+}
+function renderTimer(){
+  const m = Math.floor(Math.max(0,timeLeft)/60), s = Math.max(0,timeLeft)%60;
+  const el = $('timer');
+  el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  el.classList.toggle('low', timeLeft <= 60);
+}
+function centerMsg(msg){ $('centerMsg').textContent = msg || ''; }
+
+let toastTimer = null;
+function toast(msg, ms){
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('on');
+  clearTimeout(toastTimer);
+  const dur = ms || 1400;
+  toastTimer = setTimeout(() => el.classList.remove('on'), dur);
+  return sleep(dur * 0.85);
+}
+
+/* 타이머 */
+function startTimer(){
+  clearInterval(timerId);
+  renderTimer();
+  timerId = setInterval(() => {
+    timeLeft--;
+    renderTimer();
+    if(mode === 'multi'){
+      if(isHost){
+        if(roomRef) roomRef.child('state/timeLeft').set(Math.max(0, timeLeft));
+        if(timeLeft <= 0){
+          clearInterval(timerId);
+          timeUp = true;
+          $('rollBtn').disabled = true;
+          if(!busy) finishMultiGame();
+          else toast('⏰ 시간 종료! 이번 문제까지만 진행해요');
+        }
+      }
+      return;   // 호스트가 아니면: 화면 표시만 로컬로, 종료 판정은 호스트 기기만 수행
+    }
+    save();
+    if(timeLeft <= 0){
+      clearInterval(timerId);
+      timeUp = true;
+      $('rollBtn').disabled = true;
+      // 진행 중 이벤트(문제 모달 등)가 있으면 마저 처리 후 종료 (nextTurn 에서 처리)
+      if(!busy) showResult();
+      else toast('⏰ 시간 종료! 이번 문제까지만 진행해요');
+    }
+  }, 1000);
+}
+
+function enterGame(){
+  $('startScreen').classList.remove('on');
+  $('resultScreen').classList.remove('on');
+  $('gameScreen').classList.add('on');
+  buildBoard();
+  buildTokens();
+  buildPanel();
+  startTimer();
+  requestAnimationFrame(positionAllTokens);
+  beginTurn();
+}
+
+/* ============================================================
+ * 주사위 & 턴 진행
+ * ============================================================ */
+const PIP_MAP = {1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+function setDice(v){
+  const pips = $('dice').querySelectorAll('.pip');
+  pips.forEach((p,i) => p.classList.toggle('on', PIP_MAP[v].includes(i)));
+}
+function rollDice(fast){
+  return new Promise(res => {
+    const n = 1 + Math.floor(Math.random()*6);
+    if(REDUCED){ setDice(n); return res(n); }
+    const dice = $('dice');
+    dice.classList.add('rolling');
+    let ticks = 0;
+    const total = fast ? 5 : 10;               // 봇은 0.4초, 사람은 0.8초 롤링
+    const iv = setInterval(() => {
+      setDice(1 + Math.floor(Math.random()*6));
+      if(++ticks >= total){
+        clearInterval(iv);
+        dice.classList.remove('rolling');
+        setDice(n);
+        res(n);
+      }
+    }, 80);
+  });
+}
+
+/* 턴 시작: 개인전이면 봇 턴 자동 진행 */
+function beginTurn(){
+  updateHud();
+  updatePanel();
+  if(timeUp){ return; }
+  if(mode === 'multi' && turn !== playerIdx){
+    centerMsg(`${teams[turn].name} 차례를 기다리는 중…`);   // 다른 플레이어 기기에서 진행, 나는 상태 수신만
+    return;
+  }
+  if(isBot(turn)){
+    centerMsg(`🤖 ${teams[turn].name} 진행 중…`);
+    runBotTurn();       // await 하지 않음 — 스택을 비우고 비동기로 진행
+  }else{
+    centerMsg(mode === 'solo' ? '내 차례! 주사위를 굴리세요' : `${teams[turn].name} 차례예요!`);
+  }
+}
+
+async function onRoll(){
+  if(busy || timeUp || isBot(turn) || (mode === 'multi' && turn !== playerIdx)) return;
+  busy = true;
+  updateHud();
+  centerMsg('');
+  const n = await rollDice(false);
+  await toast(`🎲 ${n}!`, 800);
+  await moveForward(turn, n);
+  await handleArrival(turn);
+  endTurn();
+}
+
+async function runBotTurn(){
+  busy = true;
+  updateHud();
+  await sleep(500);
+  const n = await rollDice(true);
+  await toast(`🤖 ${teams[turn].name} 🎲 ${n}!`, 700);
+  await moveForward(turn, n);
+  await handleArrival(turn);
+  endTurn();
+}
+
+function endTurn(){
+  busy = false;
+  if(rollAgain && !timeUp){
+    rollAgain = false;
+    save();
+    if(mode === 'multi') syncMultiState();
+    if(isBot(turn)){ runBotTurn(); return; }   // 봇의 '한 번 더'도 자동 진행
+    updateHud();
+    centerMsg(`${teams[turn].name} 한 번 더!`);
+    return;
+  }
+  rollAgain = false;
+  nextTurn();
+}
+
+async function moveForward(teamIdx, steps){
+  const t = teams[teamIdx];
+  for(let i=0;i<steps;i++){
+    t.pos = (t.pos + 1) % 24;
+    await hopToken(teamIdx);
+    if(t.pos === 0){
+      addScore(teamIdx, 50);
+      toast('▶ 출발 통과! +50점');
+    }
+  }
+}
+async function moveBackward(teamIdx, steps){
+  const t = teams[teamIdx];
+  for(let i=0;i<steps;i++){
+    t.pos = (t.pos + 23) % 24;
+    await hopToken(teamIdx);
+  }
+}
+async function teleport(teamIdx, pos){
+  teams[teamIdx].pos = pos;
+  await flyToken(teamIdx);
+}
+
+function nextTurn(){
+  save();
+  if(timeUp){
+    if(mode === 'multi'){ if(isHost) finishMultiGame(); return; }
+    showResult();
+    return;
+  }
+  turn = (turn + 1) % teams.length;
+  // 무인도: 한 턴 쉬기 (모든 팀이 쉬는 극단 상황도 안전하게 처리)
+  let guard = 0;
+  while(teams[turn].skip && guard < teams.length){
+    teams[turn].skip = false;
+    toast(`🏝 ${teams[turn].name} 무인도에서 한 턴 쉬어요!`, 1600);
+    turn = (turn + 1) % teams.length;
+    guard++;
+  }
+  save();
+  if(mode === 'multi') syncMultiState();
+  beginTurn();
+}
+
+/* ============================================================
+ * 칸 도착 이벤트
+ * ============================================================ */
+async function handleArrival(teamIdx){
+  const t = teams[teamIdx];
+  const def = CELL_DEFS[t.pos];
+  switch(def.type){
+    case 'start': break;   // 통과/도착 보너스는 이동 중 처리
+    case 'unit':  await handleUnitCell(teamIdx, def); break;
+    case 'key':   await handleGoldenKey(teamIdx); break;
+    case 'island':
+      t.skip = true;
+      updatePanel();
+      await toast(`🏝 무인도! ${t.name}, 다음 턴 쉬어요`, isBot(teamIdx) ? 1100 : 1600);
+      break;
+    case 'travel': await handleWorldTravel(teamIdx); break;
+    case 'double':
+      t.doubleNext = true;
+      updatePanel();
+      await toast(`★ 더블찬스! ${t.name}의 다음 문제 점수 2배!`, isBot(teamIdx) ? 1100 : 1600);
+      break;
+  }
+}
+
+function consumeDouble(teamIdx){
+  const t = teams[teamIdx];
+  if(t.doubleNext){ t.doubleNext = false; updatePanel(); return 2; }
+  return 1;
+}
+
+/* 문제에 도전: 사람이면 모달, 봇이면 정답률로 즉시 판정 */
+async function attempt(teamIdx, unit, city, kindLabel, mult){
+  if(isBot(teamIdx)){
+    drawQuestion(unit);                       // 봇도 문제은행을 소모해 공정하게
+    await toast(`🤖 ${teams[teamIdx].name} · ${city.n} ${kindLabel} 푸는 중…`, 900);
+    return Math.random() < botAcc;
+  }
+  return askQuestion(drawQuestion(unit), unit, city, kindLabel, mult);
+}
+
+async function handleUnitCell(teamIdx, def){
+  const t = teams[teamIdx];
+  const unit = unitOf(def.unit);
+  const city = cityOf(def);
+  const pos = t.pos;
+  const ownerIdx = owners[pos];
+  const bot = isBot(teamIdx);
+
+  if(ownerIdx === undefined || ownerIdx === null){
+    // 주인 없는 도시: 문제 도전 → 정답 시 도시 가치만큼 점수
+    const mult = consumeDouble(teamIdx);
+    const ok = await attempt(teamIdx, unit, city, '도전 문제', mult);
+    if(ok){
+      owners[pos] = teamIdx;
+      t.lands.push(pos);
+      addScore(teamIdx, unit.value * mult);
+      renderOwnership();
+      await toast(`🚩 ${t.name} · ${city.n} 획득! +${unit.value*mult}점`, bot ? 1100 : 1500);
+    }else{
+      await toast(bot ? `❌ ${t.name} 오답!` : '아쉬워요! 다음 기회에…', bot ? 900 : 1200);
+    }
+  }else if(ownerIdx === teamIdx){
+    addScore(teamIdx, 30);
+    await toast(`😊 ${t.name} 내 땅 ${city.n}! +30점`, bot ? 1000 : 1300);
+  }else{
+    // 남의 도시: 통행료 문제 (통행료 = 도시 가치의 절반)
+    const owner = teams[ownerIdx];
+    const tollBase = Math.round(unit.value / 2);
+    if(!bot) await toast(`${owner.name}의 땅 ${city.n}! 통행료 문제 도전!`, 1400);
+    const mult = consumeDouble(teamIdx);
+    const ok = await attempt(teamIdx, unit, city, '통행료 문제', mult);
+    if(ok){
+      await toast(`🎉 ${t.name} 통행료 면제!`, bot ? 1000 : 1300);
+    }else{
+      addScore(teamIdx, -tollBase * mult);
+      addScore(ownerIdx, tollBase);
+      await toast(`💸 통행료! ${t.name} -${tollBase*mult}점 / ${owner.name} +${tollBase}점`, bot ? 1300 : 1800);
+    }
+  }
+}
+
+async function handleGoldenKey(teamIdx){
+  const t = teams[teamIdx];
+  const bot = isBot(teamIdx);
+  const card = KEY_CARDS[Math.floor(Math.random() * KEY_CARDS.length)];
+  await showKeyCard(card, bot);
+  switch(card.id){
+    case 'bonus': addScore(teamIdx, 80); await toast(`💰 ${t.name} +80점!`, 1100); break;
+    case 'fine':  addScore(teamIdx, -40); await toast(`💸 ${t.name} -40점…`, 1100); break;
+    case 'fwd2':
+      await moveForward(teamIdx, 2);
+      await handleArrival(teamIdx);
+      break;
+    case 'back2':
+      await moveBackward(teamIdx, 2);
+      await handleArrival(teamIdx);
+      break;
+    case 'tostart':
+      await teleport(teamIdx, 0);
+      addScore(teamIdx, 50);
+      await toast(`▶ ${t.name} 출발로! +50점`, 1200);
+      break;
+    case 'again':
+      rollAgain = true;
+      await toast(`🎲 ${t.name} 한 번 더 굴리기!`, 1200);
+      break;
+    case 'x2':
+      t.doubleNext = true;
+      updatePanel();
+      await toast(`✨ ${t.name} 다음 문제 점수 2배!`, 1200);
+      break;
+    case 'toisland':
+      await teleport(teamIdx, 6);
+      t.skip = true;
+      updatePanel();
+      await toast(`🏝 ${t.name} 무인도로! 다음 턴 쉬어요`, 1400);
+      break;
+  }
+}
+
+function showKeyCard(card, fast){
+  return new Promise(res => {
+    $('kcIcon').textContent = card.icon;
+    $('kcTitle').textContent = card.title;
+    $('kcDesc').textContent = card.desc;
+    const kc = $('keyCard');
+    kc.classList.remove('flip');
+    $('cardOverlay').classList.add('on');
+    setTimeout(() => kc.classList.add('flip'), REDUCED ? 0 : (fast ? 250 : 500));
+    setTimeout(() => {
+      $('cardOverlay').classList.remove('on');
+      res();
+    }, REDUCED ? 400 : (fast ? 1700 : 2600));
+  });
+}
+
+async function handleWorldTravel(teamIdx){
+  const t = teams[teamIdx];
+  if(isBot(teamIdx)){
+    // 봇: 주인 없는 도시 우선, 없으면 아무 도시
+    const unitIdxs = CELL_DEFS.map((d,i) => d.type === 'unit' ? i : -1).filter(i => i >= 0);
+    const free = unitIdxs.filter(i => owners[i] === undefined || owners[i] === null);
+    const pool = free.length ? free : unitIdxs;
+    const dest = pool[Math.floor(Math.random() * pool.length)];
+    await toast(`✈ ${t.name} 세계여행!`, 1000);
+    await teleport(teamIdx, dest);
+    await handleArrival(teamIdx);
+    return;
+  }
+  await toast('✈ 세계여행! 이동할 칸을 터치하세요', 1800);
+  centerMsg('✈ 이동할 칸을 터치하세요!');
+  const dest = await new Promise(res => {
+    cellEls.forEach((el, i) => {
+      if(i === t.pos) return;
+      el.classList.add('selectable');
+      el.onclick = () => res(i);
+    });
+  });
+  cellEls.forEach(el => { el.classList.remove('selectable'); el.onclick = null; });
+  centerMsg('');
+  await teleport(teamIdx, dest);
+  await handleArrival(teamIdx);   // 도착 칸 이벤트 연쇄 처리
+}
+
+/* ============================================================
+ * 문제 출제
+ * ============================================================ */
+function drawQuestion(unit){
+  let deck = decks[unit.id];
+  if(!deck || deck.length === 0){
+    deck = decks[unit.id] = shuffle(unit.questions.map((_,i)=>i));  // 소진 시 리셋
+  }
+  const q = unit.questions[deck.pop()];
+  return prepQuestion(q);
+}
+/* 보기/단어 셔플 (정답이 전부 index 0 이므로 필수)
+ * o 형: 정답 단어(w) + 함정 단어(x)를 합쳐 셔플. 앞 w.length 개가 정답 순서 그대로면 재셔플 */
+function prepQuestion(q){
+  if(q.t === 'o'){
+    const chips = [...q.w, ...(q.x || [])];
+    const key = a => a.join('');
+    let guard = 0;
+    do{ shuffle(chips); }
+    while(chips.slice(0, q.w.length).join('') === key(q.w) && ++guard < 20);
+    return { t:'o', ko:q.ko, w:q.w, shuffled:chips };
+  }
+  const order = shuffle(q.o.map((_,i)=>i));
+  return { t:q.t, q:q.q, o:order.map(i => q.o[i]), a:order.indexOf(q.a) };
+}
+
+function blankHtml(text, fill){
+  const parts = text.split('___').map(escBr);
+  const filler = fill !== undefined ? `<span class="blank">${esc(fill)}</span>` : `<span class="blank">___</span>`;
+  return parts.join(filler);
+}
+
+/* 문제 모달: 정답 여부를 resolve (단원 번호는 노출하지 않음 — 도시 이름만 표시) */
+function askQuestion(q, unit, city, kindLabel, mult){
+  return new Promise(res => {
+    const modal = $('qModal'), cardEl = $('qCard');
+    cardEl.style.setProperty('--uc', unit.color);
+    cardEl.classList.remove('shake');
+
+    const head = `<div class="q-head">
+        <span class="q-badge">${city.f} ${esc(city.n)}</span>
+        <span class="q-badge kind">${esc(kindLabel)}</span>
+        ${mult === 2 ? '<span class="q-badge x2">✨ 점수 2배!</span>' : ''}
+      </div>`;
+
+    let answerText;   // 정답 문장 노출용 HTML
+    function finish(ok){
+      const fb = cardEl.querySelector('.q-feedback');
+      fb.textContent = ok ? '🎉 정답이에요!' : '😢 아쉬워요, 오답!';
+      fb.classList.add(ok ? 'ok' : 'no');
+      if(ok) confetti(); else if(!REDUCED) cardEl.classList.add('shake');
+      setTimeout(() => {
+        const ans = cardEl.querySelector('.q-answer');
+        ans.innerHTML = answerText;
+        ans.classList.add('on');
+        setTimeout(() => { modal.classList.remove('on'); res(ok); }, 2000);  // 정답 문장 2초 노출
+      }, REDUCED ? 100 : 700);
+    }
+
+    if(q.t === 'o'){
+      /* 문장 배열 (함정 단어 포함 — w 개수만큼 배치하면 확인 가능) */
+      answerText = `정답: ${esc(q.w.join(' '))}`;
+      cardEl.innerHTML = `${head}
+        <div class="q-text">🧩 순서대로 배열하세요 (안 쓰는 단어도 있어요!):<br>“${esc(q.ko)}”</div>
+        <div class="q-arrange">
+          <div class="slots"></div>
+          <div class="pool"></div>
+          <button class="q-confirm" disabled>확인</button>
+        </div>
+        <div class="q-feedback"></div><div class="q-answer"></div>`;
+      const slots = cardEl.querySelector('.slots');
+      const pool = cardEl.querySelector('.pool');
+      const confirmBtn = cardEl.querySelector('.q-confirm');
+      let done = false;
+
+      function refresh(){ confirmBtn.disabled = slots.children.length !== q.w.length; }
+      q.shuffled.forEach(word => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'chip';
+        chip.textContent = word;
+        chip.onclick = () => {           // 칩 터치 → 배치 / 배치된 칩 터치 → 되돌리기
+          if(done) return;
+          if(chip.parentElement === pool){
+            if(slots.children.length >= q.w.length) return;   // 정답 길이만큼만 배치 가능
+            slots.appendChild(chip);
+          }else{
+            pool.appendChild(chip);
+          }
+          refresh();
+        };
+        pool.appendChild(chip);
+      });
+      confirmBtn.onclick = () => {
+        if(done || slots.children.length !== q.w.length) return;
+        done = true;
+        confirmBtn.disabled = true;
+        const arranged = [...slots.children].map(c => c.textContent);
+        finish(arranged.join('') === q.w.join(''));
+      };
+    }else{
+      /* 4지선다 / 빈칸 */
+      const qHtml = q.t === 'b' ? blankHtml(q.q) : escBr(q.q);
+      answerText = q.t === 'b'
+        ? `정답: ${blankHtml(q.q, q.o[q.a])}`
+        : `정답: ${esc(q.o[q.a])}`;
+      cardEl.innerHTML = `${head}
+        <div class="q-text">${qHtml}</div>
+        <div class="q-opts">${q.o.map((o,i) =>
+          `<button type="button" data-i="${i}">${esc(o)}</button>`).join('')}</div>
+        <div class="q-feedback"></div><div class="q-answer"></div>`;
+      let done = false;
+      cardEl.querySelectorAll('.q-opts button').forEach(btn => {
+        btn.onclick = () => {
+          if(done) return;
+          done = true;
+          const pick = +btn.dataset.i;
+          const ok = pick === q.a;
+          cardEl.querySelectorAll('.q-opts button').forEach(b => {
+            b.disabled = true;
+            const i = +b.dataset.i;
+            if(i === q.a) b.classList.add('right');
+            else if(i === pick) b.classList.add('wrong');
+          });
+          finish(ok);
+        };
+      });
+    }
+    modal.classList.add('on');
+  });
+}
+
+/* 컨페티 (15개 이내) */
+function confetti(){
+  if(REDUCED) return;
+  const colors = ['#f5c542','#e53935','#1e88e5','#43a047','#ec407a','#7c4dff'];
+  for(let i=0;i<12;i++){
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = (10 + Math.random()*80) + 'vw';
+    c.style.background = colors[i % colors.length];
+    c.style.animationDelay = (Math.random()*0.25) + 's';
+    c.style.transform = `rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 1600);
+  }
+}
+
+/* ============================================================
+ * 결과 화면 & 점수 제출
+ * ============================================================ */
+function showResult(){
+  if(resultShown) return;   // 같이하기: phase 리스너와 로컬 종료 판정이 겹쳐 들어와도 중복 방지
+  resultShown = true;
+  clearInterval(timerId);
+  stopMultiLoops();
+  clearSave();
+  $('gameScreen').classList.remove('on');
+  $('resultScreen').classList.add('on');
+  // 동점이면 획득 땅 수로 판정
+  const ranked = teams.map((t,i) => ({...t, idx:i}))
+    .sort((a,b) => b.score - a.score || b.lands.length - a.lands.length);
+  const medals = ['🥇','🥈','🥉','🎖'];
+  const isMine = mode !== 'group';   // 개인전/같이하기: "내 팀" 표시
+  $('rankList').innerHTML = ranked.map((t,r) => `
+    <div class="rank-row ${r===0?'first':''} ${isMine&&t.idx===playerIdx?'me':''}" style="--tc:${t.color}">
+      <span class="medal">${medals[r] || ''}</span>
+      <span class="dot"></span>
+      <span class="rname">${esc(t.name)}${mode==='solo' ? (t.idx===playerIdx?' (나)':' 🤖') : (isMine&&t.idx===playerIdx?' (나)':'')}</span>
+      <span class="rlands">땅 ${t.lands.length}개</span>
+      <span class="rscore">${t.score}점</span>
+    </div>`).join('');
+  if(isMine){
+    const myRank = ranked.findIndex(t => t.idx === playerIdx) + 1;
+    $('resultSub').textContent = `${player.cls}반 ${player.num}번 — ${myRank}위! ${myRank===1?'🎉':''}`;
+  }else{
+    $('resultSub').textContent = `${ranked[0].name} 우승! 🎉`;
+  }
+  setupSubmitBtn();
+  confetti();
+}
+
+function setupSubmitBtn(){
+  const btn = $('submitBtn');
+  const show = (mode === 'solo' || mode === 'multi') && submitConfigured();
+  btn.classList.toggle('show', show);
+  if(!show) return;
+  const flagKey = 'bbm-submitted-' + gameId;
+  const already = (() => { try{ return !!localStorage.getItem(flagKey); }catch(e){ return false; } })();
+  btn.disabled = already;
+  btn.textContent = already ? '✅ 제출 완료' : '📨 점수 제출';
+  btn.onclick = async () => {
+    btn.disabled = true;
+    const me = teams[playerIdx];
+    const body = new URLSearchParams();
+    body.append(SUBMIT_FORM.entries.cls, player.cls);
+    body.append(SUBMIT_FORM.entries.num, player.num);
+    body.append(SUBMIT_FORM.entries.team, `${playerIdx+1}팀`);
+    body.append(SUBMIT_FORM.entries.score, me.score);
+    body.append(SUBMIT_FORM.entries.lands, me.lands.length);
+    try{
+      // no-cors: 응답 확인 불가 — 전송 후 안내만 (스펙)
+      await fetch(SUBMIT_FORM.url, {
+        method: 'POST', mode: 'no-cors',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: body.toString()
+      });
+    }catch(e){/* 오프라인 등 — 안내는 동일 */}
+    try{ localStorage.setItem(flagKey, '1'); }catch(e){}
+    btn.textContent = '✅ 제출 완료';
+    toast('제출 완료! 선생님 화면에서 확인하세요', 2200);
+  };
+}
+
+$('againBtn').onclick = () => {
+  clearSave();
+  if(mode === 'multi') leaveRoom();
+  resultShown = false;
+  $('resultScreen').classList.remove('on');
+  $('startScreen').classList.add('on');
+};
+
+/* ============================================================
+ * 부팅: 저장된 게임 확인
+ * ============================================================ */
+initStartScreen();
+(function boot(){
+  const s = loadSave();
+  if(s){
+    const m = Math.floor(s.timeLeft/60), sec = s.timeLeft%60;
+    const who = s.mode === 'solo'
+      ? `개인전 · ${s.player.cls}반 ${s.player.num}번 (${s.playerIdx+1}팀)`
+      : `모둠전 · ${s.teams.map(t=>t.name).join(', ')}`;
+    $('resumeInfo').textContent = `${SUBJECTS[s.subjectKey].name} · ${who} · 남은 시간 ${m}:${String(sec).padStart(2,'0')}`;
+    $('resumeBox').classList.add('on');
+    $('resumeBtn').onclick = () => { $('resumeBox').classList.remove('on'); resumeGame(s); };
+    $('newGameBtn').onclick = () => { clearSave(); $('resumeBox').classList.remove('on'); };
+    return;
+  }
+  // 같이하기 재접속: 새로고침 전에 참여 중이던 방이 있으면 자동 재입장 시도
+  if(firebaseConfigured()){
+    const ms = loadMultiSession();
+    if(ms && ms.code){
+      (async () => {
+        const ok = await initFirebase();
+        if(!ok) return;
+        const ref = fbDb.ref('rooms/' + ROOM_PREFIX + ms.code);
+        const snap = await ref.get();
+        const room = snap.val();
+        if(!room || room.phase === 'finished'){ clearMultiSession(); return; }
+        curRoomCode = ms.code; isHost = !!ms.isHost; roomRef = ref;
+        const uid = myUid();
+        myPlayerRef = ref.child('players/' + uid);
+        myPlayerRef.update({ connected: true, lastSeen: Date.now() });
+        myPlayerRef.onDisconnect().update({ connected: false });
+        gameStartedFromRoom = false; resultShown = false;
+        attachRoomListener();
+        toast('진행 중이던 방에 다시 연결했어요', 1800);
+      })();
+    }
+  }
+})();
+</script>
+</body>
+</html>
