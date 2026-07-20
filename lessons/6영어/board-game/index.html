@@ -123,8 +123,8 @@ select{width:100%;min-height:52px;font-size:16px;border:2px solid var(--cell-lin
 .cell.tax .icon{font-size:clamp(11px,2.1vmin,20px);line-height:1.1}
 /* 건물 (집/호텔) — 소유 칸 컬러 밴드 왼쪽에 팀 색 SVG 로 표시 */
 .cell .band .blds{position:absolute;left:5%;top:6%;height:88%;display:flex;gap:4%;align-items:flex-end;z-index:1}
-.blds .bld{height:100%;display:block}
-.blds .bld svg{height:100%;width:auto;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
+.blds .bld{height:100%;aspect-ratio:1/1;display:block}
+.blds .bld svg{height:100%;width:100%;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
 .blds .bld.drop{animation:bldDrop .55s cubic-bezier(.3,1.6,.4,1)}   /* 위에서 떨어져 착지 바운스 */
 @keyframes bldDrop{0%{transform:translateY(-260%);opacity:0}55%{transform:translateY(0);opacity:1}72%{transform:translateY(-22%)}100%{transform:translateY(0)}}
 .cell .dust{position:absolute;width:6px;height:6px;border-radius:50%;background:#c9bfa8;z-index:2;pointer-events:none;
@@ -1286,8 +1286,9 @@ function buildBoard(){
 }
 
 /* 건물 SVG (팀 색 = currentColor) — 집은 작은 집, 호텔은 창문 있는 큰 건물 */
-const HOUSE_SVG = '<svg viewBox="0 0 24 24"><path d="M12 3 3 11h2.4v10h13.2V11H21z" fill="currentColor" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>';
-const HOTEL_SVG = '<svg viewBox="0 0 24 24"><rect x="5" y="2.5" width="14" height="19" rx="1.2" fill="currentColor" stroke="#fff" stroke-width="1.6"/><rect x="8" y="6" width="3" height="3" fill="#fff"/><rect x="13" y="6" width="3" height="3" fill="#fff"/><rect x="8" y="11" width="3" height="3" fill="#fff"/><rect x="13" y="11" width="3" height="3" fill="#fff"/><rect x="10" y="16.5" width="4" height="5" fill="#fff"/></svg>';
+/* width/height 속성 명시: Safari 는 속성 없는 SVG 의 폭을 0으로 계산해 건물이 사라질 수 있다 */
+const HOUSE_SVG = '<svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 3 3 11h2.4v10h13.2V11H21z" fill="currentColor" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+const HOTEL_SVG = '<svg width="24" height="24" viewBox="0 0 24 24"><rect x="5" y="2.5" width="14" height="19" rx="1.2" fill="currentColor" stroke="#fff" stroke-width="1.6"/><rect x="8" y="6" width="3" height="3" fill="#fff"/><rect x="13" y="6" width="3" height="3" fill="#fff"/><rect x="8" y="11" width="3" height="3" fill="#fff"/><rect x="13" y="11" width="3" height="3" fill="#fff"/><rect x="10" y="16.5" width="4" height="5" fill="#fff"/></svg>';
 function bldHtml(level){
   if(!level) return '';
   if(level >= MAX_BUILD) return `<span class="bld">${HOTEL_SVG}</span>`;   // 호텔은 집을 교체
@@ -1302,11 +1303,14 @@ function renderOwnership(){
     band.querySelectorAll('.flag,.blds').forEach(f => f.remove());
     const owner = owners[i];
     if(owner !== undefined && owner !== null && teams[owner]){
-      const flag = document.createElement('span');
-      flag.className = 'flag';
-      flag.style.color = teams[owner].color;
-      band.appendChild(flag);
       const level = builds && builds[i];
+      if(!level){
+        // 깃발(삼각형)은 건물이 없는 소유 칸에만 — 건물이 있으면 건물이 소유를 보여준다
+        const flag = document.createElement('span');
+        flag.className = 'flag';
+        flag.style.color = teams[owner].color;
+        band.appendChild(flag);
+      }
       if(level){
         const b = document.createElement('span');
         b.className = 'blds';
