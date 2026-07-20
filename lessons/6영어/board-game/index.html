@@ -428,6 +428,7 @@ select{width:100%;min-height:52px;font-size:16px;border:2px solid var(--cell-lin
     <h1>🌐 대기실</h1>
     <div id="roomCodeDisplay">----</div>
     <div id="lobbyList"></div>
+    <p id="lobbyWarn" style="display:none;color:#e53935;font-weight:bold;margin:6px 0"></p>
     <button id="lobbyStartBtn" style="display:none">게임 시작!</button>
     <button id="lobbyLeaveBtn">나가기</button>
   </div>
@@ -908,20 +909,32 @@ async function enterMultiFlow(){
 async function createRoom(){
   subjectKey = $('subjectSel').value;
   subject = SUBJECTS[subjectKey];
-  curRoomCode = genRoomCode();
   isHost = true;
   gameStartedFromRoom = false; resultShown = false;
   const uid = myUid();
-  roomRef = fbDb.ref('rooms/' + curRoomCode);
-  await roomRef.set({
-    phase: 'waiting',
-    hostUid: uid,
-    subjectKey,
-    teamCount: selMultiTeamCount,
-    duration: selMultiMin * 60,
-    createdAt: Date.now(),
-    players: { [uid]: { cls: player.cls, num: player.num, teamIdx: 0, connected: true, lastSeen: Date.now() } }
-  });
+  // 방 코드를 트랜잭션으로 만든다: 이미 존재하는 코드면 abort → 다른 코드로 재시도.
+  // 두 기기가 같은 4자리를 동시에 뽑아도 한쪽만 성공하고, 남의 방을 덮어쓰지 않는다.
+  let code = null, ref = null;
+  for(let attempt = 0; attempt < 8; attempt++){
+    const tryCode = genRoomCode();
+    const tryRef = fbDb.ref('rooms/' + tryCode);
+    const res = await tryRef.transaction(cur => {
+      if(cur) return;   // 이미 있는 방 → abort
+      return {
+        phase: 'waiting',
+        hostUid: uid,
+        subjectKey,
+        teamCount: selMultiTeamCount,
+        duration: selMultiMin * 60,
+        createdAt: Date.now(),
+        players: { [uid]: { cls: player.cls, num: player.num, teamIdx: 0, connected: true, lastSeen: Date.now() } }
+      };
+    });
+    if(res.committed){ code = tryCode; ref = tryRef; break; }
+  }
+  if(!code){ isHost = false; toast('방 코드 생성에 실패했어요. 다시 시도하세요.', 2200); return; }
+  curRoomCode = code;
+  roomRef = ref;
   myPlayerRef = roomRef.child('players/' + uid);
   myPlayerRef.onDisconnect().update({ connected: false });
   saveMultiSession();
@@ -935,16 +948,51 @@ async function joinRoom(code){
   if(!snap.exists()){ toast('방 코드를 찾을 수 없어요.', 1800); return; }
   const room = snap.val();
   if(room.phase !== 'waiting'){ toast('이미 시작됐거나 종료된 방이에요.', 1800); return; }
-  const count = Object.keys(room.players || {}).length;
-  if(count >= room.teamCount){ toast('방이 가득 찼어요.', 1800); return; }
+  const uid = myUid();
+  const teamCount = room.teamCount;
+  const me = { cls: player.cls, num: player.num };
+
+  // 입장은 players 노드 전체를 트랜잭션으로 원자적 갱신한다.
+  // 빈 슬롯 탐색 → 자기 정보 기록 → 커밋. 동시 입장으로 커밋이 충돌하면
+  // Firebase 가 최신 값으로 자동 재시도하므로 두 학생이 같은 슬롯을 차지할 수 없다.
+  let result;
+  try{
+    result = await ref.child('players').transaction(players => {
+      players = players || {};
+      // 이미 배정된 학생(같은 uid, 또는 같은 반/번호)이면 새 슬롯이 아닌 기존 슬롯으로 복귀
+      let key = players[uid] ? uid : null;
+      if(!key){
+        for(const k in players){
+          if(players[k].cls === me.cls && players[k].num === me.num){ key = k; break; }
+        }
+      }
+      if(key){
+        const slot = players[key].teamIdx;
+        if(key !== uid) delete players[key];   // 기기·localStorage 가 바뀌어도 uid 하나로 통일
+        players[uid] = { cls: me.cls, num: me.num, teamIdx: slot, connected: true, lastSeen: Date.now() };
+        return players;
+      }
+      // 새 참가자: 가장 낮은 빈 슬롯을 찾아 배정
+      const used = new Set(Object.values(players).map(p => p.teamIdx));
+      let slot = -1;
+      for(let i = 0; i < teamCount; i++){ if(!used.has(i)){ slot = i; break; } }
+      if(slot < 0) return;   // 4자리(정원)가 다 찼으면 abort
+      players[uid] = { cls: me.cls, num: me.num, teamIdx: slot, connected: true, lastSeen: Date.now() };
+      return players;
+    });
+  }catch(e){ toast('입장 중 문제가 발생했어요. 다시 시도하세요.', 2000); return; }
+
+  if(!result.committed){ toast('방이 가득 찼어요.', 1800); return; }
+  const mine = (result.snapshot.val() || {})[uid];
+  if(!mine){ toast('입장에 실패했어요. 다시 시도하세요.', 1800); return; }
+
   curRoomCode = code;
   isHost = false;
   gameStartedFromRoom = false; resultShown = false;
   subjectKey = room.subjectKey;
   subject = SUBJECTS[subjectKey];
-  const uid = myUid();
+  playerIdx = mine.teamIdx;
   roomRef = ref;
-  await ref.child('players/' + uid).set({ cls: player.cls, num: player.num, teamIdx: count, connected: true, lastSeen: Date.now() });
   myPlayerRef = ref.child('players/' + uid);
   myPlayerRef.onDisconnect().update({ connected: false });
   saveMultiSession();
@@ -987,6 +1035,19 @@ function attachRoomListener(){
   });
 }
 
+/* 슬롯 정합성 검사: 참가자들의 teamIdx 가 0..n-1 로 중복·공석 없이 채워졌는지 확인.
+ * 정렬한 슬롯 번호가 [0,1,2,…] 와 정확히 일치해야 시작을 허용한다. */
+function checkSlots(players){
+  const arr = Object.values(players || {});
+  const n = arr.length;
+  if(n < 2) return { ok: false, count: n, reason: '참가자가 2명 이상이어야 시작할 수 있어요.' };
+  const idxs = arr.map(p => p.teamIdx).sort((a,b) => a - b);
+  for(let i = 0; i < idxs.length; i++){
+    if(idxs[i] !== i) return { ok: false, count: n, reason: '슬롯이 어긋났어요(중복·공석). 학생들에게 새로고침을 안내하세요.' };
+  }
+  return { ok: true, count: n };
+}
+
 function renderLobby(room){
   $('roomCodeDisplay').textContent = curRoomCode;
   const uid = myUid();
@@ -999,7 +1060,15 @@ function renderLobby(room){
     </div>`).join('') || '<p style="color:var(--muted)">참가자를 기다리는 중…</p>';
   const me = (room.players || {})[uid];
   if(me) playerIdx = me.teamIdx;
-  $('lobbyStartBtn').style.display = (isHost && list.length >= 2) ? '' : 'none';
+  // 시작 버튼은 슬롯 정합성 검증을 통과했을 때만 활성화. 방장에게 문제를 표시한다.
+  const v = checkSlots(room.players);
+  $('lobbyStartBtn').style.display = (isHost && v.ok) ? '' : 'none';
+  const warn = $('lobbyWarn');
+  if(isHost && !v.ok && v.count >= 2){
+    warn.textContent = v.reason; warn.style.display = '';
+  }else{
+    warn.style.display = 'none';
+  }
 }
 
 async function hostStartMultiGame(){
@@ -1007,9 +1076,12 @@ async function hostStartMultiGame(){
   const snap = await roomRef.get();
   const room = snap.val();
   if(!room || room.phase !== 'waiting') return;
-  const teamCount = room.teamCount;
+  // 시작 직전 슬롯 정합성 재검증 — 중복·공석이면 시작하지 않고 방장에게 알린다.
+  const v = checkSlots(room.players);
+  if(!v.ok){ toast(v.reason, 2400); return; }
   const subj = SUBJECTS[room.subjectKey];
-  const teams0 = Array.from({length: teamCount}, (_,i) => ({
+  // 실제 참가 인원수만큼만 팀을 만든다(빈 슬롯으로 진행하다 영원히 건너뛰는 것 방지).
+  const teams0 = Array.from({length: v.count}, (_,i) => ({
     name: `${i+1}팀`, color: TEAM_COLORS[i], score: 0, pos: 0, lands: [], skip: false, doubleNext: false
   }));
   const decks0 = {};
@@ -1062,6 +1134,7 @@ function startHeartbeat(){
   if(heartbeatId) clearInterval(heartbeatId);
   heartbeatId = setInterval(() => {
     if(myPlayerRef) myPlayerRef.update({ connected: true, lastSeen: Date.now() });
+    saveMultiSession();   // 플레이 중 세션 신선도 유지 → 새로고침 복귀는 되고, 오래된 방은 만료되도록
   }, 8000);
 }
 
@@ -1106,7 +1179,7 @@ function leaveRoom(){
 }
 
 function saveMultiSession(){
-  try{ localStorage.setItem('bbm-multi-session', JSON.stringify({ code: curRoomCode, isHost })); }catch(e){}
+  try{ localStorage.setItem('bbm-multi-session', JSON.stringify({ code: curRoomCode, isHost, savedAt: Date.now() })); }catch(e){}
 }
 function clearMultiSession(){
   try{ localStorage.removeItem('bbm-multi-session'); }catch(e){}
@@ -1886,13 +1959,25 @@ initStartScreen();
         const ref = fbDb.ref('rooms/' + ms.code);
         const snap = await ref.get();
         const room = snap.val();
-        if(!room || room.phase === 'finished'){ clearMultiSession(); return; }
-        curRoomCode = ms.code; isHost = !!ms.isHost; roomRef = ref;
         const uid = myUid();
+        // 죽은 방 판정 — 다음 중 하나면 자동 입장하지 않고 세션을 지운다.
+        //  · 방이 없음 / 이미 종료(finished) / 만료(expiresAt 경과)
+        //  · 내가 더는 그 방의 멤버가 아님(코드 재사용·정리됨) → update 로 되살아나는 것 방지
+        //  · 세션이 너무 오래됨(6시간 초과, 예: 다음 수업 때 QR 재스캔)
+        const expired = room && room.expiresAt && Date.now() > room.expiresAt;
+        const tooOld = ms.savedAt && (Date.now() - ms.savedAt > 6*3600*1000);
+        const member = room && room.players && room.players[uid];
+        if(!room || room.phase === 'finished' || expired || tooOld || !member){
+          clearMultiSession(); return;
+        }
+        // 살아있는 방 — 기존 슬롯(반/번호)으로 복귀. 새 슬롯을 차지하지 않는다.
+        curRoomCode = ms.code; isHost = !!ms.isHost; roomRef = ref;
+        playerIdx = member.teamIdx; player = { cls: member.cls, num: member.num };
         myPlayerRef = ref.child('players/' + uid);
         myPlayerRef.update({ connected: true, lastSeen: Date.now() });
         myPlayerRef.onDisconnect().update({ connected: false });
         gameStartedFromRoom = false; resultShown = false;
+        saveMultiSession();
         attachRoomListener();
         toast('진행 중이던 방에 다시 연결했어요', 1800);
       })();
