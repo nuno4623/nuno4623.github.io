@@ -225,6 +225,30 @@ select{width:100%;min-height:52px;font-size:16px;border:2px solid var(--cell-lin
 .q-confirm{width:100%;min-height:58px;border:none;border-radius:14px;background:var(--board-frame);color:#fff;
   font-family:var(--jua);font-size:20px}
 .q-confirm:disabled{opacity:.35}
+/* 타이핑(t) */
+.q-type-row{display:flex;gap:10px;margin-bottom:8px}
+.q-type-input{flex:1;min-width:0;min-height:58px;font-size:20px;border:2px solid var(--cell-line);border-radius:14px;
+  padding:0 14px;font-family:inherit;color:var(--ink)}
+.q-type-input:focus{outline:none;border-color:var(--uc,#888)}
+.q-type-row .q-confirm{width:auto;min-width:104px;flex-shrink:0}
+/* OX(x) */
+.q-ox{display:flex;gap:14px;justify-content:center;margin-bottom:6px}
+.q-ox button{flex:1;max-width:220px;min-height:96px;font-size:54px;font-weight:900;border-radius:18px;
+  border:3px solid var(--cell-line);background:#fff;font-family:var(--jua)}
+.q-ox button.o{color:#2e7d32}
+.q-ox button.x{color:#c62828}
+.q-ox button.right{background:#e8f5e9;border-color:#43a047}
+.q-ox button.wrong{background:#ffebee;border-color:#e53935}
+.q-ox button:disabled{cursor:default}
+/* 짝맞추기(m) */
+.q-match{display:flex;gap:12px}
+.q-match .mcol{flex:1;display:flex;flex-direction:column;gap:8px;min-width:0}
+.q-match button{min-height:56px;border:2px solid var(--cell-line);border-radius:12px;background:#fff;
+  font-size:clamp(14px,2.2vmin,17px);font-weight:700;padding:6px 8px;word-break:keep-all;color:var(--ink)}
+.q-match button.sel{border-color:var(--board-frame);background:#eef3fa;box-shadow:0 0 0 2px var(--board-frame)}
+.q-match button.paired{border-color:#8fa8bd;background:#f4f8fb}
+.q-match button.lock{background:#e8f5e9;border-color:#43a047;color:#1b5e20}
+.q-match button.bad{background:#ffebee;border-color:#e53935;animation:shake .3s}
 .q-feedback{text-align:center;font-family:var(--jua);font-size:clamp(20px,3.4vmin,30px);min-height:1.4em;margin-top:14px}
 .q-feedback.ok{color:#2e7d32}
 .q-feedback.no{color:#c62828}
@@ -535,7 +559,12 @@ const SUBJECTS = {
         { t:"c", q:"'What grade are you in?'의 대답으로 어색한 것은?", o:["I'm eleven years old.","I'm in the sixth grade.","I'm in the fifth grade.","I'm in the third grade."], a:0 },
         { t:"o", ko:"나는 6학년이야.", w:["I'm","in","the","sixth","grade."], x:["six"] },
         { t:"o", ko:"너는 이름 철자가 어떻게 되니?", w:["How","do","you","spell","your","name?"], x:["what"] },
-        { t:"o", ko:"나는 매일 기타를 연주해.", w:["I","play","the","guitar","every","day."], x:["plays"] }
+        { t:"o", ko:"나는 매일 기타를 연주해.", w:["I","play","the","guitar","every","day."], x:["plays"] },
+        { t:"t", q:"'학년'을 영어로 쓰세요.", ans:["grade"] },
+        { t:"s", q:"'철자를 말하다'의 철자를 완성하세요.", word:"spell", extra:["c","a"] },
+        { t:"x", q:"'I'm in the sixth grade.'는 '나는 6학년이야.'라는 뜻이다.", a:true },
+        { t:"x", q:"'How do you spell your name?'은 나이를 묻는 질문이다.", a:false },
+        { t:"m", pairs:[["club","동아리"],["grade","학년"],["wear","입다"],["luck","행운"]] }
       ]},
       { id: 2, color: "#00bfa5", value: 90,
         cities: [{n:"방콕",f:"🇹🇭"},{n:"싱가포르",f:"🇸🇬"},{n:"시드니",f:"🇦🇺"},{n:"하노이",f:"🇻🇳"}],
@@ -551,7 +580,12 @@ const SUBJECTS = {
         { t:"c", q:"'What season do you like?'의 대답으로 어색한 것은?", o:["I like rainy days.","I like spring.","I like fall.","I like winter."], a:0 },
         { t:"o", ko:"너는 무슨 계절을 좋아하니?", w:["What","season","do","you","like?"], x:["is"] },
         { t:"o", ko:"나는 봄에 아름다운 꽃을 볼 수 있어.", w:["I","can","see","beautiful","flowers","in","spring."], x:["am"] },
-        { t:"o", ko:"하늘이 맑아.", w:["The","sky","is","clear."], x:["clean"] }
+        { t:"o", ko:"하늘이 맑아.", w:["The","sky","is","clear."], x:["clean"] },
+        { t:"t", q:"'겨울'을 영어로 쓰세요.", ans:["winter"] },
+        { t:"s", q:"'계절'의 철자를 완성하세요.", word:"season", extra:["e","z"] },
+        { t:"x", q:"'Good job!'은 칭찬할 때 쓰는 말이다.", a:true },
+        { t:"x", q:"'fall'은 '봄'이라는 뜻이다.", a:false },
+        { t:"m", pairs:[["spring","봄"],["warm","따뜻한"],["clear","맑은"],["field","들판"]] }
       ]},
       { id: 3, color: "#ff7043", value: 100,
         cities: [{n:"카이로",f:"🇪🇬"},{n:"이스탄불",f:"🇹🇷"},{n:"두바이",f:"🇦🇪"},{n:"케이프타운",f:"🇿🇦"}],
@@ -567,7 +601,12 @@ const SUBJECTS = {
         { t:"c", q:"'5월 23일'을 영어로 바르게 읽은 것은?", o:["May twenty-third","May twenty-three","May two-three","March twenty-third"], a:0 },
         { t:"o", ko:"네 생일은 언제니?", w:["When","is","your","birthday?"], x:["What"] },
         { t:"o", ko:"내 생일은 5월 7일이야.", w:["My","birthday","is","on","May","7th."], x:["at"] },
-        { t:"o", ko:"우리는 지구를 구할 수 있어.", w:["We","can","save","the","earth."], x:["saves"] }
+        { t:"o", ko:"우리는 지구를 구할 수 있어.", w:["We","can","save","the","earth."], x:["saves"] },
+        { t:"t", q:"'지구'를 영어로 쓰세요.", ans:["earth"] },
+        { t:"s", q:"'생일'의 철자를 완성하세요.", word:"birthday", extra:["e","s"] },
+        { t:"x", q:"날짜를 말할 때는 앞에 on을 쓴다. (It's on May 7th.)", a:true },
+        { t:"x", q:"'twenty-two'는 12를 뜻한다.", a:false },
+        { t:"m", pairs:[["save","아끼다, 구하다"],["world","세계"],["poster","포스터"],["paper","종이"]] }
       ]},
       { id: 4, color: "#ec407a", value: 110,
         cities: [{n:"파리",f:"🇫🇷"},{n:"런던",f:"🇬🇧"},{n:"로마",f:"🇮🇹"},{n:"아테네",f:"🇬🇷"}],
@@ -583,7 +622,12 @@ const SUBJECTS = {
         { t:"c", q:"'I made a birdhouse.'에서 birdhouse의 뜻은?", o:["새집","시장","새 모이","나무 집"], a:0 },
         { t:"o", ko:"너는 왜 걱정하니?", w:["Why","are","you","worried?"], x:["do"] },
         { t:"o", ko:"검은 띠를 땄기 때문이야.", w:["Because","I","got","a","black","belt."], x:["get"] },
-        { t:"o", ko:"걱정하지 마. 내가 도와줄게.", w:["Don't","worry.","I'll","help","you."], x:["not"] }
+        { t:"o", ko:"걱정하지 마. 내가 도와줄게.", w:["Don't","worry.","I'll","help","you."], x:["not"] },
+        { t:"t", q:"이유를 물을 때 쓰는 '왜'를 영어로 쓰세요.", ans:["why"] },
+        { t:"s", q:"'걱정하다'의 철자를 완성하세요.", word:"worry", extra:["u","i"] },
+        { t:"x", q:"'Because'는 이유를 말할 때 쓴다.", a:true },
+        { t:"x", q:"'Don't worry.'는 축하할 때 쓰는 말이다.", a:false },
+        { t:"m", pairs:[["belt","띠, 벨트"],["test","시험"],["wrong","틀린"],["break","부러뜨리다"]] }
       ]},
       { id: 5, color: "#42a5f5", value: 120,
         cities: [{n:"베를린",f:"🇩🇪"},{n:"마드리드",f:"🇪🇸"},{n:"암스테르담",f:"🇳🇱"},{n:"프라하",f:"🇨🇿"}],
@@ -599,7 +643,12 @@ const SUBJECTS = {
         { t:"c", q:"'There is a small park in Hanok Town.'의 뜻은?", o:["한옥마을에 작은 공원이 있다","한옥마을은 작은 공원이다","작은 공원에 한옥마을이 있다","한옥마을에 큰 공원이 있다"], a:0 },
         { t:"o", ko:"누리 은행에서 오른쪽으로 도세요.", w:["Turn","right","at","Nuri","Bank."], x:["left"] },
         { t:"o", ko:"두 블록 곧장 가세요.", w:["Go","straight","two","blocks."], x:["block"] },
-        { t:"o", ko:"그것은 도서관 옆에 있어요.", w:["It's","next","to","the","library."], x:["at"] }
+        { t:"o", ko:"그것은 도서관 옆에 있어요.", w:["It's","next","to","the","library."], x:["at"] },
+        { t:"t", q:"'은행'을 영어로 쓰세요.", ans:["bank"] },
+        { t:"s", q:"'곧장, 똑바로'의 철자를 완성하세요.", word:"straight", extra:["e","y"] },
+        { t:"x", q:"'Turn left.'는 오른쪽으로 돌라는 뜻이다.", a:false },
+        { t:"x", q:"'It's next to the store.'는 가게 옆에 있다는 뜻이다.", a:true },
+        { t:"m", pairs:[["hospital","병원"],["restroom","화장실"],["town","마을"],["store","가게"]] }
       ]},
       { id: 6, color: "#ffb300", value: 130,
         cities: [{n:"뉴욕",f:"🇺🇸"},{n:"토론토",f:"🇨🇦"},{n:"리우",f:"🇧🇷"},{n:"멕시코시티",f:"🇲🇽"}],
@@ -615,7 +664,12 @@ const SUBJECTS = {
         { t:"c", q:"'We are in the same club.'에서 same의 뜻은?", o:["같은","비슷한","다른","특별한"], a:0 },
         { t:"o", ko:"그는 어떻게 생겼니?", w:["What","does","he","look","like?"], x:["is"] },
         { t:"o", ko:"그녀는 파란 눈과 짧은 머리를 가졌어.", w:["She","has","blue","eyes","and","short","hair."], x:["is"] },
-        { t:"o", ko:"그는 노란 셔츠와 파란 바지를 입고 있어.", w:["He","is","wearing","a","yellow","shirt","and","blue","pants."], x:["has"] }
+        { t:"o", ko:"그는 노란 셔츠와 파란 바지를 입고 있어.", w:["He","is","wearing","a","yellow","shirt","and","blue","pants."], x:["has"] },
+        { t:"t", q:"'머리카락'을 영어로 쓰세요.", ans:["hair"] },
+        { t:"s", q:"'딸'의 철자를 완성하세요.", word:"daughter", extra:["b","o"] },
+        { t:"x", q:"'She has blue eyes.'에서 has는 어법에 맞다.", a:true },
+        { t:"x", q:"'aunt'는 '삼촌'이라는 뜻이다.", a:false },
+        { t:"m", pairs:[["aunt","이모, 고모"],["same","같은"],["short","짧은"],["dress","원피스"]] }
       ]}
     ]
   }
@@ -1684,12 +1738,13 @@ function consumeDouble(teamIdx){
   return 1;
 }
 
-/* 문제에 도전: 사람이면 모달, 봇이면 정답률로 즉시 판정 */
+/* 문제에 도전: 사람이면 모달, 봇이면 정답률로 즉시 판정.
+ * 반환값은 배점 계수: 1 = 정답, 0.5 = 재도전 성공(짝맞추기), 0 = 오답 */
 async function attempt(teamIdx, unit, city, kindLabel, mult, timeLimit){
   if(isBot(teamIdx)){
     drawQuestion(unit);                       // 봇도 문제은행을 소모해 공정하게
     await toast(`🤖 ${teams[teamIdx].name} · ${city.n} ${kindLabel} 푸는 중…`, 900);
-    return Math.random() < botAcc;            // 건설·방어·스피드도 봇 정답률로 판정
+    return Math.random() < botAcc ? 1 : 0;    // 건설·방어·스피드도 봇 정답률로 판정
   }
   return askQuestion(drawQuestion(unit), unit, city, kindLabel, mult, timeLimit);
 }
@@ -1703,15 +1758,16 @@ async function handleUnitCell(teamIdx, def){
   const bot = isBot(teamIdx);
 
   if(ownerIdx === undefined || ownerIdx === null){
-    // 주인 없는 도시: 문제 도전 → 정답 시 도시 가치만큼 점수
+    // 주인 없는 도시: 문제 도전 → 정답 시 도시 가치만큼 점수 (재도전 성공은 절반)
     const mult = consumeDouble(teamIdx);
-    const ok = await attempt(teamIdx, unit, city, '도전 문제', mult);
-    if(ok){
+    const fac = await attempt(teamIdx, unit, city, '도전 문제', mult);
+    if(fac){
       owners[pos] = teamIdx;
       t.lands.push(pos);
-      addScore(teamIdx, unit.value * mult);
+      const gain = Math.round(unit.value * mult * fac);
+      addScore(teamIdx, gain);
       renderOwnership();
-      await toast(`🚩 ${t.name} · ${city.n} 획득! +${unit.value*mult}점`, bot ? 1100 : 1500);
+      await toast(`🚩 ${t.name} · ${city.n} 획득! +${gain}점`, bot ? 1100 : 1500);
     }else{
       await toast(bot ? `❌ ${t.name} 오답!` : '아쉬워요! 다음 기회에…', bot ? 900 : 1200);
     }
@@ -1805,11 +1861,12 @@ async function handleGoldenKey(teamIdx){
       teams.forEach((tt,i) => { if(i !== teamIdx && (target < 0 || tt.score > teams[target].score)) target = i; });
       if(target < 0) break;
       if(!bot) await toast(`⚔️ ${teams[target].name}에게 도전! 정답이면 30점 강탈!`, 1500);
-      const ok = await attempt(teamIdx, randUnit(), {n:'쟁탈전', f:'⚔️'}, '도전 문제', 1);
-      if(ok){
-        addScore(teamIdx, 30);
-        addScore(target, -30);
-        await toast(`⚔️ ${t.name}, ${teams[target].name}에게서 30점 강탈!`, bot ? 1200 : 1700);
+      const fac = await attempt(teamIdx, randUnit(), {n:'쟁탈전', f:'⚔️'}, '도전 문제', 1);
+      if(fac){
+        const amt = Math.round(30 * fac);
+        addScore(teamIdx, amt);
+        addScore(target, -amt);
+        await toast(`⚔️ ${t.name}, ${teams[target].name}에게서 ${amt}점 강탈!`, bot ? 1200 : 1700);
       }else{
         addScore(teamIdx, -20);
         await toast(`😵 도전 실패… ${t.name} -20점`, bot ? 1000 : 1400);
@@ -1836,10 +1893,11 @@ async function handleGoldenKey(teamIdx){
     }
     case 'speed': {
       if(!bot) await toast('⚡ 스피드 찬스! 15초 안에 풀면 +100점!', 1500);
-      const ok = await attempt(teamIdx, randUnit(), {n:'스피드 찬스', f:'⚡'}, '15초 문제', 1, 15);
-      if(ok){
-        addScore(teamIdx, 100);
-        await toast(`⚡ ${t.name} 성공! +100점!`, bot ? 1100 : 1500);
+      const fac = await attempt(teamIdx, randUnit(), {n:'스피드 찬스', f:'⚡'}, '15초 문제', 1, 15);
+      if(fac){
+        const amt = Math.round(100 * fac);
+        addScore(teamIdx, amt);
+        await toast(`⚡ ${t.name} 성공! +${amt}점!`, bot ? 1100 : 1500);
       }else{
         await toast(`⏱ 아쉬워요! 다음 기회에…`, bot ? 900 : 1200);
       }
@@ -1916,6 +1974,22 @@ function prepQuestion(q){
     while(chips.slice(0, q.w.length).join('') === key(q.w) && ++guard < 20);
     return { t:'o', ko:q.ko, w:q.w, shuffled:chips };
   }
+  if(q.t === 't') return { t:'t', q:q.q, ans:q.ans.map(a => String(a).trim().toLowerCase()) };
+  if(q.t === 's'){
+    // 철자 조립: 단어 글자 + 함정 글자(extra) 셔플. 앞 word.length 개가 그대로면 재셔플
+    const letters = [...q.word.split(''), ...(q.extra || [])];
+    let guard = 0;
+    do{ shuffle(letters); }
+    while(letters.slice(0, q.word.length).join('') === q.word && ++guard < 20);
+    return { t:'s', q:q.q, word:q.word, shuffled:letters };
+  }
+  if(q.t === 'x') return { t:'x', q:q.q, a:!!q.a };
+  if(q.t === 'm'){
+    // 짝맞추기: 좌(영어)/우(한글) 각각 셔플
+    return { t:'m', pairs:q.pairs,
+             left: shuffle(q.pairs.map(p => p[0])),
+             right: shuffle(q.pairs.map(p => p[1])) };
+  }
   const order = shuffle(q.o.map((_,i)=>i));
   return { t:q.t, q:q.q, o:order.map(i => q.o[i]), a:order.indexOf(q.a) };
 }
@@ -1944,17 +2018,19 @@ function askQuestion(q, unit, city, kindLabel, mult, timeLimit){
     let answerText;   // 정답 문장 노출용 HTML
     let timerIv = null;
     let timeoutNow = () => {};   // 유형별 분기에서 시간 초과 처리를 주입
-    function finish(ok){
+    /* 결과는 배점 계수로 resolve: 1 = 정답, 0.5 = 재도전 성공(짝맞추기, 점수 절반), 0 = 오답 */
+    function finish(v){
+      const f = typeof v === 'number' ? v : (v ? 1 : 0);
       if(timerIv){ clearInterval(timerIv); timerIv = null; }
       const fb = cardEl.querySelector('.q-feedback');
-      fb.textContent = ok ? '🎉 정답이에요!' : '😢 아쉬워요, 오답!';
-      fb.classList.add(ok ? 'ok' : 'no');
-      if(ok) confetti(); else if(!REDUCED) cardEl.classList.add('shake');
+      fb.textContent = f > 0 ? (f < 1 ? '🎉 정답! (재도전이라 점수 절반)' : '🎉 정답이에요!') : '😢 아쉬워요, 오답!';
+      fb.classList.add(f > 0 ? 'ok' : 'no');
+      if(f > 0) confetti(); else if(!REDUCED) cardEl.classList.add('shake');
       setTimeout(() => {
         const ans = cardEl.querySelector('.q-answer');
         ans.innerHTML = answerText;
         ans.classList.add('on');
-        setTimeout(() => { modal.classList.remove('on'); res(ok); }, 2000);  // 정답 문장 2초 노출
+        setTimeout(() => { modal.classList.remove('on'); res(f); }, 2000);  // 정답 문장 2초 노출
       }, REDUCED ? 100 : 700);
     }
 
@@ -2005,6 +2081,173 @@ function askQuestion(q, unit, city, kindLabel, mult, timeLimit){
         const arranged = [...slots.children].map(c => c.textContent);
         finish(arranged.join('') === q.w.join(''));
       };
+    }else if(q.t === 't'){
+      /* 타이핑: 한글 뜻 제시 → 영어 단어 직접 입력 (소문자 변환·앞뒤 공백 제거 후 비교) */
+      answerText = `정답: ${esc(q.ans[0])}`;
+      cardEl.innerHTML = `${head}
+        <div class="q-text">⌨️ ${escBr(q.q)}</div>
+        <div class="q-type-row">
+          <input class="q-type-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="영어로 입력하세요">
+          <button class="q-confirm">제출</button>
+        </div>
+        <div class="q-feedback"></div><div class="q-answer"></div>`;
+      const input = cardEl.querySelector('.q-type-input');
+      const submitBtn = cardEl.querySelector('.q-confirm');
+      let done = false;
+      const submit = () => {
+        if(done) return;
+        done = true;
+        input.disabled = true; submitBtn.disabled = true;
+        const v = input.value.trim().toLowerCase().replace(/\s+/g, ' ');
+        finish(q.ans.includes(v));
+      };
+      submitBtn.onclick = submit;
+      input.addEventListener('keydown', e => { if(e.key === 'Enter') submit(); });   // 엔터로도 제출
+      timeoutNow = () => { if(done) return; done = true; input.disabled = true; submitBtn.disabled = true; finish(false); };
+      setTimeout(() => input.focus(), 150);   // 포커스 → 태블릿 키보드 자동 표시
+    }else if(q.t === 's'){
+      /* 철자 조립: 글자 칩 + 함정 글자(extra) — o 유형과 동일 패턴(글자 단위) */
+      answerText = `정답: ${esc(q.word)}`;
+      cardEl.innerHTML = `${head}
+        <div class="q-text">🔤 ${escBr(q.q)} (안 쓰는 글자도 있어요!)</div>
+        <div class="q-arrange">
+          <div class="slots"></div>
+          <div class="pool"></div>
+          <button class="q-confirm" disabled>확인</button>
+        </div>
+        <div class="q-feedback"></div><div class="q-answer"></div>`;
+      const slots = cardEl.querySelector('.slots');
+      const pool = cardEl.querySelector('.pool');
+      const confirmBtn = cardEl.querySelector('.q-confirm');
+      let done = false;
+      const refresh = () => { confirmBtn.disabled = slots.children.length !== q.word.length; };
+      q.shuffled.forEach(ch => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'chip';
+        chip.textContent = ch;
+        chip.onclick = () => {
+          if(done) return;
+          if(chip.parentElement === pool){
+            if(slots.children.length >= q.word.length) return;
+            slots.appendChild(chip);
+          }else{
+            pool.appendChild(chip);
+          }
+          refresh();
+        };
+        pool.appendChild(chip);
+      });
+      confirmBtn.onclick = () => {
+        if(done || slots.children.length !== q.word.length) return;
+        done = true;
+        confirmBtn.disabled = true;
+        finish([...slots.children].map(c => c.textContent).join('') === q.word);
+      };
+      timeoutNow = () => { if(done) return; done = true; confirmBtn.disabled = true; finish(false); };
+    }else if(q.t === 'x'){
+      /* OX 판단: a 가 true 면 O 가 정답 */
+      answerText = `정답: ${q.a ? 'O' : 'X'}`;
+      cardEl.innerHTML = `${head}
+        <div class="q-text">${escBr(q.q)}</div>
+        <div class="q-ox">
+          <button type="button" class="o" data-v="1">O</button>
+          <button type="button" class="x" data-v="0">X</button>
+        </div>
+        <div class="q-feedback"></div><div class="q-answer"></div>`;
+      let done = false;
+      const btns = cardEl.querySelectorAll('.q-ox button');
+      btns.forEach(btn => {
+        btn.onclick = () => {
+          if(done) return;
+          done = true;
+          const pick = btn.dataset.v === '1';
+          btns.forEach(b => {
+            b.disabled = true;
+            if((b.dataset.v === '1') === q.a) b.classList.add('right');
+            else if(b === btn) b.classList.add('wrong');
+          });
+          finish(pick === q.a);
+        };
+      });
+      timeoutNow = () => {
+        if(done) return;
+        done = true;
+        btns.forEach(b => { b.disabled = true; if((b.dataset.v === '1') === q.a) b.classList.add('right'); });
+        finish(false);
+      };
+    }else if(q.t === 'm'){
+      /* 짝맞추기: 좌(영어)↔우(한글) 연결. 4쌍 연결 시 자동 채점,
+       * 오답 쌍 표시 후 재시도 1회 — 재시도 성공은 정답 처리하되 점수 절반(0.5) */
+      answerText = `정답: ${q.pairs.map(p => `${esc(p[0])} – ${esc(p[1])}`).join(' / ')}`;
+      cardEl.innerHTML = `${head}
+        <div class="q-text">🔗 단어와 뜻을 짝지으세요</div>
+        <div class="q-match">
+          <div class="mcol left"></div>
+          <div class="mcol right"></div>
+        </div>
+        <div class="q-feedback"></div><div class="q-answer"></div>`;
+      const colL = cardEl.querySelector('.mcol.left');
+      const colR = cardEl.querySelector('.mcol.right');
+      const answer = new Map(q.pairs.map(p => [p[0], p[1]]));
+      let done = false, attemptNo = 1, selL = null;
+      const linked = new Map();   // 왼쪽 버튼 → 오른쪽 버튼
+      const mkBtn = (txt, col) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = txt;
+        col.appendChild(b);
+        return b;
+      };
+      const lBtns = q.left.map(w => mkBtn(w, colL));
+      const rBtns = q.right.map(w => mkBtn(w, colR));
+      function grade(){
+        const wrongL = [];
+        linked.forEach((rb, lb) => {
+          if(answer.get(lb.textContent) === rb.textContent){
+            lb.classList.remove('paired'); rb.classList.remove('paired');
+            lb.classList.add('lock'); rb.classList.add('lock');
+          }else{
+            wrongL.push(lb);
+          }
+        });
+        if(!wrongL.length){
+          done = true;
+          finish(attemptNo === 1 ? 1 : 0.5);
+          return;
+        }
+        if(attemptNo === 1){
+          attemptNo = 2;
+          wrongL.forEach(lb => {
+            const rb = linked.get(lb);
+            lb.classList.add('bad'); rb.classList.add('bad');
+            setTimeout(() => {
+              lb.classList.remove('bad', 'paired');
+              rb.classList.remove('bad', 'paired');
+            }, 900);
+            linked.delete(lb);
+          });
+          toast('틀린 짝이 있어요! 한 번 더 도전!', 1400);
+        }else{
+          done = true;
+          finish(false);
+        }
+      }
+      lBtns.forEach(lb => lb.onclick = () => {
+        if(done || lb.classList.contains('lock') || linked.has(lb)) return;
+        if(selL) selL.classList.remove('sel');
+        selL = lb;
+        lb.classList.add('sel');
+      });
+      rBtns.forEach(rb => rb.onclick = () => {
+        if(done || !selL || rb.classList.contains('lock') || [...linked.values()].includes(rb)) return;
+        selL.classList.remove('sel');
+        selL.classList.add('paired'); rb.classList.add('paired');
+        linked.set(selL, rb);
+        selL = null;
+        if(linked.size === 4) grade();
+      });
+      timeoutNow = () => { if(done) return; done = true; finish(false); };
     }else{
       /* 4지선다 / 빈칸 */
       const qHtml = q.t === 'b' ? blankHtml(q.q) : escBr(q.q);
