@@ -991,11 +991,15 @@ async function joinRoom(code){
   try{
     result = await ref.child('players').transaction(players => {
       players = players || {};
-      // 이미 배정된 학생(같은 uid, 또는 같은 반/번호)이면 새 슬롯이 아닌 기존 슬롯으로 복귀
+      // 이미 배정된 학생이면 새 슬롯이 아닌 기존 슬롯으로 복귀.
+      // 반/번호 매칭은 그 자리가 "끊긴 상태"일 때만 — 접속 중인 다른 학생
+      // (반/번호 기본값 1반 1번을 안 바꾼 경우 등)을 밀어내지 않는다.
       let key = players[uid] ? uid : null;
       if(!key){
         for(const k in players){
-          if(players[k].cls === me.cls && players[k].num === me.num){ key = k; break; }
+          const p = players[k];
+          const dead = !p.connected || Date.now() - (p.lastSeen || 0) > 30000;
+          if(p.cls === me.cls && p.num === me.num && dead){ key = k; break; }
         }
       }
       if(key){
@@ -1037,6 +1041,15 @@ function attachRoomListener(){
   roomListener = roomRef.on('value', snap => {
     const room = snap.val();
     if(!room) return;   // 방장이 나가서 삭제됐거나 아직 반영 전
+    // 내 자리가 사라졌으면(같은 반/번호의 다른 기기가 복귀해 병합됨) 조용히 방을 떠난다
+    if(room.phase !== 'finished' && room.players && !room.players[myUid()]){
+      leaveRoom();
+      $('lobbyScreen').classList.remove('on');
+      $('gameScreen').classList.remove('on');
+      $('startScreen').classList.add('on');
+      toast('다른 기기가 같은 반/번호로 접속해 이 기기의 연결을 해제했어요.', 2600);
+      return;
+    }
     if(room.phase === 'waiting'){
       renderLobby(room);
     }else if(room.phase === 'playing'){
@@ -1166,7 +1179,9 @@ async function finishMultiGame(){
 function startHeartbeat(){
   if(heartbeatId) clearInterval(heartbeatId);
   heartbeatId = setInterval(() => {
-    if(myPlayerRef) myPlayerRef.update({ connected: true, lastSeen: Date.now() });
+    // 트랜잭션: 내 노드가 삭제됐으면(다른 기기로 병합됨) abort — teamIdx 없는
+    // 반쪽 노드를 되살려 슬롯을 깨뜨리지 않는다
+    if(myPlayerRef) myPlayerRef.transaction(p => p ? Object.assign(p, { connected: true, lastSeen: Date.now() }) : undefined);
     saveMultiSession();   // 플레이 중 세션 신선도 유지 → 새로고침 복귀는 되고, 오래된 방은 만료되도록
   }, 8000);
 }
@@ -1205,7 +1220,7 @@ function stopMultiLoops(){
 function leaveRoom(){
   stopMultiLoops();
   if(roomRef && roomListener) roomRef.off('value', roomListener);
-  if(myPlayerRef) myPlayerRef.update({ connected: false });
+  if(myPlayerRef) myPlayerRef.transaction(p => p ? Object.assign(p, { connected: false }) : undefined);
   clearMultiSession();
   roomRef = null; roomListener = null; myPlayerRef = null;
   curRoomCode = null; isHost = false; gameStartedFromRoom = false;
