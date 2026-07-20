@@ -103,7 +103,7 @@ select{width:100%;min-height:52px;font-size:16px;border:2px solid var(--cell-lin
 }
 #boardWrap{position:relative;flex-shrink:0}
 #board{position:absolute;inset:0;background:var(--board-frame);border-radius:18px;padding:1.6%;
-  display:grid;grid-template-columns:1.4fr repeat(5,1fr) 1.4fr;grid-template-rows:1.4fr repeat(5,1fr) 1.4fr;gap:0}
+  display:grid;grid-template-columns:1.4fr repeat(7,1fr) 1.4fr;grid-template-rows:1.4fr repeat(7,1fr) 1.4fr;gap:0}
 .cell{position:relative;background:var(--cell-bg);border:1px solid var(--cell-line);
   display:flex;flex-direction:column;overflow:hidden;user-select:none}
 .cell .band{height:28%;flex-shrink:0;position:relative}
@@ -111,17 +111,31 @@ select{width:100%;min-height:52px;font-size:16px;border:2px solid var(--cell-lin
   border-left:7px solid transparent;border-right:7px solid transparent;border-top:12px solid currentColor;
   filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
 .cell .body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 3px;text-align:center;min-height:0}
-.cell .uname{font-family:var(--jua);font-size:clamp(9px,1.7vmin,15px);color:var(--ink);line-height:1.15}
-.cell .cicon{font-size:clamp(10px,2.1vmin,20px);line-height:1.1}
-.cell .cval{font-size:clamp(7px,1.25vmin,11px);color:var(--muted);font-weight:800;line-height:1.1}
+.cell .uname{font-family:var(--jua);font-size:clamp(8px,1.4vmin,13px);color:var(--ink);line-height:1.15}
+.cell .cicon{font-size:clamp(9px,1.7vmin,17px);line-height:1.1}
+.cell .cval{font-size:clamp(6px,1.05vmin,10px);color:var(--muted);font-weight:800;line-height:1.1}
 .cell.corner{background:var(--board-bg)}
-.cell.corner .icon{font-size:clamp(16px,3.6vmin,34px);line-height:1.1}
-.cell.corner .uname{font-size:clamp(10px,1.9vmin,17px)}
+.cell.corner .icon{font-size:clamp(13px,2.9vmin,28px);line-height:1.1}
+.cell.corner .uname{font-size:clamp(9px,1.6vmin,14px)}
 .cell.key{background:#fdf3d9} /* #f5c542 20% 를 흰색 위에 섞은 불투명 값 (보드 네이비 비침 방지) */
-.cell.key .icon{font-size:clamp(13px,2.6vmin,24px);line-height:1.1}
+.cell.key .icon{font-size:clamp(11px,2.1vmin,20px);line-height:1.1}
+.cell.tax{background:#fdecea} /* 세금 칸: 연한 레드 */
+.cell.tax .icon{font-size:clamp(11px,2.1vmin,20px);line-height:1.1}
+/* 건물 (집/호텔) — 소유 칸 컬러 밴드 왼쪽에 팀 색 SVG 로 표시 */
+.cell .band .blds{position:absolute;left:5%;top:6%;height:88%;display:flex;gap:4%;align-items:flex-end;z-index:1}
+.blds .bld{height:100%;display:block}
+.blds .bld svg{height:100%;width:auto;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
+.blds .bld.drop{animation:bldDrop .55s cubic-bezier(.3,1.6,.4,1)}   /* 위에서 떨어져 착지 바운스 */
+@keyframes bldDrop{0%{transform:translateY(-260%);opacity:0}55%{transform:translateY(0);opacity:1}72%{transform:translateY(-22%)}100%{transform:translateY(0)}}
+.cell .dust{position:absolute;width:6px;height:6px;border-radius:50%;background:#c9bfa8;z-index:2;pointer-events:none;
+  animation:dustPuff .6s ease-out forwards}
+@keyframes dustPuff{from{transform:translate(0,0) scale(.5);opacity:.95}to{transform:translate(var(--dx),var(--dy)) scale(1.7);opacity:0}}
+.cell .sparkle{position:absolute;left:50%;top:35%;font-size:clamp(14px,2.6vmin,24px);z-index:3;pointer-events:none;
+  animation:sparklePop .9s ease-out forwards}
+@keyframes sparklePop{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}30%{transform:translate(-50%,-50%) scale(1.4);opacity:1}100%{transform:translate(-50%,-70%) scale(1);opacity:0}}
 .cell.selectable{cursor:pointer;animation:selPulse 1s ease-in-out infinite;outline:3px dashed var(--gold);outline-offset:-4px;z-index:2}
 @keyframes selPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.12)}}
-#centerField{grid-area:2/2/7/7;background:var(--center-bg);border:1px solid var(--cell-line);
+#centerField{grid-area:2/2/9/9;background:var(--center-bg);border:1px solid var(--cell-line);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2vmin;padding:2%;position:relative;z-index:1}
 #gameTitle{font-family:var(--jua);font-size:clamp(16px,3.4vmin,32px);color:var(--board-frame);letter-spacing:.03em}
 #timer{font-family:var(--jua);font-size:clamp(22px,4.6vmin,44px);color:var(--ink);
@@ -151,7 +165,7 @@ select{width:100%;min-height:52px;font-size:16px;border:2px solid var(--cell-lin
 
 /* 말(토큰) */
 #tokenLayer{position:absolute;inset:0;pointer-events:none;z-index:5}
-.token{position:absolute;width:4.2%;height:4.2%;border-radius:50%;border:2px solid #fff;
+.token{position:absolute;width:3.4%;height:3.4%;border-radius:50%;border:2px solid #fff;
   box-shadow:0 2px 5px rgba(0,0,0,.4);transform:translate(-50%,-50%);
   transition:left .15s ease, top .15s ease}
 .token.fly{transition:left .45s cubic-bezier(.4,0,.2,1), top .45s cubic-bezier(.4,0,.2,1)}
@@ -190,6 +204,8 @@ select{width:100%;min-height:52px;font-size:16px;border:2px solid var(--cell-lin
 .q-badge{background:var(--uc,#888);color:#fff;font-size:12px;font-weight:800;border-radius:99px;padding:4px 12px}
 .q-badge.kind{background:#fff;color:var(--uc,#888);border:2px solid var(--uc,#888)}
 .q-badge.x2{background:var(--gold);color:#5c4300}
+.q-badge.q-timer{background:#c62828;color:#fff;min-width:3.2em;text-align:center;font-size:14px}
+.q-badge.q-timer.urgent{animation:blink .5s step-end infinite}
 .q-text{font-size:clamp(16px,2.5vmin,22px);font-weight:800;line-height:1.55;margin-bottom:16px;word-break:keep-all}
 .q-text .blank{display:inline-block;min-width:2.4em;border-bottom:3px solid var(--uc,#888);color:var(--uc,#888);
   text-align:center;font-weight:900;background:rgba(0,0,0,.04);border-radius:4px 4px 0 0;padding:0 .2em}
@@ -428,6 +444,7 @@ select{width:100%;min-height:52px;font-size:16px;border:2px solid var(--cell-lin
     <h1>🌐 대기실</h1>
     <div id="roomCodeDisplay">----</div>
     <div id="lobbyList"></div>
+    <p id="lobbyWarn" style="display:none;color:#e53935;font-weight:bold;margin:6px 0"></p>
     <button id="lobbyStartBtn" style="display:none">게임 시작!</button>
     <button id="lobbyLeaveBtn">나가기</button>
   </div>
@@ -505,7 +522,7 @@ const SUBJECTS = {
     name: "6학년 음악 (1학기)",
     units: [
       { id: 1, color: "#7c4dff", value: 80,
-        cities: [{n:"서울",f:"🇰🇷"},{n:"도쿄",f:"🇯🇵"},{n:"베이징",f:"🇨🇳"}],
+        cities: [{n:"서울",f:"🇰🇷"},{n:"도쿄",f:"🇯🇵"},{n:"베이징",f:"🇨🇳"},{n:"타이베이",f:"🇹🇼"}],
         questions: [
         { t:"c", q:"'경복궁타령'에 쓰이는 장단은?", o:["자진타령장단", "굿거리장단", "세마치장단", "중중모리장단"], a:0, exp:"경복궁타령은 자진타령장단에 맞추어 부릅니다." },
         { t:"c", q:"'경복궁타령'은 어느 지역의 민요일까요?", o:["경기 지역", "남도(전라) 지역", "제주 지역", "서도(평안) 지역"], a:0, exp:"경복궁타령은 경기 민요입니다." },
@@ -521,7 +538,7 @@ const SUBJECTS = {
         { t:"c", q:"민요에 대한 설명으로 알맞은 것은?", o:["백성들 사이에서 자연스럽게 전해 내려온 노래", "궁중에서만 부르던 노래", "한 사람의 작곡가가 만든 노래", "서양에서 들어온 노래"], a:0, exp:"민요는 지역마다 백성들의 삶 속에서 만들어져 전해 내려온 노래입니다." }
       ]},
       { id: 2, color: "#00bfa5", value: 90,
-        cities: [{n:"방콕",f:"🇹🇭"},{n:"싱가포르",f:"🇸🇬"},{n:"시드니",f:"🇦🇺"}],
+        cities: [{n:"방콕",f:"🇹🇭"},{n:"싱가포르",f:"🇸🇬"},{n:"시드니",f:"🇦🇺"},{n:"하노이",f:"🇻🇳"}],
         questions: [
         { t:"c", q:"우물 정(井) 자 모양의 칸에 음의 높이와 길이를 기록하는 악보는?", o:["정간보", "오선보", "가락선보", "구음보"], a:0, exp:"정간보는 칸(정간)으로 음의 길이를, 율명으로 음의 높이를 나타냅니다." },
         { t:"c", q:"정간보를 만든 사람은 누구일까요?", o:["세종대왕", "장영실", "박연", "우륵"], a:0, exp:"정간보는 세종대왕이 만든 우리나라의 악보입니다." },
@@ -537,7 +554,7 @@ const SUBJECTS = {
         { t:"c", q:"정간보를 읽을 때 율명 '황(黃)'은 어떻게 읽을까요?", o:["황", "누를", "노랑", "합"], a:0, exp:"율명은 첫 글자만 따서 황, 태, 중, 임, 남으로 읽습니다." }
       ]},
       { id: 3, color: "#ff7043", value: 100,
-        cities: [{n:"카이로",f:"🇪🇬"},{n:"이스탄불",f:"🇹🇷"},{n:"두바이",f:"🇦🇪"}],
+        cities: [{n:"카이로",f:"🇪🇬"},{n:"이스탄불",f:"🇹🇷"},{n:"두바이",f:"🇦🇪"},{n:"케이프타운",f:"🇿🇦"}],
         questions: [
         { t:"c", q:"사장조의 으뜸음은?", o:["사(솔)", "다(도)", "바(파)", "가(라)"], a:0, exp:"사장조는 '사(솔)'음이 으뜸음입니다." },
         { t:"c", q:"사장조의 조표는?", o:["올림표(#) 1개", "내림표(♭) 1개", "올림표(#) 2개", "조표 없음"], a:0, exp:"사장조는 '파'에 올림표가 1개 붙습니다." },
@@ -553,7 +570,7 @@ const SUBJECTS = {
         { t:"c", q:"'툼 발랄라이카'는 어떤 조로 된 곡일까요?", o:["가단조", "사장조", "바장조", "다장조"], a:0, exp:"'툼 발랄라이카'는 가단조 곡입니다." }
       ]},
       { id: 4, color: "#ec407a", value: 110,
-        cities: [{n:"파리",f:"🇫🇷"},{n:"런던",f:"🇬🇧"},{n:"로마",f:"🇮🇹"}],
+        cities: [{n:"파리",f:"🇫🇷"},{n:"런던",f:"🇬🇧"},{n:"로마",f:"🇮🇹"},{n:"아테네",f:"🇬🇷"}],
         questions: [
         { t:"c", q:"4/4박자의 뜻으로 알맞은 것은?", o:["한 마디에 4분음표가 4개", "한 마디에 4분음표가 2개", "한 곡에 마디가 4개", "한 마디에 8분음표가 4개"], a:0, exp:"4/4박자는 4분음표를 한 박으로 하여 한 마디가 4박입니다." },
         { t:"c", q:"4/4박자에서 가장 센 박은 몇 째 박일까요?", o:["첫째 박", "둘째 박", "셋째 박", "넷째 박"], a:0, exp:"4/4박자는 '강-약-중강-약'으로 첫째 박이 셉니다." },
@@ -569,7 +586,7 @@ const SUBJECTS = {
         { t:"c", q:"4마디 리듬꼴을 만들 때 가장 먼저 정해야 할 것은?", o:["박자", "노랫말", "제목", "악기"], a:0, exp:"박자를 먼저 정해야 마디에 들어갈 박의 수가 정해집니다." }
       ]},
       { id: 5, color: "#42a5f5", value: 120,
-        cities: [{n:"베를린",f:"🇩🇪"},{n:"마드리드",f:"🇪🇸"},{n:"암스테르담",f:"🇳🇱"}],
+        cities: [{n:"베를린",f:"🇩🇪"},{n:"마드리드",f:"🇪🇸"},{n:"암스테르담",f:"🇳🇱"},{n:"프라하",f:"🇨🇿"}],
         questions: [
         { t:"c", q:"부분 2부 합창이란?", o:["곡의 일부분을 두 성부로 나누어 부르는 것", "두 사람이 번갈아 부르는 것", "곡 전체를 혼자 부르는 것", "두 곡을 이어 부르는 것"], a:0, exp:"곡의 일부분에서 두 성부로 나뉘어 부르는 합창입니다." },
         { t:"c", q:"합창에서 성부의 어울림을 위해 가장 중요한 것은?", o:["다른 성부의 소리를 들으며 부르기", "내 소리만 크게 부르기", "빠르게 부르기", "눈을 감고 부르기"], a:0, exp:"서로의 소리를 들으며 균형을 맞추어야 아름답게 어울립니다." },
@@ -585,7 +602,7 @@ const SUBJECTS = {
         { t:"c", q:"바장조의 주요 3화음 반주를 배운 제재곡은?", o:["마음의 고향", "아침 해", "기차를 타고", "도움소 소리"], a:0, exp:"'마음의 고향'에서 바장조 주요 3화음 반주를 익혔습니다." }
       ]},
       { id: 6, color: "#ffb300", value: 130,
-        cities: [{n:"뉴욕",f:"🇺🇸"},{n:"토론토",f:"🇨🇦"},{n:"리우",f:"🇧🇷"}],
+        cities: [{n:"뉴욕",f:"🇺🇸"},{n:"토론토",f:"🇨🇦"},{n:"리우",f:"🇧🇷"},{n:"멕시코시티",f:"🇲🇽"}],
         questions: [
         { t:"c", q:"모음곡 \"행성\"을 작곡한 사람은?", o:["홀스트", "베토벤", "모차르트", "비발디"], a:0, exp:"\"행성\"은 영국 작곡가 구스타브 홀스트의 작품입니다." },
         { t:"c", q:"홀스트는 어느 나라의 작곡가일까요?", o:["영국", "독일", "이탈리아", "미국"], a:0, exp:"홀스트는 영국의 작곡가입니다." },
@@ -605,19 +622,25 @@ const SUBJECTS = {
   // eng6: 다른 과목/학년 확장 시 동일 구조로 블록 추가
 };
 
-/* ============================================================
- * 게임 엔진
- * ============================================================ */
-const SAVE_KEY = 'bbm-music6-save-v2';
 /* 영어판과 Firebase 프로젝트를 공유하므로, 방 코드는 같아도 실제 DB 경로가
  * 겹치지 않도록 이 과목 전용 접두사를 붙인다 (rooms/ABCD → rooms/music_ABCD). */
 const ROOM_PREFIX = 'music_';
+
+/* ============================================================
+ * 게임 엔진
+ * ============================================================ */
+const SAVE_KEY = 'bbm-music6-save-v3';   // v3: 32칸 보드 + 건물 — 이전 24칸 저장과 호환 안 됨
 const TEAM_COLORS = ['#e53935','#1e88e5','#fdd835','#43a047'];
 const TEAM_LABELS = ['1팀 빨강','2팀 파랑','3팀 노랑','4팀 초록'];
 const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const TOLL_QUIZ_CHANCE = 0.5;   // 남의 땅 도착 시 방어 문제가 등장할 확률
+const MAX_BUILD = 3;            // 건물 단계: 집1 → 집2 → 호텔(3)
 
-/* 보드 24칸 정의 (시계 반대 방향, index 0 = 출발)
- * 도시 칸은 단원 id + 그 단원 cities 배열의 순번(ci)만 기억 — 표시 정보는 데이터에서 조회 */
+/* 보드 32칸 정의 (9×9 둘레, 시계 반대 방향, index 0 = 출발)
+ * 도시 칸은 단원 id + 그 단원 cities 배열의 순번(ci)만 기억 — 표시 정보는 데이터에서 조회
+ * 구성: 모서리 4 (출발/무인도/세계여행/더블찬스) + 황금열쇠 3 + 세금 1 + 도시 24 (단원당 4) */
+const BOARD_SIZE = 32;
+const ISLAND_IDX = 8;
 const CELL_DEFS = (() => {
   const d = [];
   const used = {};
@@ -629,26 +652,32 @@ const CELL_DEFS = (() => {
   d[0]  = {type:'start', name:'출발', icon:'▶'};
   [1,2,3].forEach(i => d[i] = city(1));
   d[4]  = {type:'key', name:'황금열쇠', icon:'🔑'};
-  d[5]  = city(2);
-  d[6]  = {type:'island', name:'무인도', icon:'🏝'};
-  [7,8].forEach(i => d[i] = city(2));
-  [9,10,11].forEach(i => d[i] = city(3));
-  d[12] = {type:'travel', name:'세계여행', icon:'✈'};
-  [13,14,15].forEach(i => d[i] = city(4));
-  d[16] = {type:'key', name:'황금열쇠', icon:'🔑'};
-  d[17] = city(5);
-  d[18] = {type:'double', name:'더블찬스', icon:'★'};
-  [19,20].forEach(i => d[i] = city(5));
-  [21,22,23].forEach(i => d[i] = city(6));
+  d[5]  = city(1);
+  [6,7].forEach(i => d[i] = city(2));
+  d[8]  = {type:'island', name:'무인도', icon:'🏝'};
+  [9,10].forEach(i => d[i] = city(2));
+  [11,12,13].forEach(i => d[i] = city(3));
+  d[14] = {type:'tax', name:'세금', icon:'🧾'};
+  d[15] = city(3);
+  d[16] = {type:'travel', name:'세계여행', icon:'✈'};
+  [17,18,19].forEach(i => d[i] = city(4));
+  d[20] = {type:'key', name:'황금열쇠', icon:'🔑'};
+  d[21] = city(4);
+  [22,23].forEach(i => d[i] = city(5));
+  d[24] = {type:'double', name:'더블찬스', icon:'★'};
+  [25,26].forEach(i => d[i] = city(5));
+  [27,28].forEach(i => d[i] = city(6));
+  d[29] = {type:'key', name:'황금열쇠', icon:'🔑'};
+  [30,31].forEach(i => d[i] = city(6));
   return d;
 })();
 
-/* index → 7×7 그리드 좌표 */
+/* index → 9×9 그리드 좌표 */
 function gridPos(i){
-  if (i <= 6)  return {r:6, c:6-i};        // 아래줄: col 6→0
-  if (i <= 11) return {r:6-(i-6), c:0};    // 왼쪽줄: row 5→1
-  if (i <= 18) return {r:0, c:i-12};       // 윗줄: col 0→6
-  return {r:i-18, c:6};                    // 오른쪽줄: row 1→5
+  if (i <= 8)  return {r:8, c:8-i};        // 아래줄: col 8→0
+  if (i <= 15) return {r:8-(i-8), c:0};    // 왼쪽줄: row 7→1
+  if (i <= 24) return {r:0, c:i-16};       // 윗줄: col 0→8
+  return {r:i-24, c:8};                    // 오른쪽줄: row 1→7
 }
 
 /* 황금열쇠 카드 풀 */
@@ -660,11 +689,15 @@ const KEY_CARDS = [
   {id:'tostart', icon:'▶',  title:'출발로 이동',  desc:'출발 칸으로 가서 +50점을 받아요.'},
   {id:'again',   icon:'🎲', title:'한 번 더 굴리기', desc:'주사위를 한 번 더 굴려요!'},
   {id:'x2',      icon:'✨', title:'다음 문제 점수 2배', desc:'다음 문제의 획득/손실 점수가 2배!'},
-  {id:'toisland',icon:'🏝', title:'무인도로 이동', desc:'무인도로 가서 한 턴 쉬어요.'}
+  {id:'toisland',icon:'🏝', title:'무인도로 이동', desc:'무인도로 가서 한 턴 쉬어요.'},
+  {id:'steal',   icon:'⚔️', title:'쟁탈전!', desc:'1위 팀에게 도전! 정답: 30점 강탈 / 오답: -20점'},
+  {id:'defend',  icon:'🛡', title:'방어전!', desc:'문제를 맞히면 방어 성공! 오답이면 -40점…'},
+  {id:'collect', icon:'🪙', title:'전원 징수', desc:'다른 모든 팀에게서 15점씩 걷어요!'},
+  {id:'speed',   icon:'⚡', title:'스피드 찬스', desc:'15초 안에 풀면 +100점!'}
 ];
 
 /* ── 상태 ── */
-let subject, teams, turn, decks, owners, timeLeft, totalTime;
+let subject, teams, turn, decks, owners, builds, timeLeft, totalTime;   // builds: pos → 건물 단계(1~3)
 let mode = 'solo';               // 'solo' | 'group' | 'multi'
 let playerIdx = 0;               // 개인전/같이하기: 내 팀 index
 let player = {cls: 1, num: 1};   // 개인전/같이하기: 반/번호 (제출·대기실 표시용)
@@ -734,8 +767,8 @@ function genRoomCode(){ return String(Math.floor(1000 + Math.random()*9000)); }
 function save(){
   try{
     localStorage.setItem(SAVE_KEY, JSON.stringify({
-      v:2, subjectKey, mode, playerIdx, player, botAcc, gameId,
-      teams, turn, decks, owners, timeLeft, totalTime, savedAt:Date.now()
+      v:3, subjectKey, mode, playerIdx, player, botAcc, gameId,
+      teams, turn, decks, owners, builds, timeLeft, totalTime, savedAt:Date.now()
     }));
   }catch(e){/* 저장 실패해도 게임은 계속 */}
 }
@@ -745,7 +778,7 @@ function loadSave(){
     const raw = localStorage.getItem(SAVE_KEY);
     if(!raw) return null;
     const s = JSON.parse(raw);
-    if(s && s.v === 2 && SUBJECTS[s.subjectKey] && Array.isArray(s.teams) && s.timeLeft > 0) return s;
+    if(s && s.v === 3 && SUBJECTS[s.subjectKey] && Array.isArray(s.teams) && s.timeLeft > 0) return s;
   }catch(e){}
   return null;
 }
@@ -865,6 +898,7 @@ function startNewGame(){
   }
   turn = 0;
   owners = {};
+  builds = {};
   decks = {};
   subject.units.forEach(u => decks[u.id] = shuffle(u.questions.map((_,i)=>i)));
   timeLeft = totalTime;
@@ -879,7 +913,7 @@ function resumeGame(s){
   subjectKey = s.subjectKey;
   subject = SUBJECTS[subjectKey];
   mode = s.mode; playerIdx = s.playerIdx; player = s.player; botAcc = s.botAcc; gameId = s.gameId;
-  teams = s.teams; turn = s.turn; decks = s.decks; owners = s.owners;
+  teams = s.teams; turn = s.turn; decks = s.decks; owners = s.owners; builds = s.builds || {};
   timeLeft = s.timeLeft; totalTime = s.totalTime;
   timeUp = false; busy = false; rollAgain = false;
   enterGame();
@@ -911,20 +945,32 @@ async function enterMultiFlow(){
 async function createRoom(){
   subjectKey = $('subjectSel').value;
   subject = SUBJECTS[subjectKey];
-  curRoomCode = genRoomCode();
   isHost = true;
   gameStartedFromRoom = false; resultShown = false;
   const uid = myUid();
-  roomRef = fbDb.ref('rooms/' + ROOM_PREFIX + curRoomCode);
-  await roomRef.set({
-    phase: 'waiting',
-    hostUid: uid,
-    subjectKey,
-    teamCount: selMultiTeamCount,
-    duration: selMultiMin * 60,
-    createdAt: Date.now(),
-    players: { [uid]: { cls: player.cls, num: player.num, teamIdx: 0, connected: true, lastSeen: Date.now() } }
-  });
+  // 방 코드를 트랜잭션으로 만든다: 이미 존재하는 코드면 abort → 다른 코드로 재시도.
+  // 두 기기가 같은 4자리를 동시에 뽑아도 한쪽만 성공하고, 남의 방을 덮어쓰지 않는다.
+  let code = null, ref = null;
+  for(let attempt = 0; attempt < 8; attempt++){
+    const tryCode = genRoomCode();
+    const tryRef = fbDb.ref('rooms/' + ROOM_PREFIX + tryCode);
+    const res = await tryRef.transaction(cur => {
+      if(cur) return;   // 이미 있는 방 → abort
+      return {
+        phase: 'waiting',
+        hostUid: uid,
+        subjectKey,
+        teamCount: selMultiTeamCount,
+        duration: selMultiMin * 60,
+        createdAt: Date.now(),
+        players: { [uid]: { cls: player.cls, num: player.num, teamIdx: 0, connected: true, lastSeen: Date.now() } }
+      };
+    });
+    if(res.committed){ code = tryCode; ref = tryRef; break; }
+  }
+  if(!code){ isHost = false; toast('방 코드 생성에 실패했어요. 다시 시도하세요.', 2200); return; }
+  curRoomCode = code;
+  roomRef = ref;
   myPlayerRef = roomRef.child('players/' + uid);
   myPlayerRef.onDisconnect().update({ connected: false });
   saveMultiSession();
@@ -938,16 +984,51 @@ async function joinRoom(code){
   if(!snap.exists()){ toast('방 코드를 찾을 수 없어요.', 1800); return; }
   const room = snap.val();
   if(room.phase !== 'waiting'){ toast('이미 시작됐거나 종료된 방이에요.', 1800); return; }
-  const count = Object.keys(room.players || {}).length;
-  if(count >= room.teamCount){ toast('방이 가득 찼어요.', 1800); return; }
+  const uid = myUid();
+  const teamCount = room.teamCount;
+  const me = { cls: player.cls, num: player.num };
+
+  // 입장은 players 노드 전체를 트랜잭션으로 원자적 갱신한다.
+  // 빈 슬롯 탐색 → 자기 정보 기록 → 커밋. 동시 입장으로 커밋이 충돌하면
+  // Firebase 가 최신 값으로 자동 재시도하므로 두 학생이 같은 슬롯을 차지할 수 없다.
+  let result;
+  try{
+    result = await ref.child('players').transaction(players => {
+      players = players || {};
+      // 이미 배정된 학생(같은 uid, 또는 같은 반/번호)이면 새 슬롯이 아닌 기존 슬롯으로 복귀
+      let key = players[uid] ? uid : null;
+      if(!key){
+        for(const k in players){
+          if(players[k].cls === me.cls && players[k].num === me.num){ key = k; break; }
+        }
+      }
+      if(key){
+        const slot = players[key].teamIdx;
+        if(key !== uid) delete players[key];   // 기기·localStorage 가 바뀌어도 uid 하나로 통일
+        players[uid] = { cls: me.cls, num: me.num, teamIdx: slot, connected: true, lastSeen: Date.now() };
+        return players;
+      }
+      // 새 참가자: 가장 낮은 빈 슬롯을 찾아 배정
+      const used = new Set(Object.values(players).map(p => p.teamIdx));
+      let slot = -1;
+      for(let i = 0; i < teamCount; i++){ if(!used.has(i)){ slot = i; break; } }
+      if(slot < 0) return;   // 4자리(정원)가 다 찼으면 abort
+      players[uid] = { cls: me.cls, num: me.num, teamIdx: slot, connected: true, lastSeen: Date.now() };
+      return players;
+    });
+  }catch(e){ toast('입장 중 문제가 발생했어요. 다시 시도하세요.', 2000); return; }
+
+  if(!result.committed){ toast('방이 가득 찼어요.', 1800); return; }
+  const mine = (result.snapshot.val() || {})[uid];
+  if(!mine){ toast('입장에 실패했어요. 다시 시도하세요.', 1800); return; }
+
   curRoomCode = code;
   isHost = false;
   gameStartedFromRoom = false; resultShown = false;
   subjectKey = room.subjectKey;
   subject = SUBJECTS[subjectKey];
-  const uid = myUid();
+  playerIdx = mine.teamIdx;
   roomRef = ref;
-  await ref.child('players/' + uid).set({ cls: player.cls, num: player.num, teamIdx: count, connected: true, lastSeen: Date.now() });
   myPlayerRef = ref.child('players/' + uid);
   myPlayerRef.onDisconnect().update({ connected: false });
   saveMultiSession();
@@ -990,6 +1071,19 @@ function attachRoomListener(){
   });
 }
 
+/* 슬롯 정합성 검사: 참가자들의 teamIdx 가 0..n-1 로 중복·공석 없이 채워졌는지 확인.
+ * 정렬한 슬롯 번호가 [0,1,2,…] 와 정확히 일치해야 시작을 허용한다. */
+function checkSlots(players){
+  const arr = Object.values(players || {});
+  const n = arr.length;
+  if(n < 2) return { ok: false, count: n, reason: '참가자가 2명 이상이어야 시작할 수 있어요.' };
+  const idxs = arr.map(p => p.teamIdx).sort((a,b) => a - b);
+  for(let i = 0; i < idxs.length; i++){
+    if(idxs[i] !== i) return { ok: false, count: n, reason: '슬롯이 어긋났어요(중복·공석). 학생들에게 새로고침을 안내하세요.' };
+  }
+  return { ok: true, count: n };
+}
+
 function renderLobby(room){
   $('roomCodeDisplay').textContent = curRoomCode;
   const uid = myUid();
@@ -1002,7 +1096,15 @@ function renderLobby(room){
     </div>`).join('') || '<p style="color:var(--muted)">참가자를 기다리는 중…</p>';
   const me = (room.players || {})[uid];
   if(me) playerIdx = me.teamIdx;
-  $('lobbyStartBtn').style.display = (isHost && list.length >= 2) ? '' : 'none';
+  // 시작 버튼은 슬롯 정합성 검증을 통과했을 때만 활성화. 방장에게 문제를 표시한다.
+  const v = checkSlots(room.players);
+  $('lobbyStartBtn').style.display = (isHost && v.ok) ? '' : 'none';
+  const warn = $('lobbyWarn');
+  if(isHost && !v.ok && v.count >= 2){
+    warn.textContent = v.reason; warn.style.display = '';
+  }else{
+    warn.style.display = 'none';
+  }
 }
 
 async function hostStartMultiGame(){
@@ -1010,16 +1112,19 @@ async function hostStartMultiGame(){
   const snap = await roomRef.get();
   const room = snap.val();
   if(!room || room.phase !== 'waiting') return;
-  const teamCount = room.teamCount;
+  // 시작 직전 슬롯 정합성 재검증 — 중복·공석이면 시작하지 않고 방장에게 알린다.
+  const v = checkSlots(room.players);
+  if(!v.ok){ toast(v.reason, 2400); return; }
   const subj = SUBJECTS[room.subjectKey];
-  const teams0 = Array.from({length: teamCount}, (_,i) => ({
+  // 실제 참가 인원수만큼만 팀을 만든다(빈 슬롯으로 진행하다 영원히 건너뛰는 것 방지).
+  const teams0 = Array.from({length: v.count}, (_,i) => ({
     name: `${i+1}팀`, color: TEAM_COLORS[i], score: 0, pos: 0, lands: [], skip: false, doubleNext: false
   }));
   const decks0 = {};
   subj.units.forEach(u => decks0[u.id] = shuffle(u.questions.map((_,i)=>i)));
   await roomRef.update({
     phase: 'playing',
-    state: { teams: teams0, turn: 0, owners: {}, decks: decks0,
+    state: { teams: teams0, turn: 0, owners: {}, builds: {}, decks: decks0,
              timeLeft: room.duration, totalTime: room.duration, rollAgain: false }
   });
 }
@@ -1036,6 +1141,7 @@ function applyRoomState(s){
   }));
   turn = s.turn || 0;
   owners = s.owners || {};
+  builds = s.builds || {};
   decks = {};
   const rawDecks = s.decks || {};
   for(const k in rawDecks) decks[k] = toArr(rawDecks[k]);
@@ -1046,7 +1152,7 @@ function applyRoomState(s){
 
 function syncMultiState(){
   if(!roomRef) return;
-  roomRef.child('state').update({ teams, turn, owners, decks, timeLeft, rollAgain });
+  roomRef.child('state').update({ teams, turn, owners, builds, decks, timeLeft, rollAgain });
 }
 
 async function finishMultiGame(){
@@ -1055,7 +1161,7 @@ async function finishMultiGame(){
     await roomRef.update({
       phase: 'finished',
       expiresAt: Date.now() + 24*3600*1000,
-      'state/timeLeft': 0, 'state/teams': teams, 'state/owners': owners
+      'state/timeLeft': 0, 'state/teams': teams, 'state/owners': owners, 'state/builds': builds
     });
   }
   showResult();
@@ -1065,6 +1171,7 @@ function startHeartbeat(){
   if(heartbeatId) clearInterval(heartbeatId);
   heartbeatId = setInterval(() => {
     if(myPlayerRef) myPlayerRef.update({ connected: true, lastSeen: Date.now() });
+    saveMultiSession();   // 플레이 중 세션 신선도 유지 → 새로고침 복귀는 되고, 오래된 방은 만료되도록
   }, 8000);
 }
 
@@ -1109,7 +1216,7 @@ function leaveRoom(){
 }
 
 function saveMultiSession(){
-  try{ localStorage.setItem('bbm-multi-session-music6', JSON.stringify({ code: curRoomCode, isHost })); }catch(e){}
+  try{ localStorage.setItem('bbm-multi-session-music6', JSON.stringify({ code: curRoomCode, isHost, savedAt: Date.now() })); }catch(e){}
 }
 function clearMultiSession(){
   try{ localStorage.removeItem('bbm-multi-session-music6'); }catch(e){}
@@ -1142,6 +1249,9 @@ function buildBoard(){
     }else if(def.type === 'key'){
       el.classList.add('key');
       el.innerHTML = `<div class="body"><div class="icon">🔑</div><div class="uname">황금열쇠</div></div>`;
+    }else if(def.type === 'tax'){
+      el.classList.add('tax');
+      el.innerHTML = `<div class="body"><div class="icon">🧾</div><div class="uname">세금</div><div class="cval">도시×10점</div></div>`;
     }else{
       el.classList.add('corner');
       el.innerHTML = `<div class="body"><div class="icon">${def.icon}</div><div class="uname">${def.name}</div></div>`;
@@ -1164,23 +1274,65 @@ function buildBoard(){
   renderOwnership();
 }
 
+/* 건물 SVG (팀 색 = currentColor) — 집은 작은 집, 호텔은 창문 있는 큰 건물 */
+const HOUSE_SVG = '<svg viewBox="0 0 24 24"><path d="M12 3 3 11h2.4v10h13.2V11H21z" fill="currentColor" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+const HOTEL_SVG = '<svg viewBox="0 0 24 24"><rect x="5" y="2.5" width="14" height="19" rx="1.2" fill="currentColor" stroke="#fff" stroke-width="1.6"/><rect x="8" y="6" width="3" height="3" fill="#fff"/><rect x="13" y="6" width="3" height="3" fill="#fff"/><rect x="8" y="11" width="3" height="3" fill="#fff"/><rect x="13" y="11" width="3" height="3" fill="#fff"/><rect x="10" y="16.5" width="4" height="5" fill="#fff"/></svg>';
+function bldHtml(level){
+  if(!level) return '';
+  if(level >= MAX_BUILD) return `<span class="bld">${HOTEL_SVG}</span>`;   // 호텔은 집을 교체
+  return `<span class="bld">${HOUSE_SVG}</span>`.repeat(level);            // 집 1~2개
+}
+
 function renderOwnership(){
   cellEls.forEach((el, i) => {
     const def = CELL_DEFS[i];
     if(def.type !== 'unit') return;
     const band = el.querySelector('.band');
-    band.querySelectorAll('.flag').forEach(f => f.remove());
+    band.querySelectorAll('.flag,.blds').forEach(f => f.remove());
     const owner = owners[i];
     if(owner !== undefined && owner !== null && teams[owner]){
       const flag = document.createElement('span');
       flag.className = 'flag';
       flag.style.color = teams[owner].color;
       band.appendChild(flag);
+      const level = builds && builds[i];
+      if(level){
+        const b = document.createElement('span');
+        b.className = 'blds';
+        b.style.color = teams[owner].color;
+        b.innerHTML = bldHtml(level);
+        band.appendChild(b);
+      }
       el.style.background = hexToRgba(teams[owner].color, 0.08);
     }else{
       el.style.background = '';
     }
   });
+}
+
+/* 건설 모션: 새 건물이 위에서 떨어져 착지(바운스) + 먼지, 호텔 완공 시 반짝임 */
+function animateBuild(pos, level){
+  if(REDUCED) return;
+  const el = cellEls[pos];
+  const blds = el.querySelector('.blds');
+  if(blds && blds.lastElementChild) blds.lastElementChild.classList.add('drop');
+  for(let i=0;i<5;i++){
+    const d = document.createElement('span');
+    d.className = 'dust';
+    d.style.setProperty('--dx', (Math.random()*24-12)+'px');
+    d.style.setProperty('--dy', (-4 - Math.random()*10)+'px');
+    d.style.left = (35 + Math.random()*30)+'%';
+    d.style.top = '28%';
+    el.appendChild(d);
+    setTimeout(() => d.remove(), 700);
+  }
+  if(level >= MAX_BUILD){
+    const s = document.createElement('span');
+    s.className = 'sparkle';
+    s.textContent = '✨';
+    el.appendChild(s);
+    setTimeout(() => s.remove(), 1000);
+  }
 }
 
 /* 말(토큰) */
@@ -1206,7 +1358,7 @@ function cellCenter(idx){
 const TOKEN_OFF = [[-1,-1],[1,-1],[-1,1],[1,1]];
 function tokenXY(teamIdx){
   const c = cellCenter(teams[teamIdx].pos);
-  return { x: c.x + TOKEN_OFF[teamIdx][0]*1.5, y: c.y + TOKEN_OFF[teamIdx][1]*1.5 };
+  return { x: c.x + TOKEN_OFF[teamIdx][0]*1.2, y: c.y + TOKEN_OFF[teamIdx][1]*1.2 };
 }
 function positionAllTokens(){
   teams.forEach((_,i) => {
@@ -1435,7 +1587,7 @@ function endTurn(){
 async function moveForward(teamIdx, steps){
   const t = teams[teamIdx];
   for(let i=0;i<steps;i++){
-    t.pos = (t.pos + 1) % 24;
+    t.pos = (t.pos + 1) % BOARD_SIZE;
     await hopToken(teamIdx);
     if(t.pos === 0){
       addScore(teamIdx, 50);
@@ -1446,7 +1598,7 @@ async function moveForward(teamIdx, steps){
 async function moveBackward(teamIdx, steps){
   const t = teams[teamIdx];
   for(let i=0;i<steps;i++){
-    t.pos = (t.pos + 23) % 24;
+    t.pos = (t.pos + BOARD_SIZE - 1) % BOARD_SIZE;
     await hopToken(teamIdx);
   }
 }
@@ -1486,6 +1638,17 @@ async function handleArrival(teamIdx){
     case 'start': break;   // 통과/도착 보너스는 이동 중 처리
     case 'unit':  await handleUnitCell(teamIdx, def); break;
     case 'key':   await handleGoldenKey(teamIdx); break;
+    case 'tax': {
+      const n = t.lands.length;
+      const tax = n * 10;
+      if(tax > 0){
+        addScore(teamIdx, -tax);
+        await toast(`🧾 세금 납부! 도시 ${n}개 × 10 = -${tax}점`, isBot(teamIdx) ? 1200 : 1700);
+      }else{
+        await toast(`🧾 세금 칸! ${t.name}, 도시가 없어 면제예요`, isBot(teamIdx) ? 1000 : 1400);
+      }
+      break;
+    }
     case 'island':
       t.skip = true;
       updatePanel();
@@ -1507,13 +1670,13 @@ function consumeDouble(teamIdx){
 }
 
 /* 문제에 도전: 사람이면 모달, 봇이면 정답률로 즉시 판정 */
-async function attempt(teamIdx, unit, city, kindLabel, mult){
+async function attempt(teamIdx, unit, city, kindLabel, mult, timeLimit){
   if(isBot(teamIdx)){
     drawQuestion(unit);                       // 봇도 문제은행을 소모해 공정하게
     await toast(`🤖 ${teams[teamIdx].name} · ${city.n} ${kindLabel} 푸는 중…`, 900);
-    return Math.random() < botAcc;
+    return Math.random() < botAcc;            // 건설·방어·스피드도 봇 정답률로 판정
   }
-  return askQuestion(drawQuestion(unit), unit, city, kindLabel, mult);
+  return askQuestion(drawQuestion(unit), unit, city, kindLabel, mult, timeLimit);
 }
 
 async function handleUnitCell(teamIdx, def){
@@ -1538,21 +1701,49 @@ async function handleUnitCell(teamIdx, def){
       await toast(bot ? `❌ ${t.name} 오답!` : '아쉬워요! 다음 기회에…', bot ? 900 : 1200);
     }
   }else if(ownerIdx === teamIdx){
-    addScore(teamIdx, 30);
-    await toast(`😊 ${t.name} 내 땅 ${city.n}! +30점`, bot ? 1000 : 1300);
-  }else{
-    // 남의 도시: 통행료 문제 (통행료 = 도시 가치의 절반)
-    const owner = teams[ownerIdx];
-    const tollBase = Math.round(unit.value / 2);
-    if(!bot) await toast(`${owner.name}의 땅 ${city.n}! 통행료 문제 도전!`, 1400);
-    const mult = consumeDouble(teamIdx);
-    const ok = await attempt(teamIdx, unit, city, '통행료 문제', mult);
-    if(ok){
-      await toast(`🎉 ${t.name} 통행료 면제!`, bot ? 1000 : 1300);
+    // 내 땅: 건설 문제 → 정답이면 건물 +1 단계 (집1 → 집2 → 호텔)
+    const level = builds[pos] || 0;
+    if(level >= MAX_BUILD){
+      await toast(`🏨 ${t.name} 내 호텔 ${city.n} 도착!`, bot ? 900 : 1200);
     }else{
-      addScore(teamIdx, -tollBase * mult);
-      addScore(ownerIdx, tollBase);
-      await toast(`💸 통행료! ${t.name} -${tollBase*mult}점 / ${owner.name} +${tollBase}점`, bot ? 1300 : 1800);
+      const next = level + 1;
+      const bldName = next >= MAX_BUILD ? '호텔' : `집 ${next}단계`;
+      if(!bot) await toast(`🏗 내 땅 ${city.n}! 정답이면 ${bldName} 건설!`, 1400);
+      const ok = await attempt(teamIdx, unit, city, '건설 문제', 1);   // 점수 없는 문제 — 더블찬스 소모 안 함
+      if(ok){
+        builds[pos] = next;
+        renderOwnership();
+        animateBuild(pos, next);
+        await toast(next >= MAX_BUILD ? `🏨 ${city.n}에 호텔 완공! 통행료 4배!` : `🏠 ${city.n}에 ${bldName} 건설!`, bot ? 1100 : 1600);
+      }else{
+        await toast(bot ? `❌ ${t.name} 건설 실패…` : '아쉬워요! 건설 실패…', bot ? 900 : 1200);
+      }
+    }
+  }else{
+    // 남의 도시: 통행료 = 도시 가치 절반 × (1 + 건물 단계) — 호텔이면 4배
+    const owner = teams[ownerIdx];
+    const level = builds[pos] || 0;
+    const toll = Math.round(unit.value / 2) * (1 + level);
+    const bldTag = level >= MAX_BUILD ? ' 🏨호텔!' : level > 0 ? ` 🏠집${level}` : '';
+    if(!bot) await toast(`${owner.name}의 땅 ${city.n}${bldTag} 통행료 ${toll}점!`, 1400);
+    await toast('🎲 운명의 주사위…', 1000);   // 방어 문제 등장 여부 공개 전 연출
+    if(Math.random() < TOLL_QUIZ_CHANCE){
+      // 방어 문제 등장: 정답 → 면제 / 오답 → 전액 지불
+      if(!bot) await toast('🛡 방어 찬스! 정답이면 통행료 면제!', 1300);
+      const mult = consumeDouble(teamIdx);
+      const ok = await attempt(teamIdx, unit, city, '통행료 방어 문제', mult);
+      if(ok){
+        await toast(`🎉 ${t.name} 통행료 면제!`, bot ? 1000 : 1300);
+      }else{
+        addScore(teamIdx, -toll * mult);
+        addScore(ownerIdx, toll);
+        await toast(`💸 통행료! ${t.name} -${toll*mult}점 / ${owner.name} +${toll}점`, bot ? 1300 : 1800);
+      }
+    }else{
+      // 방어 기회 없음: 즉시 지불
+      addScore(teamIdx, -toll);
+      addScore(ownerIdx, toll);
+      await toast(`💸 방어 기회 없음! ${t.name} -${toll}점 / ${owner.name} +${toll}점`, bot ? 1300 : 1800);
     }
   }
 }
@@ -1588,13 +1779,61 @@ async function handleGoldenKey(teamIdx){
       await toast(`✨ ${t.name} 다음 문제 점수 2배!`, 1200);
       break;
     case 'toisland':
-      await teleport(teamIdx, 6);
+      await teleport(teamIdx, ISLAND_IDX);
       t.skip = true;
       updatePanel();
       await toast(`🏝 ${t.name} 무인도로! 다음 턴 쉬어요`, 1400);
       break;
+    case 'steal': {
+      // 쟁탈전: 나를 제외한 최고 점수 팀에게 도전
+      let target = -1;
+      teams.forEach((tt,i) => { if(i !== teamIdx && (target < 0 || tt.score > teams[target].score)) target = i; });
+      if(target < 0) break;
+      if(!bot) await toast(`⚔️ ${teams[target].name}에게 도전! 정답이면 30점 강탈!`, 1500);
+      const ok = await attempt(teamIdx, randUnit(), {n:'쟁탈전', f:'⚔️'}, '도전 문제', 1);
+      if(ok){
+        addScore(teamIdx, 30);
+        addScore(target, -30);
+        await toast(`⚔️ ${t.name}, ${teams[target].name}에게서 30점 강탈!`, bot ? 1200 : 1700);
+      }else{
+        addScore(teamIdx, -20);
+        await toast(`😵 도전 실패… ${t.name} -20점`, bot ? 1000 : 1400);
+      }
+      break;
+    }
+    case 'defend': {
+      if(!bot) await toast('🛡 방어전! 정답이면 무사해요!', 1400);
+      const ok = await attempt(teamIdx, randUnit(), {n:'방어전', f:'🛡'}, '방어 문제', 1);
+      if(ok) await toast(`🛡 ${t.name} 방어 성공!`, bot ? 1000 : 1300);
+      else{
+        addScore(teamIdx, -40);
+        await toast(`💥 방어 실패… ${t.name} -40점`, bot ? 1000 : 1400);
+      }
+      break;
+    }
+    case 'collect': {
+      // 전원 징수: 다른 모든 팀에게서 15점씩
+      let got = 0;
+      teams.forEach((_,i) => { if(i !== teamIdx){ addScore(i, -15); got += 15; } });
+      addScore(teamIdx, got);
+      await toast(`🪙 전원 징수! ${t.name} +${got}점`, bot ? 1200 : 1600);
+      break;
+    }
+    case 'speed': {
+      if(!bot) await toast('⚡ 스피드 찬스! 15초 안에 풀면 +100점!', 1500);
+      const ok = await attempt(teamIdx, randUnit(), {n:'스피드 찬스', f:'⚡'}, '15초 문제', 1, 15);
+      if(ok){
+        addScore(teamIdx, 100);
+        await toast(`⚡ ${t.name} 성공! +100점!`, bot ? 1100 : 1500);
+      }else{
+        await toast(`⏱ 아쉬워요! 다음 기회에…`, bot ? 900 : 1200);
+      }
+      break;
+    }
   }
 }
+
+function randUnit(){ return subject.units[Math.floor(Math.random() * subject.units.length)]; }
 
 function showKeyCard(card, fast){
   return new Promise(res => {
@@ -1672,8 +1911,9 @@ function blankHtml(text, fill){
   return parts.join(filler);
 }
 
-/* 문제 모달: 정답 여부를 resolve (단원 번호는 노출하지 않음 — 도시 이름만 표시) */
-function askQuestion(q, unit, city, kindLabel, mult){
+/* 문제 모달: 정답 여부를 resolve (단원 번호는 노출하지 않음 — 도시 이름만 표시)
+ * timeLimit(초) 지정 시 카운트다운 표시, 시간 초과면 오답 처리 (스피드 찬스) */
+function askQuestion(q, unit, city, kindLabel, mult, timeLimit){
   return new Promise(res => {
     const modal = $('qModal'), cardEl = $('qCard');
     cardEl.style.setProperty('--uc', unit.color);
@@ -1683,10 +1923,14 @@ function askQuestion(q, unit, city, kindLabel, mult){
         <span class="q-badge">${city.f} ${esc(city.n)}</span>
         <span class="q-badge kind">${esc(kindLabel)}</span>
         ${mult === 2 ? '<span class="q-badge x2">✨ 점수 2배!</span>' : ''}
+        ${timeLimit ? `<span class="q-badge q-timer">⏱ ${timeLimit}초</span>` : ''}
       </div>`;
 
     let answerText;   // 정답 문장 노출용 HTML
+    let timerIv = null;
+    let timeoutNow = () => {};   // 유형별 분기에서 시간 초과 처리를 주입
     function finish(ok){
+      if(timerIv){ clearInterval(timerIv); timerIv = null; }
       const fb = cardEl.querySelector('.q-feedback');
       fb.textContent = ok ? '🎉 정답이에요!' : '😢 아쉬워요, 오답!';
       fb.classList.add(ok ? 'ok' : 'no');
@@ -1714,6 +1958,12 @@ function askQuestion(q, unit, city, kindLabel, mult){
       const pool = cardEl.querySelector('.pool');
       const confirmBtn = cardEl.querySelector('.q-confirm');
       let done = false;
+      timeoutNow = () => {   // 시간 초과 → 오답 처리 (스피드 찬스)
+        if(done) return;
+        done = true;
+        confirmBtn.disabled = true;
+        finish(false);
+      };
 
       function refresh(){ confirmBtn.disabled = slots.children.length !== q.w.length; }
       q.shuffled.forEach(word => {
@@ -1752,6 +2002,15 @@ function askQuestion(q, unit, city, kindLabel, mult){
           `<button type="button" data-i="${i}">${esc(o)}</button>`).join('')}</div>
         <div class="q-feedback"></div><div class="q-answer"></div>`;
       let done = false;
+      timeoutNow = () => {   // 시간 초과 → 오답 처리, 정답만 공개
+        if(done) return;
+        done = true;
+        cardEl.querySelectorAll('.q-opts button').forEach(b => {
+          b.disabled = true;
+          if(+b.dataset.i === q.a) b.classList.add('right');
+        });
+        finish(false);
+      };
       cardEl.querySelectorAll('.q-opts button').forEach(btn => {
         btn.onclick = () => {
           if(done) return;
@@ -1769,6 +2028,22 @@ function askQuestion(q, unit, city, kindLabel, mult){
       });
     }
     modal.classList.add('on');
+    if(timeLimit){
+      // 카운트다운: 0이 되면 자동 오답 처리
+      let left = timeLimit;
+      const badge = cardEl.querySelector('.q-timer');
+      timerIv = setInterval(() => {
+        left--;
+        if(badge){
+          badge.textContent = `⏱ ${Math.max(0,left)}초`;
+          if(left <= 5) badge.classList.add('urgent');
+        }
+        if(left <= 0){
+          clearInterval(timerIv); timerIv = null;
+          timeoutNow();
+        }
+      }, 1000);
+    }
   });
 }
 
@@ -1889,13 +2164,25 @@ initStartScreen();
         const ref = fbDb.ref('rooms/' + ROOM_PREFIX + ms.code);
         const snap = await ref.get();
         const room = snap.val();
-        if(!room || room.phase === 'finished'){ clearMultiSession(); return; }
-        curRoomCode = ms.code; isHost = !!ms.isHost; roomRef = ref;
         const uid = myUid();
+        // 죽은 방 판정 — 다음 중 하나면 자동 입장하지 않고 세션을 지운다.
+        //  · 방이 없음 / 이미 종료(finished) / 만료(expiresAt 경과)
+        //  · 내가 더는 그 방의 멤버가 아님(코드 재사용·정리됨) → update 로 되살아나는 것 방지
+        //  · 세션이 너무 오래됨(6시간 초과, 예: 다음 수업 때 QR 재스캔)
+        const expired = room && room.expiresAt && Date.now() > room.expiresAt;
+        const tooOld = ms.savedAt && (Date.now() - ms.savedAt > 6*3600*1000);
+        const member = room && room.players && room.players[uid];
+        if(!room || room.phase === 'finished' || expired || tooOld || !member){
+          clearMultiSession(); return;
+        }
+        // 살아있는 방 — 기존 슬롯(반/번호)으로 복귀. 새 슬롯을 차지하지 않는다.
+        curRoomCode = ms.code; isHost = !!ms.isHost; roomRef = ref;
+        playerIdx = member.teamIdx; player = { cls: member.cls, num: member.num };
         myPlayerRef = ref.child('players/' + uid);
         myPlayerRef.update({ connected: true, lastSeen: Date.now() });
         myPlayerRef.onDisconnect().update({ connected: false });
         gameStartedFromRoom = false; resultShown = false;
+        saveMultiSession();
         attachRoomListener();
         toast('진행 중이던 방에 다시 연결했어요', 1800);
       })();
