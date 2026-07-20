@@ -2154,10 +2154,22 @@ initStartScreen();
     $('newGameBtn').onclick = () => { clearSave(); $('resumeBox').classList.remove('on'); };
     return;
   }
-  // 같이하기 재접속: 새로고침 전에 참여 중이던 방이 있으면 자동 재입장 시도
+  // 같이하기 재접속: "새로고침"일 때만 이전 방으로 자동 복귀한다.
+  // QR 재스캔·주소 직접 입력 등 새 방문(navigate)은 항상 새 시작 화면 —
+  // 세션을 지워 이전 방이 자동으로 되살아나지 않게 한다.
+  // (실수로 방에서 튕긴 학생은 방 코드 재입력으로 복귀 — 반/번호 매칭으로 기존 슬롯 유지)
+  function isReloadNav(){
+    try{
+      const e = performance.getEntriesByType('navigation');
+      if(e && e.length) return e[0].type === 'reload' || e[0].type === 'back_forward';
+    }catch(err){}
+    return false;   // 판별 불가 시 새 방문으로 간주 (자동 입장 안 함)
+  }
   if(firebaseConfigured()){
     const ms = loadMultiSession();
-    if(ms && ms.code){
+    if(ms && ms.code && !isReloadNav()){
+      clearMultiSession();   // QR 재스캔 → 새 화면, 죽은/이전 방 자동 입장 차단
+    }else if(ms && ms.code){
       (async () => {
         const ok = await initFirebase();
         if(!ok) return;
