@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What Are You Going to Do? · 6학년 9단원</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap">
+<style>
+:root{--ink:#17324D;--ink2:#4D6178;--bg:#E7F2EA;--paper:#FFFFFF;--line:#C5D6CC;--sun:#FF8A3D;--sunD:#C85F1C;--leaf:#2F7A55;--leafL:#D5EBDD;--bad:#B42318}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans KR','Malgun Gothic','Apple SD Gothic Neo',sans-serif;font-size:17px;line-height:1.5}
+.en{font-family:'Atkinson Hyperlegible','Segoe UI',sans-serif}
+.emo{font-family:'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',sans-serif;line-height:1}
+.wrap{max-width:820px;margin:0 auto;padding:18px 16px 60px}
+.wide{max-width:1400px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus{outline:3px solid var(--sun);outline-offset:2px}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.top h1{margin:0;font-size:22px;line-height:1.25;flex:1}
+.top h1 small{display:block;font-size:13px;color:var(--ink2);font-weight:600}
+.back{background:none;border:0;font-size:15px;color:var(--ink2);text-decoration:underline;padding:6px}
+.card{background:var(--paper);border:1.5px solid var(--line);border-radius:14px;padding:18px}
+.btn{font-weight:700;font-size:18px;padding:13px 22px;border-radius:12px;border:2px solid var(--ink);background:var(--ink);color:#fff}
+.btn.sun{background:var(--sun);border-color:var(--sunD);color:#1a1a1a}
+.btn.ghost{background:#fff;color:var(--ink)}
+.btn:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+input{font:inherit;font-size:20px;border:2px solid var(--line);border-radius:10px;padding:8px 12px;width:120px;color:var(--ink)}
+.hidden{display:none!important}
+.muted{color:var(--ink2);font-size:14px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:999px;font-size:16px;z-index:20;max-width:92vw;text-align:center}
+
+/* 홈 */
+.hero{text-align:center;padding:26px 0 10px}
+.hero h1{font-size:clamp(28px,5vw,44px);margin:0}
+.hero p{margin:6px 0 0;color:var(--ink2)}
+.cal{display:inline-grid;grid-template-columns:repeat(2,64px);gap:6px;margin:0 0 16px}
+.cal span{background:#fff;border:2px solid var(--ink);border-radius:8px;padding:4px 0 6px;font-weight:700;font-size:14px}
+.cal span::before{content:'';display:block;height:8px;background:var(--sun);border-radius:5px 5px 0 0;margin:-4px 0 4px}
+.menu{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+.menu button{background:#fff;border:2px solid var(--ink);border-radius:16px;padding:22px 16px;text-align:left}
+.menu button b{display:block;font-size:22px}
+.menu button span{color:var(--ink2);font-size:15px}
+.menu .emo{font-size:40px;display:block;margin-bottom:8px}
+
+/* 빙고 */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.cell{position:relative;background:#fff;border:2px solid var(--line);border-radius:14px;aspect-ratio:1/0.9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:8px}
+.cell .emo{font-size:clamp(40px,9vw,64px)}
+.cell .en{font-size:clamp(14px,2.4vw,18px);font-weight:700;text-align:center;line-height:1.2}
+.cell.on{border-color:var(--sunD);background:#FFE9D8}
+.cell.on::after{content:'';position:absolute;inset:14%;border:6px solid var(--sun);border-radius:50%;opacity:.85}
+.cell.line{background:#FFD3B2}
+.hideTxt .cell .en{visibility:hidden}
+.status{font-size:20px;font-weight:700;text-align:center;margin:14px 0 6px;min-height:30px}
+.status.big{font-size:30px;color:var(--sunD)}
+
+/* 교사 빙고 */
+.tgrid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px;align-items:start}
+.stage{text-align:center;padding:30px 20px}
+.stage .count{font-size:22px;color:var(--ink2);font-weight:700}
+.stage .play{font-size:30px;padding:22px 40px;margin:18px 0}
+.reveal{min-height:190px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:2px dashed var(--line);border-radius:14px;margin-top:10px;padding:14px}
+.reveal .emo{font-size:84px}
+.reveal .en{font-size:26px;line-height:1.4}
+.called{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.called div{background:var(--leafL);border-radius:10px;padding:8px 4px;text-align:center;font-size:13px}
+.called .emo{font-size:30px;display:block;margin-bottom:2px}
+.called div.unc{background:#F1F4F2;opacity:.45}
+.expr{font-size:clamp(20px,2.2vw,30px);line-height:1.6}
+.expr p{margin:0}
+.expr b{color:var(--leaf)}
+
+/* 짝 찾기 */
+.secret{text-align:center;background:var(--ink);color:#fff;border-radius:16px;padding:20px;position:relative;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.secret .emo{font-size:72px;display:block;margin:6px 0}
+.secret .en{font-size:24px;font-weight:700}
+.secret.cover .in{visibility:hidden}
+.secret .cv{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:19px;border-radius:16px;background:repeating-linear-gradient(45deg,#17324D 0 14px,#1F4163 14px 28px)}
+.secret:not(.cover) .cv{display:none}
+.mission{display:flex;align-items:center;gap:10px;justify-content:center;margin:14px 0;font-size:18px;font-weight:700}
+.dots{display:flex;gap:6px}
+.dots i{width:26px;height:26px;border-radius:50%;border:3px solid var(--leaf);display:block}
+.dots i.ok{background:var(--leaf)}
+.pick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+.pick button{background:#fff;border:2px solid var(--line);border-radius:12px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:84px}
+.pick button .emo{font-size:32px}
+.pick button .en{font-size:12.5px;line-height:1.15;text-align:center}
+.pick button.sel{border-color:var(--ink);background:#FFE9D8;box-shadow:inset 0 0 0 1px var(--ink)}
+.log{margin-top:14px}
+.log .it{display:grid;grid-template-columns:70px 44px 1fr auto;gap:8px;align-items:center;border-top:1px solid var(--line);padding:8px 0}
+.log .it .emo{font-size:28px}
+.mark{font-weight:700;font-size:20px}
+.mark.o{color:var(--leaf)}.mark.x{color:var(--bad)}
+.groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.groups div{background:#fff;border:2px solid var(--line);border-radius:12px;padding:10px;display:flex;gap:10px;align-items:center}
+.groups .emo{font-size:36px}
+.groups b{font-size:22px}
+.code{font-family:'Atkinson Hyperlegible',sans-serif;font-size:clamp(56px,8vw,110px);font-weight:700;letter-spacing:.08em;line-height:1}
+.timer{font-family:'Atkinson Hyperlegible',sans-serif;font-size:clamp(40px,5vw,70px);font-weight:700}
+.timer.end{color:var(--bad)}
+.fx{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:15}
+.fx div{background:var(--sun);color:#1a1a1a;font-weight:700;font-size:clamp(30px,7vw,60px);padding:20px 40px;border-radius:20px;border:4px solid var(--sunD);text-align:center}
+@media (prefers-reduced-motion:no-preference){.fx div{animation:pop .5s ease-out}@keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}}
+@media (max-width:700px){.tgrid{grid-template-columns:1fr}.menu{grid-template-columns:1fr}.pick{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" class="toast hidden"></div>
+<div id="fx" class="fx hidden"><div id="fxT"></div></div>
+
+<script>
+(function(){
+const PLANS = [
+  {e:'🏠', en:'stay home', ko:'집에 있기'},
+  {e:'⛺', en:'go camping', ko:'캠핑 가기'},
+  {e:'🦁', en:'visit the zoo', ko:'동물원 가기'},
+  {e:'🌲', en:'go to the forest', ko:'숲에 가기'},
+  {e:'🍔', en:'eat hamburgers', ko:'햄버거 먹기'},
+  {e:'👵', en:'visit my grandparents', ko:'조부모님 댁 방문하기'},
+  {e:'➗', en:'study math', ko:'수학 공부하기'},
+  {e:'🧹', en:'clean my room', ko:'내 방 청소하기'},
+  {e:'🎬', en:'watch a movie', ko:'영화 보기'},
+  {e:'🏀', en:'watch a basketball game', ko:'농구 경기 보기'},
+  {e:'⚽', en:'play soccer', ko:'축구하기'},
+  {e:'🏊', en:'go swimming', ko:'수영하러 가기'},
+  {e:'📚', en:'read books', ko:'책 읽기'}
+];
+const NAMES = ['Mina','Tom','Jisu','Ben','Sora','Jake','Yuna','Minho'];
+const app = document.getElementById('app');
+const $ = (s, r) => (r||document).querySelector(s), $$ = (s, r) => Array.from((r||document).querySelectorAll(s));
+const ls = { get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } }, set(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} } };
+function toast(t, ms){ const el=$('#toast'); el.textContent=t; el.classList.remove('hidden'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.add('hidden'), ms||2200); }
+function fx(t, ms){ $('#fxT').innerHTML=t; $('#fx').classList.remove('hidden'); clearTimeout(fx.t); fx.t=setTimeout(()=>$('#fx').classList.add('hidden'), ms||1600); }
+function rng(seed){ let a=0; for (const c of String(seed)) a=Math.imul(a^c.charCodeAt(0), 2654435761)>>>0;
+  return () => { a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function shuffle(arr, r){ const a=arr.slice(); r=r||Math.random; for (let i=a.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const card = p => `<span class="emo" aria-hidden="true">${p.e}</span>`;
+
+/* ───── 화면 전환 ───── */
+const ROUTES = { '':home, bingo:bingoS, match:matchS, teacher:teacherHome, 'tbingo':bingoT, 'tmatch':matchT };
+function go(r){ location.hash = r ? '#'+r : '#'; }
+window.addEventListener('hashchange', render);
+function render(){ stopAll(); const r=(location.hash||'#').slice(1); (ROUTES[r]||home)(); window.scrollTo(0,0); }
+let cleanups = [];
+function stopAll(){ cleanups.forEach(f=>f()); cleanups=[]; try { speechSynthesis.cancel(); } catch(e){} }
+const topbar = (t, sub, back) => `<div class="top"><h1>${t}<small>${sub}</small></h1><button class="back" data-go="${back}">처음으로</button></div>`;
+function bindGo(){ $$('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go)); }
+
+function home(){
+  app.innerHTML = `<div class="wrap"><div class="hero"><div class="cal"><span>SAT</span><span>SUN</span></div>
+    <h1 class="en">What Are You Going to Do?</h1><p>6학년 영어 9단원 · 주말 계획 말하기</p></div>
+    <div class="menu">
+      <button data-go="bingo"><span class="emo">🎯</span><b>계획 빙고</b><span>듣고 그림에 표시해요</span></button>
+      <button data-go="match"><span class="emo">🤝</span><b>같은 계획 친구 찾기</b><span>묻고 답하며 짝을 찾아요</span></button>
+    </div>
+    <p style="text-align:center;margin-top:30px"><button class="back" data-go="teacher">선생님 화면</button></p></div>`;
+  bindGo();
+}
+function teacherHome(){
+  app.innerHTML = `<div class="wrap">${topbar('선생님 화면','TV에 띄워 진행해요','')}
+    <div class="menu">
+      <button data-go="tbingo"><span class="emo">🔊</span><b>빙고 진행</b><span>대화를 읽어 주는 화면</span></button>
+      <button data-go="tmatch"><span class="emo">⏱️</span><b>짝 찾기 진행</b><span>라운드 코드·타이머·정답 공개</span></button>
+    </div></div>`;
+  bindGo();
+}
+
+/* ───── 빙고: 학생 ───── */
+const LINES9 = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+function bingoS(){
+  let st = ls.get('l9bingo');
+  const fresh = () => ({ cells: shuffle([...PLANS.keys()]).slice(0,9), on: Array(9).fill(false), hideTxt:false, best:0 });
+  if (!st || !Array.isArray(st.cells)) { st = fresh(); ls.set('l9bingo', st); }
+  app.innerHTML = `<div class="wrap">${topbar('계획 빙고','대화를 잘 듣고, 들은 계획에 표시해요','')}
+    <div id="board" class="grid"></div>
+    <div class="status" id="bst"></div>
+    <div class="row" style="justify-content:center;margin-top:8px">
+      <button class="btn ghost" id="txt"></button>
+      <button class="btn ghost" id="newb">새 빙고판</button>
+    </div></div>`;
+  bindGo();
+  const board=$('#board');
+  function draw(){
+    board.classList.toggle('hideTxt', st.hideTxt);
+    const lines = LINES9.filter(l => l.every(i => st.on[i]));
+    const inLine = new Set(lines.flat());
+    board.innerHTML = st.cells.map((p, i) => `<button class="cell${st.on[i]?' on':''}${inLine.has(i)?' line':''}" data-i="${i}" aria-pressed="${st.on[i]}">${card(PLANS[p])}<span class="en">${PLANS[p].en}</span></button>`).join('');
+    $$('.cell', board).forEach(c => c.onclick = () => { const i=+c.dataset.i; st.on[i]=!st.on[i]; ls.set('l9bingo', st); draw(); });
+    const n = lines.length, s=$('#bst');
+    s.className = 'status' + (n ? ' big' : '');
+    s.textContent = n ? `BINGO ${n}줄!` : `표시한 칸 ${st.on.filter(Boolean).length}개`;
+    if (n > st.best) { st.best = n; ls.set('l9bingo', st); fx(`BINGO!<br><span style="font-size:.55em">${n}줄</span>`); }
+    if (n < st.best) { st.best = n; ls.set('l9bingo', st); }
+    $('#txt').textContent = st.hideTxt ? '글자 보이기' : '글자 숨기기 (도전)';
+  }
+  $('#txt').onclick = () => { st.hideTxt=!st.hideTxt; ls.set('l9bingo', st); draw(); };
+  $('#newb').onclick = () => { if (confirm('새 빙고판을 만들까요? 지금 표시한 것은 지워져요.')) { st = fresh(); ls.set('l9bingo', st); draw(); } };
+  draw();
+}
+
+/* ───── 음성 ───── */
+let VOICES = [];
+function loadVoices(){ try { VOICES = speechSynthesis.getVoices().filter(v => /^en(-|_)/i.test(v.lang)); } catch(e){ VOICES=[]; } }
+if ('speechSynthesis' in window){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+function voicePair(){
+  const us = VOICES.filter(v => /en(-|_)US/i.test(v.lang));
+  const pool = us.length >= 2 ? us : VOICES;
+  return [pool[0] || null, pool[1] || pool[0] || null];
+}
+function say(lines, slow){
+  if (!('speechSynthesis' in window)) { toast('이 브라우저는 읽어 주기를 지원하지 않아요. 크롬에서 열어 주세요.', 4000); return; }
+  speechSynthesis.cancel();
+  const [va, vb] = voicePair();
+  lines.forEach(([who, text]) => {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US'; u.rate = slow ? 0.7 : 0.9;
+    const v = who === 'A' ? va : vb; if (v) u.voice = v;
+    u.pitch = (who === 'B' && va === vb) ? 1.35 : 1;
+    speechSynthesis.speak(u);
+  });
+}
+
+/* ───── 빙고: 교사 ───── */
+function bingoT(){
+  let st = ls.get('l9bingoT');
+  const fresh = () => ({ deck: shuffle([...PLANS.keys()]), pos: -1, dlg: [] });
+  if (!st || !Array.isArray(st.deck)) st = fresh();
+  app.innerHTML = `<div class="wrap wide">${topbar('계획 빙고 진행','버튼을 누르면 대화를 읽어 줘요','teacher')}
+    <div class="tgrid">
+      <div class="card stage">
+        <div class="count" id="cnt"></div>
+        <button class="btn sun play" id="next">▶ 다음 대화</button>
+        <div class="row" style="justify-content:center">
+          <button class="btn ghost" id="again">🔁 다시 듣기</button>
+          <button class="btn ghost" id="slow">🐢 천천히</button>
+          <button class="btn ghost" id="show">정답 보기</button>
+        </div>
+        <div class="reveal" id="rev"><span class="muted">정답은 [정답 보기]를 눌러야 보여요</span></div>
+      </div>
+      <div>
+        <div class="card expr">
+          <p class="en"><b>A</b> What are you going to do this weekend?</p>
+          <p class="en"><b>B</b> I'm going to ________.</p>
+          <p class="en"><b>A</b> That's a good idea.</p>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <div class="row" style="justify-content:space-between"><b>지금까지 나온 계획</b><button class="back" id="chk">보이기</button></div>
+          <div class="called hidden" id="called"></div>
+          <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="back" id="reset">새 게임</button></div>
+        </div>
+      </div>
+    </div></div>`;
+  bindGo();
+  let revealed = false;
+  function makeDlg(p){
+    const pl = PLANS[p], r = Math.random(), nm = NAMES[Math.floor(Math.random()*NAMES.length)];
+    if (r < 0.5) return [['A', `${nm}, what are you going to do this weekend?`], ['B', `I'm going to ${pl.en}.`], ['A', "That's a good idea."]];
+    return [['A', 'What are you going to do this weekend?'], ['B', `I'm going to ${pl.en}.`]];
+  }
+  function draw(){
+    $('#cnt').textContent = st.pos < 0 ? `모두 ${st.deck.length}개` : `${st.pos+1} / ${st.deck.length}`;
+    $('#next').disabled = st.pos >= st.deck.length - 1;
+    $('#again').disabled = $('#slow').disabled = $('#show').disabled = st.pos < 0;
+    const rev = $('#rev');
+    if (st.pos >= 0 && revealed) { const p=PLANS[st.deck[st.pos]]; rev.innerHTML = `${card(p)}<span class="en">I'm going to ${p.en}.</span><span class="muted">${p.ko}</span>`; }
+    else rev.innerHTML = `<span class="muted">${st.pos<0 ? '[다음 대화]를 눌러 시작해요' : '정답은 [정답 보기]를 눌러야 보여요'}</span>`;
+    $('#show').textContent = revealed ? '정답 가리기' : '정답 보기';
+    const done = new Set(st.deck.slice(0, st.pos+1));
+    $('#called').innerHTML = PLANS.map((p, i) => `<div class="${done.has(i)?'':'unc'}">${card(p)}<span class="en">${p.en}</span></div>`).join('');
+  }
+  $('#next').onclick = () => { st.pos++; st.dlg = makeDlg(st.deck[st.pos]); revealed=false; ls.set('l9bingoT', st); draw(); say(st.dlg); };
+  $('#again').onclick = () => say(st.dlg);
+  $('#slow').onclick = () => say(st.dlg, true);
+  $('#show').onclick = () => { revealed=!revealed; draw(); };
+  $('#chk').onclick = () => { const c=$('#called'); c.classList.toggle('hidden'); $('#chk').textContent = c.classList.contains('hidden') ? '보이기' : '숨기기'; };
+  $('#reset').onclick = () => { if (confirm('처음부터 새로 시작할까요?')) { st=fresh(); revealed=false; ls.set('l9bingoT', st); draw(); } };
+  draw();
+}
+
+/* ───── 짝 찾기: 공통 ───── */
+// 코드 5자리 = 학생 수(2) + 모둠 크기(1) + 씨앗(2)
+function parseCode(c){ c=String(c||'').replace(/\D/g,''); if (c.length!==5) return null;
+  const n=+c.slice(0,2), g=+c.slice(2,3), s=c.slice(3); if (n<4 || n>40 || g<2 || g>4) return null; return {n, g, s, code:c}; }
+function groupsOf(n, g, s){
+  const r = rng('L9-'+n+'-'+g+'-'+s), nums = shuffle([...Array(n)].map((_, i) => i+1), r);
+  const k = Math.max(1, Math.floor(n / g)), gs = [...Array(k)].map(() => []);
+  nums.forEach((x, i) => gs[i % k].push(x));
+  const plans = shuffle([...PLANS.keys()], r);
+  return gs.map((m, i) => ({ plan: plans[i % plans.length], members: m.sort((a, b) => a - b) }));
+}
+function planOf(gs, num){ const g = gs.find(x => x.members.indexOf(num) > -1); return g ? g.plan : -1; }
+
+/* ───── 짝 찾기: 학생 ───── */
+function matchS(){
+  let st = ls.get('l9match') || {};
+  app.innerHTML = `<div class="wrap">${topbar('같은 계획 친구 찾기','묻고 답하며 나와 같은 계획인 친구를 찾아요','')}<div id="ms"></div></div>`;
+  bindGo();
+  const box = $('#ms');
+  if (!st.code) return join();
+  play();
+
+  function join(){
+    box.innerHTML = `<div class="card"><p style="margin-top:0">TV에 나온 <b>라운드 코드</b>와 내 <b>번호</b>를 써요.</p>
+      <div class="row"><label>라운드 코드<br><input id="cd" inputmode="numeric" maxlength="5" autocomplete="off" style="width:150px"></label>
+      <label>내 번호<br><input id="nm" inputmode="numeric" maxlength="2" autocomplete="off"></label></div>
+      <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" id="go">시작하기</button></div></div>`;
+    $('#go').onclick = () => {
+      const c = parseCode($('#cd').value), num = +$('#nm').value;
+      if (!c) { toast('라운드 코드 5자리를 다시 확인해요'); return; }
+      if (!num || num < 1 || num > c.n) { toast(`번호는 1부터 ${c.n}까지예요`); return; }
+      st = { code: c.code, num, log: [], found: [], lockUntil: 0 }; ls.set('l9match', st); play();
+    };
+  }
+
+  function play(){
+    const c = parseCode(st.code), gs = groupsOf(c.n, c.g, c.s), mine = planOf(gs, st.num);
+    const need = gs.find(x => x.plan === mine && x.members.indexOf(st.num) > -1).members.length - 1;
+    let sel = -1;
+    box.innerHTML = `
+      <div class="secret cover" id="sec"><div class="in"><div class="muted" style="color:#C9D6E3">나의 주말 계획 (친구에게 보여 주지 마요)</div>${card(PLANS[mine])}<div class="en">I'm going to ${PLANS[mine].en}.</div></div><div class="cv">꾹 누르고 있으면 보여요</div></div>
+      <div class="mission">같은 계획 친구 <div class="dots" id="dots"></div></div>
+      <div class="card">
+        <b>친구와 대화한 뒤 기록해요</b>
+        <p class="muted" style="margin:4px 0 0"><span class="en">What are you going to do this weekend?</span> → 친구의 대답을 듣고 번호와 계획을 골라요.</p>
+        <div class="row" style="margin-top:10px"><label>친구 번호 <input id="fn" inputmode="numeric" maxlength="2" autocomplete="off" style="width:90px"></label></div>
+        <div class="pick" id="pick"></div>
+        <div class="row" style="justify-content:flex-end"><button class="btn sun" id="rec">기록하기</button></div>
+        <div class="log" id="log"></div>
+      </div>
+      <div class="row" style="justify-content:space-between;margin-top:14px"><span class="muted">번호 ${st.num} · 코드 ${st.code}</span><button class="back" id="out">다른 라운드 참여</button></div>`;
+    const sec = $('#sec'), show = e => { e.preventDefault(); sec.classList.remove('cover'); }, hide = () => sec.classList.add('cover');
+    sec.addEventListener('pointerdown', show); ['pointerup','pointerleave','pointercancel'].forEach(t => sec.addEventListener(t, hide));
+    sec.addEventListener('contextmenu', e => e.preventDefault());
+    $('#pick').innerHTML = PLANS.map((p, i) => `<button type="button" data-p="${i}">${card(p)}<span class="en">${p.en}</span></button>`).join('');
+    $$('#pick button').forEach(b => b.onclick = () => { sel=+b.dataset.p; $$('#pick button').forEach(x => x.classList.toggle('sel', x===b)); });
+    function draw(){
+      $('#dots').innerHTML = [...Array(need)].map((_, i) => `<i class="${i < st.found.length ? 'ok' : ''}"></i>`).join('');
+      const fin = st.found.length >= need;
+      $('#log').innerHTML = st.log.length ? st.log.slice().reverse().map(r => {
+        const real = planOf(gs, r.n), ok = real === r.p;
+        return `<div class="it"><b>${r.n}번</b>${card(PLANS[r.p])}<span class="en" style="font-size:15px">${PLANS[r.p].en}</span>${fin ? `<span class="mark ${ok?'o':'x'}">${ok?'O':'X'}</span>` : ''}</div>`;
+      }).join('') + (fin ? `<p class="muted">미션 완료! 친구 ${st.log.length}명과 대화했고, ${st.log.filter(r => planOf(gs, r.n) === r.p).length}명의 계획을 바르게 들었어요.</p>` : '')
+        : '<p class="muted">아직 기록이 없어요</p>';
+    }
+    $('#rec').onclick = () => {
+      const fn = +$('#fn').value;
+      if (Date.now() < (st.lockUntil||0)) { toast(`${Math.ceil((st.lockUntil-Date.now())/1000)}초 뒤에 다시 기록할 수 있어요`); return; }
+      if (!fn || fn < 1 || fn > c.n) { toast(`친구 번호는 1부터 ${c.n}까지예요`); return; }
+      if (fn === st.num) { toast('내 번호가 아니라 친구 번호를 써요'); return; }
+      if (sel < 0) { toast('친구의 계획 그림을 골라요'); return; }
+      const i = st.log.findIndex(r => r.n === fn);
+      if (i > -1) st.log[i].p = sel; else st.log.push({ n: fn, p: sel });
+      if (sel === mine && st.found.indexOf(fn) < 0) {
+        if (planOf(gs, fn) === mine) { st.found.push(fn); fx(`That's a good idea!<br><span style="font-size:.5em">${fn}번 친구와 같은 계획이에요</span>`, 2200); }
+        else { st.lockUntil = Date.now() + 10000; toast('같은 계획이 아니에요. 친구의 대답을 다시 잘 들어 봐요! (10초 쉬기)', 3500); }
+      } else toast(`${fn}번 친구를 기록했어요`);
+      if (st.found.length >= need && !st.doneShown) { st.doneShown = true; setTimeout(() => fx('미션 완료! 🎉', 2200), 2300); }
+      ls.set('l9match', st); $('#fn').value=''; sel=-1; $$('#pick button').forEach(x => x.classList.remove('sel')); draw();
+    };
+    $('#out').onclick = () => { if (confirm('이 라운드를 끝내고 새 코드를 입력할까요?')) { st = {}; ls.set('l9match', st); join(); } };
+    draw();
+  }
+}
+
+/* ───── 짝 찾기: 교사 ───── */
+function matchT(){
+  let st = ls.get('l9matchT') || { n: 19, g: 3, s: '', sec: 300 };
+  app.innerHTML = `<div class="wrap wide">${topbar('짝 찾기 진행','라운드 코드를 띄우고 타이머를 시작해요','teacher')}
+    <div class="tgrid">
+      <div class="card" style="text-align:center">
+        <div class="muted">라운드 코드</div>
+        <div class="code" id="code">-----</div>
+        <div class="row" style="justify-content:center;margin:14px 0">
+          <label>학생 수 <input id="n" inputmode="numeric" maxlength="2" style="width:80px"></label>
+          <label>같은 계획 인원 <select id="g" style="font:inherit;font-size:20px;padding:8px;border-radius:10px;border:2px solid var(--line)"><option value="2">2명</option><option value="3">3명</option><option value="4">4명</option></select></label>
+          <button class="btn sun" id="new">새 라운드</button>
+        </div>
+        <div class="timer" id="tm">5:00</div>
+        <div class="row" style="justify-content:center;margin-top:10px">
+          <button class="btn" id="tgo">시작</button><button class="btn ghost" id="t3">3분</button><button class="btn ghost" id="t5">5분</button>
+        </div>
+      </div>
+      <div class="card expr">
+        <p class="en"><b>A</b> What are you going to do this weekend?</p>
+        <p class="en"><b>B</b> I'm going to ________.</p>
+        <p class="en"><b>A</b> That's a good idea!</p>
+        <p class="muted" style="margin-top:10px;font-size:16px">같은 계획이면 함께 <span class="en">That's a good idea!</span>라고 말하고 기록해요.</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px"><div class="row" style="justify-content:space-between"><b>정답 (같은 계획 모둠)</b><button class="btn ghost" id="ans">정답 공개</button></div>
+      <div class="groups hidden" id="gs" style="margin-top:12px"></div></div></div>`;
+  bindGo();
+  $('#n').value = st.n; $('#g').value = st.g;
+  let left = st.sec, iv = null;
+  const fmt = s => `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+  function drawT(){ const t=$('#tm'); t.textContent = fmt(left); t.classList.toggle('end', left===0); $('#tgo').textContent = iv ? '멈춤' : '시작'; }
+  function stopT(){ if (iv) { clearInterval(iv); iv=null; } }
+  cleanups.push(stopT);
+  function draw(){
+    $('#code').textContent = st.s ? `${String(st.n).padStart(2,'0')}${st.g}${st.s}` : '-----';
+    const gs = st.s ? groupsOf(st.n, st.g, st.s) : [];
+    $('#gs').innerHTML = gs.map(x => `<div>${card(PLANS[x.plan])}<div><b>${x.members.join(', ')}</b><div class="en muted">${PLANS[x.plan].en}</div></div></div>`).join('');
+    drawT();
+  }
+  $('#new').onclick = () => {
+    const n = +$('#n').value, g = +$('#g').value;
+    if (!n || n < 4 || n > 40) { toast('학생 수는 4~40명으로 써요'); return; }
+    if (Math.floor(n / g) < 2) { toast('학생 수에 비해 같은 계획 인원이 너무 많아요'); return; }
+    st.n=n; st.g=g; st.s=String(Math.floor(Math.random()*100)).padStart(2,'0');
+    ls.set('l9matchT', st); $('#gs').classList.add('hidden'); $('#ans').textContent='정답 공개'; stopT(); left=st.sec; draw();
+  };
+  $('#tgo').onclick = () => { if (iv) { stopT(); drawT(); return; } if (left===0) left=st.sec;
+    iv = setInterval(() => { left=Math.max(0,left-1); drawT(); if (left===0) { stopT(); drawT(); fx('Time\'s up!', 2500); } }, 1000); drawT(); };
+  $('#t3').onclick = () => { stopT(); st.sec=180; left=180; ls.set('l9matchT', st); drawT(); };
+  $('#t5').onclick = () => { stopT(); st.sec=300; left=300; ls.set('l9matchT', st); drawT(); };
+  $('#ans').onclick = () => { const g=$('#gs'); g.classList.toggle('hidden'); $('#ans').textContent = g.classList.contains('hidden') ? '정답 공개' : '정답 가리기'; };
+  draw();
+}
+
+render();
+})();
+</script>
+</body>
+</html>
