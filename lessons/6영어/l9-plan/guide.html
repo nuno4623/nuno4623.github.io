@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>활동 안내 · What Are You Going to Do?</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap">
+<style>
+:root{--ink:#17324D;--ink2:#4D6178;--bg:#E7F2EA;--line:#C5D6CC;--sun:#FF8A3D;--sunD:#C85F1C;--leaf:#2F7A55;--leafL:#D5EBDD}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans KR','Malgun Gothic',sans-serif;overflow:hidden}
+.en{font-family:'Atkinson Hyperlegible','Segoe UI',sans-serif}
+.emo{font-family:'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',sans-serif;line-height:1}
+.slide{position:absolute;inset:0;padding:5vh 6vw 12vh;display:none;flex-direction:column}
+.slide.on{display:flex}
+.tag{display:inline-block;align-self:flex-start;background:var(--ink);color:#fff;font-weight:700;font-size:clamp(14px,1.4vw,20px);padding:.3em .9em;border-radius:999px;margin-bottom:1.2vh}
+h1{margin:0 0 3vh;font-size:clamp(30px,4vw,62px);line-height:1.2}
+h1 .en{font-weight:700}
+.body{flex:1;min-height:0;display:grid;gap:4vw;align-items:center}
+.two{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)}
+
+/* 1: 접속 */
+.qr{background:#fff;border:3px solid var(--ink);border-radius:20px;padding:2.4vw;display:flex;flex-direction:column;align-items:center;gap:1.2vh;justify-self:center;width:min(100%,46vh)}
+#qr{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center}
+#qr img,#qr canvas{width:100%!important;height:auto!important}
+.qr p{margin:0;font-weight:700;font-size:clamp(14px,1.5vw,22px)}
+.url{font-size:12px;color:var(--ink2);word-break:break-all;text-align:center}
+.acts{display:grid;gap:2.4vh}
+.act{background:#fff;border:2px solid var(--line);border-radius:18px;padding:2.4vh 2vw;display:grid;grid-template-columns:auto 1fr;gap:1.6vw;align-items:center}
+.act .emo{font-size:clamp(44px,5vw,80px)}
+.act b{display:block;font-size:clamp(22px,2.5vw,40px)}
+.act span{font-size:clamp(16px,1.6vw,26px);color:var(--ink2)}
+.act em{font-style:normal;font-weight:700;color:var(--sunD)}
+
+/* 단계 */
+ol.steps{list-style:none;margin:0;padding:0;counter-reset:s;display:grid;gap:1.8vh}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:auto 1fr;gap:1.2vw;align-items:center;font-size:clamp(18px,2vw,32px);line-height:1.4;background:#fff;border-radius:14px;padding:1.4vh 1.4vw;border:2px solid var(--line)}
+ol.steps li::before{content:counter(s);width:1.7em;height:1.7em;border-radius:50%;background:var(--sun);border:2px solid var(--sunD);display:flex;align-items:center;justify-content:center;font-weight:700}
+ol.steps b{background:#FFE3CF;padding:0 .2em;border-radius:4px}
+
+/* 빙고 미리보기 */
+.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:1vw;width:min(100%,52vh);justify-self:center}
+.mini div{background:#fff;border:2px solid var(--line);border-radius:14px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6vh;position:relative}
+.mini .emo{font-size:clamp(30px,4.4vh,60px)}
+.mini small{font-size:clamp(10px,1.4vh,15px);font-weight:700;text-align:center;line-height:1.15;padding:0 4px}
+.mini div.on{background:#FFD3B2;border-color:var(--sunD)}
+.mini div.on::after{content:'';position:absolute;inset:14%;border:5px solid var(--sun);border-radius:50%}
+
+/* 대화 */
+.dlg{display:grid;gap:1.2vh}
+.bub{font-family:'Atkinson Hyperlegible',sans-serif;font-size:clamp(18px,2.1vw,34px);line-height:1.3;padding:1.4vh 1.6vw;border-radius:20px;max-width:92%;position:relative}
+.bub.a{background:#fff;border:2px solid var(--ink);justify-self:start}
+.bub.b{background:var(--leafL);border:2px solid var(--leaf);justify-self:end}
+.bub.c{background:#FFE3CF;border:2px solid var(--sunD);justify-self:center;font-weight:700}
+.bub i{font-style:normal;font-family:'IBM Plex Sans KR',sans-serif;font-size:.5em;font-weight:700;display:block;color:var(--ink2);margin-bottom:.2em}
+.bub u{text-decoration-thickness:3px;text-underline-offset:5px;color:var(--leaf)}
+
+/* 약속 */
+.rules{grid-template-columns:repeat(2,minmax(0,1fr))}
+.rule{background:#fff;border:2px solid var(--line);border-radius:18px;padding:2.4vh 2vw;display:flex;gap:1.4vw;align-items:center;font-size:clamp(18px,2vw,32px);line-height:1.35;height:100%}
+.rule .emo{font-size:clamp(40px,4.6vw,72px)}
+
+/* 하단 내비 */
+.nav{position:fixed;left:0;right:0;bottom:0;height:9vh;display:flex;align-items:center;justify-content:center;gap:1.4vw;z-index:5}
+.nav button{font:inherit;font-weight:700;font-size:clamp(14px,1.4vw,20px);border:2px solid var(--ink);background:#fff;color:var(--ink);border-radius:999px;padding:.5em 1.1em;cursor:pointer}
+.nav button.cur{background:var(--ink);color:#fff}
+.nav .arr{border:0;background:none;font-size:clamp(20px,2vw,30px)}
+@media (max-aspect-ratio:1/1){.two,.rules{grid-template-columns:1fr}html,body{overflow:auto}.slide{position:static;display:none;min-height:100vh}.slide.on{display:flex}}
+</style>
+</head>
+<body>
+
+<section class="slide on" data-t="접속">
+  <span class="tag">6학년 영어 9단원</span>
+  <h1><span class="en">What Are You Going to Do?</span></h1>
+  <div class="body two">
+    <div class="qr"><div id="qr"><img src="data:image/png;base64,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" alt="9단원 게임 접속 QR 코드"></div><p>태블릿 카메라로 찍어요</p><div class="url">https://nuno4623.github.io/lessons/6영어/l9-plan/</div></div>
+    <div class="acts">
+      <div class="act"><span class="emo">🎯</span><div><b>① 계획 빙고</b><span>대화를 <em>듣고</em> 친구의 계획에 표시해요</span></div></div>
+      <div class="act"><span class="emo">🤝</span><div><b>② 같은 계획 친구 찾기</b><span>영어로 <em>묻고 답하며</em> 나와 같은 계획인 친구를 찾아요</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-t="빙고">
+  <span class="tag">활동 ① 듣기</span>
+  <h1>🎯 계획 빙고</h1>
+  <div class="body two">
+    <div class="mini" aria-hidden="true">
+      <div class="on"><span class="emo">⛺</span><small class="en">go camping</small></div>
+      <div><span class="emo">➗</span><small class="en">study math</small></div>
+      <div><span class="emo">🏠</span><small class="en">stay home</small></div>
+      <div><span class="emo">🏀</span><small class="en">watch a basketball game</small></div>
+      <div class="on"><span class="emo">👵</span><small class="en">visit my grandparents</small></div>
+      <div><span class="emo">⚽</span><small class="en">play soccer</small></div>
+      <div><span class="emo">🦁</span><small class="en">visit the zoo</small></div>
+      <div><span class="emo">📚</span><small class="en">read books</small></div>
+      <div class="on"><span class="emo">🍔</span><small class="en">eat hamburgers</small></div>
+    </div>
+    <ol class="steps">
+      <li><span>첫 화면에서 <b>계획 빙고</b>를 눌러요.</span></li>
+      <li><span>선생님 화면에서 나오는 <b>대화를 잘 들어요.</b></span></li>
+      <li><span><span class="en">I'm going to ~.</span> 에서 들은 계획을 찾아 <b>터치</b>해요.</span></li>
+      <li><span>한 줄이 되면 손을 들고 <b class="en">"Bingo!"</b></span></li>
+      <li><span>자신 있으면 <b>글자 숨기기</b>로 그림만 보고 도전해요.</span></li>
+    </ol>
+  </div>
+</section>
+
+<section class="slide" data-t="짝 찾기">
+  <span class="tag">활동 ② 말하기</span>
+  <h1>🤝 같은 계획 친구 찾기</h1>
+  <div class="body two">
+    <ol class="steps">
+      <li><span>TV의 <b>라운드 코드</b>와 <b>내 번호</b>를 넣어요.</span></li>
+      <li><span>비밀 카드를 <b>꾹 눌러</b> 내 계획을 확인해요.</span></li>
+      <li><span>친구를 만나 <b>영어로 묻고 답해요.</b></span></li>
+      <li><span>친구 번호와 친구 계획 그림을 골라 <b>기록</b>해요.</span></li>
+      <li><span>같은 계획 친구를 <b>모두 찾으면</b> 미션 완료!</span></li>
+    </ol>
+    <div class="dlg">
+      <div class="bub a"><i>나</i>What are you going to do this weekend?</div>
+      <div class="bub b"><i>친구</i>I'm going to <u>go camping</u>.</div>
+      <div class="bub b"><i>친구</i>What are you going to do this weekend?</div>
+      <div class="bub a"><i>나</i>I'm going to <u>go camping</u>.</div>
+      <div class="bub c"><i>같은 계획이면 함께</i>That's a good idea! 🙌</div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-t="약속">
+  <span class="tag">활동 약속</span>
+  <h1>이것만 지켜요</h1>
+  <div class="body rules">
+    <div class="rule"><span class="emo">🙈</span><span>내 비밀 카드는 <b>친구에게 보여 주지 않아요.</b> 말로만 알려 줘요.</span></div>
+    <div class="rule"><span class="emo">🗣️</span><span>묻고 답할 때는 <b>영어 문장으로</b> 말해요.</span></div>
+    <div class="rule"><span class="emo">👂</span><span>친구 말을 끝까지 듣고 기록해요. 틀리게 기록하면 <b>10초 쉬어요.</b></span></div>
+    <div class="rule"><span class="emo">🔁</span><span>짝을 다 찾아도 <b>더 많은 친구</b>와 대화해 봐요.</span></div>
+  </div>
+</section>
+
+<nav class="nav" id="nav"></nav>
+
+<script>
+(function(){
+  const slides = Array.from(document.querySelectorAll('.slide')), nav = document.getElementById('nav');
+  let cur = 0;
+  nav.innerHTML = `<button class="arr" data-d="-1" aria-label="이전">◀</button>` +
+    slides.map((s, i) => `<button data-i="${i}">${i+1}. ${s.dataset.t}</button>`).join('') +
+    `<button class="arr" data-d="1" aria-label="다음">▶</button>`;
+  function show(i){ cur = Math.max(0, Math.min(slides.length-1, i));
+    slides.forEach((s, k) => s.classList.toggle('on', k===cur));
+    nav.querySelectorAll('[data-i]').forEach(b => b.classList.toggle('cur', +b.dataset.i===cur)); }
+  nav.addEventListener('click', e => { const b=e.target.closest('button'); if (!b) return;
+    if (b.dataset.d) show(cur + +b.dataset.d); else show(+b.dataset.i); });
+  addEventListener('keydown', e => { if (['ArrowRight','PageDown',' '].includes(e.key)) { e.preventDefault(); show(cur+1); }
+    if (['ArrowLeft','PageUp'].includes(e.key)) { e.preventDefault(); show(cur-1); } });
+  show(0);
+})();
+</script>
+</body>
+</html>
