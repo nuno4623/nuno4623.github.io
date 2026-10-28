@@ -50,6 +50,30 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--lime)}
 .seg button.on{background:var(--lime);color:var(--navy)}
 #groupNames{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}
 #groupNames input{width:100%;font-size:18px}
+.lesson-tag{font-size:22px;font-weight:900;color:var(--navy);background:var(--gold);padding:4px 18px;border-radius:999px}
+.lesson-tag:empty{display:none}
+.unit-preview{font-size:18px;line-height:1.55}
+.unit-preview .rd{margin-top:10px}
+.unit-preview .rd b{color:var(--lime);margin-right:8px}
+#resRecord{font-size:34px;font-weight:900;color:var(--gold);display:none}
+
+/* SUMMARY (단원 미션) */
+#summary{align-items:center;gap:14px}
+#summary h2{font-size:52px;color:var(--lime)}
+.sum-list{width:min(1200px,96vw);display:flex;flex-direction:column;gap:8px}
+.sum-head{font-size:24px;font-weight:900;color:var(--gold);margin-top:10px}
+.sum-row{display:grid;grid-template-columns:minmax(220px,1.1fr) 2fr 190px;align-items:center;gap:14px;font-size:22px;font-weight:700;
+  background:var(--navy2);border:2px solid var(--line);border-radius:12px;padding:8px 16px}
+.sum-row.weak{border-color:var(--coral);background:rgba(255,107,107,.1)}
+.sum-row .bars2{display:flex;flex-direction:column;gap:4px}
+.sum-row .bar{height:18px}
+.sum-row .bar.re div{background:var(--gold)}
+.sum-row .v{text-align:right;white-space:nowrap}
+.sum-row .v b{color:var(--lime);margin-left:6px}
+.sum-row .v b.down{color:var(--coral)}
+.weak-box{font-size:24px;font-weight:700;color:var(--coral);text-align:center}
+.sum-legend{font-size:16px;color:var(--muted)}
+.sum-legend i{display:inline-block;width:16px;height:12px;border-radius:3px;margin:0 6px 0 12px;vertical-align:middle}
 .bpm-row{display:flex;align-items:center;gap:14px;margin-top:6px}
 .bpm-row input[type=range]{flex:1;accent-color:var(--lime);height:28px}
 #bpmVal{font-size:36px;font-weight:900;color:var(--lime);min-width:70px;text-align:right}
@@ -153,16 +177,33 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--lime)}
 <!-- HOME -->
 <section class="screen active" id="home">
   <div class="logo">CHANT BATTLE<small>챈 트 배 틀</small></div>
+  <div class="lesson-tag" id="homeLesson"></div>
   <div class="home-grid">
-    <div class="card">
+    <div class="card" id="setCard">
       <div class="label">문장 세트</div>
       <select id="setSelect"></select>
       <ul id="setPreview"></ul>
     </div>
+    <div class="card" id="unitCard">
+      <div class="label">단원 미션 — Round 1 단어 → Round 2 어구 → Round 3 문장</div>
+      <div id="unitPreview" class="unit-preview"></div>
+    </div>
     <div class="card">
-      <div class="label">모둠 수</div>
-      <div class="seg" id="groupSeg"></div>
-      <div id="groupNames"></div>
+      <div class="label">게임 방식</div>
+      <div class="seg" id="modeSeg">
+        <button data-mode="battle">👥 모둠 대결</button>
+        <button data-mode="class">🏫 반 전체 (단원 미션)</button>
+      </div>
+      <div id="groupBox" style="margin-top:16px">
+        <div class="label">모둠 수</div>
+        <div class="seg" id="groupSeg"></div>
+        <div id="groupNames"></div>
+      </div>
+      <div id="classBox" style="margin-top:16px">
+        <div class="label">단원</div>
+        <div class="seg" id="unitSeg"></div>
+        <div class="muted" id="unitOpt" style="font-size:16px;margin-top:8px"></div>
+      </div>
       <div class="label" style="margin-top:18px">빠르기 (BPM)</div>
       <div class="bpm-row">
         <input type="range" id="bpm" min="60" max="120" step="1">
@@ -172,6 +213,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--lime)}
   </div>
   <button class="primary big" id="btnStart">시작 <kbd>Space</kbd></button>
   <div class="home-foot">
+    <button class="ghost backSlide">← 슬라이드로 돌아가기</button>
     <button class="ghost" id="btnSettings">교사 설정</button>
     <button class="ghost" id="btnPractice">연습 모드</button>
     <span id="recBadge" class="badge"></span>
@@ -228,7 +270,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--lime)}
   <div class="meta" id="resWho"></div>
   <div class="grade" id="resGrade"></div>
   <div class="total"><span id="resTotal">0</span><small> / 100</small></div>
-  <div id="resWarn">📢 더 크게! (최대 60점)</div>
+  <div id="resRecord"></div>
+  <div id="resWarn">📢 소리가 작아요! 조금 더 크게 말하면 더 정확하게 채점돼요.</div>
   <div class="bars" id="resBars"></div>
   <div class="sentence" id="resSentence"></div>
   <div id="resHeard"></div>
@@ -247,6 +290,20 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--lime)}
   <div class="row" style="justify-content:center">
     <button class="ghost" id="btnBoardHome">홈 <kbd>Esc</kbd></button>
     <button class="primary big" id="btnBoardNext"></button>
+  </div>
+</section>
+<!-- SUMMARY (단원 미션: Round 결과 / 전체 결과) -->
+<section class="screen" id="summary">
+  <div class="lesson-tag" id="sumLesson"></div>
+  <h2 id="sumTitle"></h2>
+  <div class="meta" id="sumMeta"></div>
+  <div class="weak-box" id="sumWeak"></div>
+  <div class="sum-list" id="sumList"></div>
+  <div class="row" style="justify-content:center;margin:10px 0 20px">
+    <button class="ghost backSlide">← 슬라이드로 돌아가기</button>
+    <button class="ghost" id="btnSumHome">홈 <kbd>Esc</kbd></button>
+    <button id="btnSumRetry" class="danger">🔁 약한 3개 다시 도전</button>
+    <button class="primary big" id="btnSumNext"></button>
   </div>
 </section>
 <canvas id="confetti"></canvas>
@@ -277,6 +334,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--lime)}
         <div class="label">게임 설정</div>
         <div class="field"><span>기본 BPM (60~120)</span><input type="number" id="sBpm" min="60" max="120"></div>
         <div class="field"><span>타이밍 허용창 (ms)</span><input type="number" id="sWin" min="80" max="600" step="10"></div>
+        <label class="field" style="cursor:pointer"><span>단원 미션 Round 2(어구) 절반만 무작위</span><input type="checkbox" id="sR2Half" style="width:28px;height:28px;accent-color:var(--lime)"></label>
       </div>
       <div class="card">
         <div class="label">배점 <span id="wSum"></span></div>
@@ -327,7 +385,45 @@ const DEFAULT_SETTINGS = {
   groupCount:4,
   groupNames:['1모둠','2모둠','3모둠','4모둠','5모둠','6모둠'],
   lastSetId:'g6-l7',
+  mode:'battle',          // 'battle' 모둠 대결 | 'class' 반 전체(단원 미션)
+  r2Half:false,           // 단원 미션 Round 2를 절반만 무작위로
 };
+
+/* 단원 미션 목록 — 주소의 ?unit=9 로 단원 전환 (없으면 8단원) */
+const UNITS = {
+  8: { lesson:'Lesson 8', title:'It’s Taller Than the Tree', rounds:[
+    { name:'단어', items:['giraffe','tower','clock','baby','race','goal','dribble','catch','win','strong'] },
+    { name:'비교 변신', items:['tall → taller','fast → faster','strong → stronger','heavy → heavier','big → bigger','small → smaller',
+      'long → longer','short → shorter','old → older','young → younger','slow → slower','high → higher'] },
+    { name:'문장', items:['It’s taller than the tree.','The tower is taller than the giraffe.','The cheetah is faster than the turtle.',
+      'The elephant is heavier than the dog.','I’m stronger than my brother.','He can run faster than me.',
+      'The snake is longer than the worm.','That’s not right.'] },
+  ]},
+  9: { lesson:'Lesson 9', title:'What Are You Going to Do This Weekend?', rounds:[
+    { name:'단어', items:['plan','stay','weekend','forest','village','tent','zoo','hamburger','program','room'] },
+    { name:'계획 어구', items:['stay home','study math','visit my grandparents','go camping','watch a basketball game','go to the zoo',
+      'clean my room','play soccer','go swimming','read a book','ride my bike','watch a TV program','go hiking in the forest','eat hamburgers'] },
+    { name:'문장', items:['What are you going to do this weekend?','I’m going to stay home.','I’m going to study math.',
+      'I’m going to visit my grandparents.','I’m going to go camping in the forest.','I’m going to watch a basketball game.',
+      'Do you have any plans?','That’s a good idea.'] },
+  ]},
+};
+const ROUND_LABEL = ['Round 1', 'Round 2', 'Round 3'];
+const urlUnit = new URLSearchParams(location.search).get('unit');
+let UNIT = UNITS[urlUnit] ? +urlUnit : 8;
+// 박자 덩어리 자동 나누기: 'tall → taller'는 화살표 기준, 그 밖에는 단어마다 1박
+// (a·the·my·to·in·than·any 같은 짧은 기능어는 뒤 단어에 붙여 한 박으로)
+const FUNC_WORDS = new Set(['a','an','the','my','to','in','than','any']);
+function autoChunks(text){
+  if (text.includes('→')) return text.split('→').map(s => s.trim()).filter(Boolean);
+  const out = []; let pre = [];
+  text.split(/\s+/).filter(Boolean).forEach(w => {
+    if (FUNC_WORDS.has(w.toLowerCase().replace(/[^a-z]/g, ''))) pre.push(w);
+    else { out.push(pre.concat(w).join(' ')); pre = []; }
+  });
+  if (pre.length) { if (out.length) out[out.length - 1] += ' ' + pre.join(' '); else out.push(pre.join(' ')); }
+  return out;
+}
 const clone = o => JSON.parse(JSON.stringify(o));
 const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 const $ = s => document.querySelector(s);
@@ -343,6 +439,8 @@ function normalizeSettings(s){
   out.bpm = clamp(Math.round(+out.bpm || 80), 60, 120);
   out.windowMs = clamp(Math.round(+out.windowMs || 300), 80, 600);
   out.groupCount = clamp(Math.round(+out.groupCount || 4), 2, 6);
+  out.mode = out.mode === 'class' ? 'class' : 'battle';
+  out.r2Half = !!out.r2Half;
   return out;
 }
 function normalizeSets(sets){
@@ -391,11 +489,14 @@ async function initMic(){
   }
   A.stream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false } });
   const src = A.ctx.createMediaStreamSource(A.stream);
+  // 말소리 대역(250~4000Hz)만 통과: 선풍기·책상 울림 같은 저음, 치찰음 잡음 제거
+  const hp = A.ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 250; hp.Q.value = 0.7;
+  const lp = A.ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 4000; lp.Q.value = 0.7;
   A.an = A.ctx.createAnalyser();
-  A.an.fftSize = 1024;
+  A.an.fftSize = 512;   // 약 11ms 창 → 음절 시작을 더 촘촘히 잡음
   A.buf = new Float32Array(A.an.fftSize);
   const mute = A.ctx.createGain(); mute.gain.value = 0;
-  src.connect(A.an); A.an.connect(mute); mute.connect(A.ctx.destination);
+  src.connect(hp); hp.connect(lp); lp.connect(A.an); A.an.connect(mute); mute.connect(A.ctx.destination);
 }
 function readRms(){
   if (!A.an) return 0;
@@ -451,15 +552,15 @@ function startRec(onText){
   const st = { finals:[], interim:'', error:null, ended:false, resolve:null };
   try {
     const r = new SR();
-    r.lang = 'en-US'; r.continuous = true; r.interimResults = true; r.maxAlternatives = 1;
+    r.lang = 'en-US'; r.continuous = true; r.interimResults = true; r.maxAlternatives = 5;
     r.onresult = e => {
       let interim = '';
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const res = e.results[i];
-        if (res.isFinal) st.finals[i] = res[0].transcript; else interim += res[0].transcript;
+        if (res.isFinal) st.finals[i] = Array.from(res, a => a.transcript); else interim += res[0].transcript;
       }
       st.interim = interim;
-      onText && onText(st.finals.filter(Boolean).join(' ') + ' ' + interim);
+      onText && onText(st.finals.filter(Boolean).map(a => a[0]).join(' ') + ' ' + interim);
     };
     r.onerror = e => { st.error = e.error; };
     r.onend = () => { st.ended = true; st.resolve && st.resolve(); };
@@ -472,10 +573,20 @@ async function stopRec(st){
   if (!st) return { supported:false, text:'', error:'unsupported' };
   if (st.r && !st.ended) { try { st.r.stop(); } catch (e) {} }
   await new Promise(res => { if (st.ended) return res(); st.resolve = res; setTimeout(res, 2500); });
-  const text = (st.finals.filter(Boolean).join(' ') + ' ' + st.interim).replace(/\s+/g, ' ').trim();
+  // 구간마다 인식 후보(최대 5개)를 보관 → 채점 때 목표 문장에 가장 가까운 후보를 고름
+  const segments = st.finals.filter(Boolean);
+  if (st.interim.trim()) segments.push([st.interim]);
+  const text = segments.map(a => a[0]).join(' ').replace(/\s+/g, ' ').trim();
   const hard = ['not-allowed','service-not-allowed','network','audio-capture','language-not-supported','start-failed'];
   const failed = hard.includes(st.error) && !text;
-  return { supported: !failed, text, error: st.error };
+  return { supported: !failed, text, segments, error: st.error };
+}
+function bestTranscript(sentence, recRes){
+  return recRes.segments.map(alts => {
+    let best = alts[0], bs = -1;
+    alts.forEach(a => { const s = wordAccuracy(sentence, a); if (s > bs) { bs = s; best = a; } });
+    return best;
+  }).join(' ').replace(/\s+/g, ' ').trim();
 }
 
 /* ================= 채점 ================= */
@@ -497,53 +608,125 @@ function words(s){
     .replace(/[^a-z0-9\s]/g, ' ')
     .split(/\s+/).filter(Boolean);
 }
+function lev(a, b){
+  const d = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    let prev = d[0]; d[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const tmp = d[j];
+      d[j] = Math.min(d[j] + 1, d[j-1] + 1, prev + (a[i-1] === b[j-1] ? 0 : 1));
+      prev = tmp;
+    }
+  }
+  return d[b.length];
+}
+// 발음이 조금 달라 한 글자 틀리게 인식돼도 부분 점수 (festival↔festivals, tree↔three)
+// taller↔tallest처럼 두 글자 이상 다르면 다른 단어로 봄
+function wordScore(t, h){
+  if (t === h) return 1;
+  return Math.max(t.length, h.length) >= 4 && lev(t, h) <= 1 ? 0.8 : 0;
+}
 function wordAccuracy(sentence, transcript){
   const t = words(targetText(sentence)), h = words(transcript);
   if (!t.length) return 0;
-  const bag = {}; h.forEach(w => bag[w] = (bag[w] || 0) + 1);
-  let hit = 0; t.forEach(w => { if (bag[w] > 0) { hit++; bag[w]--; } });
-  return hit / t.length;
+  const used = h.map(() => false), got = t.map(() => 0);
+  t.forEach((w, i) => { const j = h.findIndex((x, k) => !used[k] && x === w); if (j >= 0) { used[j] = true; got[i] = 1; } });
+  t.forEach((w, i) => {
+    if (got[i]) return;
+    let best = 0, bj = -1;
+    h.forEach((x, k) => { if (used[k]) return; const s = wordScore(w, x); if (s > best) { best = s; bj = k; } });
+    if (bj >= 0) { used[bj] = true; got[i] = best; }
+  });
+  return got.reduce((a, b) => a + b, 0) / t.length;
 }
-function detectOnsets(frames, th){
-  // 1) 임계값 아래→위 교차  2) 이어 말하기 대비: 직전 100ms 최저값 대비 2배 이상 급상승
-  const on = []; let last = -1e9, prevHigh = true;
-  for (let j = 1; j < frames.length; j++) {
-    const f = frames[j], p = frames[j-1];
-    const cross = p.r < th && f.r >= th;
-    let mn = Infinity;
-    for (let k = j - 1; k >= 0 && frames[k].t >= f.t - 0.1; k--) mn = Math.min(mn, frames[k].r);
-    const high = f.r >= th && mn < Infinity && f.r >= 2 * mn;
-    const rise = high && !prevHigh;
-    prevHigh = high;
-    if ((cross || rise) && f.t - last >= 0.12) { on.push(f.t); last = f.t; }
+
+/*
+ * 음량에 덜 좌우되는 채점
+ *  - 모든 판단을 dB(로그) 단위의 '상대값'으로 함 → 크게 말한 모둠이든 작게 말한 모둠이든 같은 잣대
+ *  - 발성 기준선 = 이번 녹음의 크기(상위 10%) − 15dB, 단 교실 소음보다 6dB 이상
+ *  - 음절 시작 = 직전 80ms 최저점 대비 riseDb 이상 '급상승'한 순간 (이어 말해도 음절마다 잡힘)
+ */
+const dbOf = r => 20 * Math.log10(Math.max(r, 1e-5));
+const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
+function pct(arr, p){
+  if (!arr.length) return -100;
+  const a = [...arr].sort((x, y) => x - y);
+  return a[Math.min(a.length - 1, Math.floor(p * (a.length - 1)))];
+}
+function envelope(frames){
+  const db = frames.map(f => dbOf(f.r));
+  return db.map((_, j) => {   // 약 30ms 이동평균
+    let s = 0, c = 0;
+    for (let k = Math.max(0, j - 1); k <= Math.min(db.length - 1, j + 1); k++) { s += db[k]; c++; }
+    return s / c;
+  });
+}
+function detectOnsets(frames, env, gateDb, riseDb){
+  const n = frames.length, rise = new Array(n).fill(0), base = new Array(n).fill(-1);
+  for (let j = 1; j < n; j++) {
+    let mn = Infinity, mi = -1;
+    for (let k = j - 1; k >= 0 && frames[k].t >= frames[j].t - 0.08; k--) if (env[k] < mn) { mn = env[k]; mi = k; }
+    if (mi >= 0) { rise[j] = env[j] - mn; base[j] = mi; }
+  }
+  const on = [];
+  for (let j = 1; j < n - 1; j++) {
+    if (rise[j] < riseDb || rise[j] < rise[j-1] || rise[j] < rise[j+1]) continue;
+    let peak = -Infinity;
+    for (let k = j; k < n && frames[k].t <= frames[j].t + 0.08; k++) peak = Math.max(peak, env[k]);
+    if (peak < gateDb) continue;   // 말소리 수준까지 안 올라온 잡음
+    // 상승 폭의 절반을 넘는 첫 순간을 음절 시작으로
+    const half = env[j] - rise[j] / 2;
+    let k = base[j]; while (k < j && env[k] < half) k++;
+    const t = frames[k].t, last = on[on.length - 1];
+    if (last && t - last.t < 0.12) { if (rise[j] > last.rise) { last.t = t; last.rise = rise[j]; } continue; }
+    on.push({ t, rise: rise[j] });
   }
   return on;
 }
 function analyze(frames, o){
-  const { beats, beat, W, th } = o;
-  const onsets = detectOnsets(frames, th);
+  const { beats, beat, W, noise, riseDb } = o;
+  const t1 = beats[0] - W, t2 = beats[beats.length - 1] + beat;
+  const env = envelope(frames);
+  const body = [];
+  frames.forEach((f, i) => { if (f.t >= t1 && f.t < t2) body.push(i); });
+  const noiseDb = dbOf(noise);
+  const refDb = pct(body.map(i => env[i]), 0.9);
+  const snr = refDb - noiseDb;
+  const gateDb = Math.max(noiseDb + 6, refDb - 15);
+
+  const onsets = detectOnsets(frames, env, gateDb, riseDb).filter(x => x.t >= t1 && x.t <= t2);
   const perBeat = beats.map(t => {
     let best = null;
-    for (const x of onsets) { const e = x - t; if (Math.abs(e) <= W && (best === null || Math.abs(e) < Math.abs(best))) best = e; }
-    return { err: best, s: best === null ? 0 : Math.max(0, 1 - Math.abs(best) / W) };
+    for (const x of onsets) { const e = x.t - t; if (Math.abs(e) <= W && (best === null || Math.abs(e) < Math.abs(best.e))) best = { e, rise: x.rise }; }
+    return { err: best && best.e, rise: best ? best.rise : 0, s: best ? Math.max(0, 1 - Math.abs(best.e) / W) : 0 };
   });
-  const timing = perBeat.reduce((a, b) => a + b.s, 0) / beats.length;
+  const silent = snr < 6;
+  const timing = silent ? 0 : avg(perBeat.map(b => b.s));
 
+  // 단결력 ① 동시성: 다 같이 맞춰 시작하면 소리가 짧게 '확' 오름 (엇갈리면 퍼지며 천천히)
+  //   박자마다 '30ms 동안 오른 양 ÷ 그 박자의 최고 크기'의 최댓값 → 음량과 무관
+  const sharp = avg(beats.map((t, bi) => {
+    if (perBeat[bi].err === null) return 0;
+    const fr = body.filter(i => frames[i].t >= t - W && frames[i].t < t + beat);
+    const peak = Math.max(...fr.map(i => frames[i].r)) - noise;
+    if (!(peak > 0)) return 0;
+    let best = 0;
+    fr.forEach(i => { if (i + 3 < frames.length) best = Math.max(best, (frames[i + 3].r - frames[i].r) / peak); });
+    return clamp((best - 0.1) / 0.4, 0, 1);
+  }));
+  // ② 고른 크기: 덩어리마다 최고 크기의 dB 편차가 작을수록 ↑   ③ 채움: 박자 안에서 소리가 이어진 비율
   const covs = [], peaks = [];
   beats.forEach(t => {
-    const fr = frames.filter(f => f.t >= t && f.t < t + beat);
-    covs.push(fr.length ? fr.filter(f => f.r > th).length / fr.length : 0);
-    peaks.push(fr.length ? Math.max(...fr.map(f => f.r)) : 0);
+    const fr = body.filter(i => frames[i].t >= t && frames[i].t < t + beat);
+    covs.push(fr.length ? fr.filter(i => env[i] >= gateDb).length / fr.length : 0);
+    peaks.push(fr.length ? Math.max(...fr.map(i => env[i])) : noiseDb);
   });
-  const covAvg = covs.reduce((a, b) => a + b, 0) / covs.length;
-  const pm = peaks.reduce((a, b) => a + b, 0) / peaks.length;
-  const sd = Math.sqrt(peaks.reduce((a, b) => a + (b - pm) ** 2, 0) / peaks.length);
-  const cv = pm > 0 ? sd / pm : 1;
-  const unity = 0.6 * covAvg + 0.4 * Math.max(0, 1 - cv);
+  const pm = avg(peaks);
+  const steady = clamp(1 - Math.sqrt(avg(peaks.map(p => (p - pm) ** 2))) / 9, 0, 1);
+  const covAvg = avg(covs);
+  const unity = silent ? 0 : 0.45 * sharp + 0.3 * steady + 0.25 * covAvg;
 
-  const body = frames.filter(f => f.t >= beats[0] && f.t < beats[0] + beats.length * beat);
-  const meanR = body.length ? body.reduce((a, f) => a + f.r, 0) / body.length : 0;
-  return { timing, unity, perBeat, covAvg, cv, quiet: meanR < th * 1.5, meanR };
+  return { timing, unity, perBeat, sharp, steady, covAvg, snr, quiet: snr < 12 };
 }
 function gradeOf(total){ return total >= 90 ? 'PERFECT' : total >= 75 ? 'GREAT' : total >= 60 ? 'GOOD' : 'TRY'; }
 const GRADE_LABEL = { PERFECT:'PERFECT', GREAT:'GREAT', GOOD:'GOOD', TRY:'TRY AGAIN' };
@@ -563,6 +746,8 @@ function renderHome(){
   if (!getSet(store.settings.lastSetId) && store.sets[0]) store.settings.lastSetId = store.sets[0].id;
   sel.value = store.settings.lastSetId;
   renderPreview();
+  renderMode();
+  renderUnit();
   $('#groupSeg').innerHTML = [2,3,4,5,6].map(n => `<button data-n="${n}" class="${n === store.settings.groupCount ? 'on' : ''}">${n}</button>`).join('');
   renderGroupNames();
   $('#bpm').value = store.settings.bpm; $('#bpmVal').textContent = store.settings.bpm;
@@ -581,6 +766,31 @@ function renderGroupNames(){
   const n = store.settings.groupCount;
   $('#groupNames').innerHTML = store.settings.groupNames.slice(0, n).map((nm, i) => `<input data-i="${i}" maxlength="12" value="${esc(nm)}" placeholder="${i+1}모둠">`).join('');
 }
+function renderMode(){
+  const m = store.settings.mode;
+  document.querySelectorAll('#modeSeg button').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
+  $('#groupBox').style.display = m === 'battle' ? '' : 'none';
+  $('#classBox').style.display = m === 'class' ? '' : 'none';
+  $('#setCard').style.display = m === 'class' ? 'none' : '';
+  $('#unitCard').style.display = m === 'class' ? '' : 'none';
+  $('#homeLesson').textContent = m === 'class' ? `${UNITS[UNIT].lesson} · ${UNITS[UNIT].title}` : '';
+}
+function renderUnit(){
+  $('#unitSeg').innerHTML = Object.keys(UNITS).map(u => `<button data-unit="${u}" class="${+u === UNIT ? 'on' : ''}">${UNITS[u].lesson}</button>`).join('');
+  const U = UNITS[UNIT];
+  $('#unitPreview').innerHTML = U.rounds.map((r, i) =>
+    `<div class="rd"><b>${ROUND_LABEL[i]} ${esc(r.name)}</b>${r.items.map(esc).join(' · ')}</div>`).join('');
+  $('#unitOpt').textContent = store.settings.r2Half ? `Round 2는 ${U.rounds[1].items.length}개 중 절반만 무작위로 나와요. (교사 설정에서 변경)` : '';
+  $('#homeLesson').textContent = store.settings.mode === 'class' ? `${U.lesson} · ${U.title}` : '';
+}
+$('#modeSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  store.settings.mode = b.dataset.mode; save(); renderMode();
+});
+$('#unitSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  UNIT = +b.dataset.unit; renderUnit();
+});
 $('#setSelect').addEventListener('change', e => { store.settings.lastSetId = e.target.value; save(); renderPreview(); });
 $('#groupSeg').addEventListener('click', e => {
   const n = +e.target.dataset.n; if (!n) return;
@@ -595,18 +805,45 @@ $('#bpm').addEventListener('input', e => { store.settings.bpm = +e.target.value;
 let G = null;   // 진행 중 게임
 let T = null;   // 진행 중 턴 { phase, abort, ... }
 
+/* 단원 미션: Round 1~3 항목마다 점수(score)와 재도전 점수(retry)를 기록 */
+function shuffled(a){ const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
+function buildMission(unit){
+  return {
+    unit, phase:'main', r:0, i:0, retry:[], k:0,
+    rounds: UNITS[unit].rounds.map((rd, ri) => {
+      let items = rd.items;
+      if (ri === 1 && store.settings.r2Half) items = shuffled(items).slice(0, Math.ceil(items.length / 2));
+      return { name: rd.name, items: items.map(text => {
+        const chunks = autoChunks(text);
+        return { text, chunks, sentence: chunks.join(' | '), score:null, retry:null };
+      }) };
+    }),
+  };
+}
+const curItem = () => {
+  const M = G.mission;
+  if (M.phase === 'retry') { const x = M.retry[M.k]; return M.rounds[x.r].items[x.i]; }
+  return M.rounds[M.r].items[M.i];
+};
 function newGame(mode){
-  const set = getSet($('#setSelect').value);
-  if (!set || !set.sentences.length) { alert('문장이 있는 세트를 선택하세요.'); return; }
   ensureCtx();
   const bpm = store.settings.bpm;
+  if (mode === 'class') {
+    const U = UNITS[UNIT];
+    G = { mode, set:{ id:'unit-' + UNIT, title:`${U.lesson} ${U.title}`, sentences:[] }, groups:[{ name:U.lesson, scores:[null] }],
+      round:1, turn:0, baseBpm:bpm, bpm, sentIdx:0, last:null, mission: buildMission(UNIT) };
+    goCalib();
+    return;
+  }
+  const set = getSet($('#setSelect').value);
+  if (!set || !set.sentences.length) { alert('문장이 있는 세트를 선택하세요.'); return; }
   const groups = mode === 'practice'
     ? [{ name:'연습', scores:[null] }]
     : store.settings.groupNames.slice(0, store.settings.groupCount).map((n, i) => ({ name: n.trim() || `${i+1}모둠`, scores:[null, null] }));
-  G = { mode, set, groups, round:1, turn:0, baseBpm:bpm, bpm, sentIdx:0, last:null };
+  G = { mode, set, groups, round:1, turn:0, baseBpm:bpm, bpm, sentIdx:0, last:null, mission:null };
   goCalib();
 }
-$('#btnStart').addEventListener('click', () => newGame('battle'));
+$('#btnStart').addEventListener('click', () => newGame(store.settings.mode));
 $('#btnPractice').addEventListener('click', () => newGame('practice'));
 
 /* ================= 보정 ================= */
@@ -669,8 +906,9 @@ $('#btnCalibHome').addEventListener('click', goHome);
 $('#btnReady').addEventListener('click', () => { if (A.calibrated) enterTurn(); });
 
 /* ================= 라운드 ================= */
-const curSentence = () => G.set.sentences[G.sentIdx % G.set.sentences.length];
+const curSentence = () => G.mission ? curItem().sentence : G.set.sentences[G.sentIdx % G.set.sentences.length];
 function canNavSentence(){
+  if (G.mission) return false;
   if (G.mode === 'practice') return true;
   return G.turn === 0 && G.groups.every(g => g.scores[G.round - 1] == null);
 }
@@ -682,6 +920,15 @@ function renderDots(n, lit){
 }
 function renderScoreboard(){
   if (G.mode === 'practice') { $('#scoreboard').innerHTML = ''; return; }
+  if (G.mission) {
+    const M = G.mission;
+    $('#scoreboard').innerHTML = M.rounds.map((rd, ri) => {
+      const done = rd.items.filter(it => it.score != null);
+      const a = done.length ? Math.round(avg(done.map(it => it.score))) : '-';
+      return `<div class="chip${M.phase === 'main' && ri === M.r ? ' cur' : ''}">${ROUND_LABEL[ri]} ${esc(rd.name)}<b>${a}</b></div>`;
+    }).join('');
+    return;
+  }
   $('#scoreboard').innerHTML = G.groups.map((g, i) => {
     const sum = g.scores.reduce((a, b) => a + (b || 0), 0);
     return `<div class="chip${i === G.turn ? ' cur' : ''}">${esc(g.name)}<b>${sum}</b></div>`;
@@ -690,8 +937,20 @@ function renderScoreboard(){
 function enterTurn(){
   T = { phase:'ready' };
   const g = G.groups[G.turn];
-  $('#turnName').innerHTML = G.mode === 'practice' ? '<span>연습 모드</span>' : `<span>${esc(g.name)}</span> 차례`;
-  $('#turnMeta').textContent = (G.mode === 'practice' ? '' : `${G.round}라운드 · `) + `BPM ${G.bpm}` + (G.round === 2 ? ' (15% UP!)' : '') + ` · ${G.set.title}`;
+  if (G.mission) {
+    const M = G.mission, U = UNITS[M.unit];
+    if (M.phase === 'retry') {
+      $('#turnName').innerHTML = `<span>${U.lesson}</span> 🔁 다시 도전`;
+      $('#turnMeta').textContent = `${M.k + 1} / ${M.retry.length} · 처음 점수 ${curItem().score} · BPM ${G.bpm} · 다 함께!`;
+    } else {
+      const rd = M.rounds[M.r];
+      $('#turnName').innerHTML = `<span>${U.lesson}</span> ${ROUND_LABEL[M.r]} ${esc(rd.name)}`;
+      $('#turnMeta').textContent = `${M.i + 1} / ${rd.items.length} · BPM ${G.bpm} · 반 전체 다 함께!`;
+    }
+  } else {
+    $('#turnName').innerHTML = G.mode === 'practice' ? '<span>연습 모드</span>' : `<span>${esc(g.name)}</span> 차례`;
+    $('#turnMeta').textContent = (G.mode === 'battle' ? `${G.round}라운드 · ` : '') + `BPM ${G.bpm}` + (G.round === 2 ? ' (15% UP!)' : '') + ` · ${G.set.title}`;
+  }
   renderScoreboard();
   renderChunks($('#sentence'), chunksOf(curSentence()));
   renderDots(4, -1);
@@ -740,8 +999,10 @@ async function runTurn(){
   const tEnd = t0 + n * beat;
 
   const frames = [];
-  const iv = setInterval(() => frames.push({ t: ctx.currentTime, r: readRms() }), 20);
-  const rec = startRec(txt => { $('#liveText').textContent = txt.trim() ? '🎧 ' + txt : ''; });
+  const iv = setInterval(() => frames.push({ t: ctx.currentTime, r: readRms() }), 10);
+  // 반 전체 합창은 음성인식이 거의 안 되므로 인식을 끄고 타이밍·단결력만 채점
+  const useRec = G.mode !== 'class';
+  const rec = !useRec ? null : startRec(txt => { $('#liveText').textContent = txt.trim() ? '🎧 ' + txt : ''; });
 
   const countEl = $('#count'), chunkEls = [...document.querySelectorAll('#sentence .chunk')];
   let lastCount = -1, lastIdx = -2;
@@ -778,23 +1039,29 @@ async function runTurn(){
   const recRes = await stopRec(rec);
   if (tok.abort) return;
 
-  const an = analyze(frames, { beats, beat, W, th: A.th });
+  // 여럿이 함께 말할수록 음절 시작이 덜 날카로우므로 반 전체는 상승 기준을 낮춤
+  const an = analyze(frames, { beats, beat, W, noise: A.noise, riseDb: G.mode === 'class' ? 4 : 6 });
   const s = store.settings;
-  const supported = REC_SUPPORTED && recRes.supported;
+  const supported = useRec && REC_SUPPORTED && recRes.supported;
   const wT = supported ? s.w.timing : s.wNoRec.timing;
   const wU = supported ? s.w.unity : s.wNoRec.unity;
   const wA = supported ? s.w.accuracy : 0;
+  if (supported) recRes.text = bestTranscript(sentence, recRes);
   const acc = supported ? wordAccuracy(sentence, recRes.text) : null;
   const pts = { timing: an.timing * wT, unity: an.unity * wU, accuracy: supported ? acc * wA : 0 };
   const wSum = wT + wU + wA || 1;
-  let total = Math.round((pts.timing + pts.unity + pts.accuracy) / wSum * 100);
-  if (an.quiet) total = Math.min(total, 60);
+  const total = Math.round((pts.timing + pts.unity + pts.accuracy) / wSum * 100);
   G.last = { sentence, chunks, an, pts, w:{ timing:wT, unity:wU, accuracy:wA }, supported, recRes, total, grade: gradeOf(total) };
 
   const g = G.groups[G.turn];
-  g.scores[G.mode === 'practice' ? 0 : G.round - 1] = total;
-  store.recent.push({ date: new Date().toLocaleDateString('ko-KR', { month:'numeric', day:'numeric' }), group: g.name, set: G.set.title, total });
-  store.recent = store.recent.slice(-30); save();
+  if (G.mission) {
+    const it = curItem();
+    if (G.mission.phase === 'retry') it.retry = total; else it.score = total;
+  } else {
+    g.scores[G.mode === 'battle' ? G.round - 1 : 0] = total;
+    store.recent.push({ date: new Date().toLocaleDateString('ko-KR', { month:'numeric', day:'numeric' }), group: g.name, set: G.set.title, total });
+    store.recent = store.recent.slice(-30); save();
+  }
   T = { phase:'result' };
   showResult();
 }
@@ -802,9 +1069,19 @@ async function runTurn(){
 /* ================= 결과 ================= */
 function showResult(){
   const L = G.last, g = G.groups[G.turn];
-  $('#resWho').textContent = G.mode === 'practice' ? `연습 · BPM ${G.bpm}` : `${g.name} · ${G.round}라운드 · BPM ${G.bpm}`;
+  const M = G.mission;
+  $('#resWho').textContent = M
+    ? (M.phase === 'retry' ? `${UNITS[M.unit].lesson} · 🔁 다시 도전 ${M.k + 1}/${M.retry.length}`
+      : `${UNITS[M.unit].lesson} · ${ROUND_LABEL[M.r]} ${M.rounds[M.r].name} · ${M.i + 1}/${M.rounds[M.r].items.length}`)
+    : G.mode === 'practice' ? `연습 · BPM ${G.bpm}` : `${g.name} · ${G.round}라운드 · BPM ${G.bpm}`;
   const ge = $('#resGrade'); ge.className = 'grade ' + L.grade; ge.textContent = GRADE_LABEL[L.grade];
   $('#resWarn').style.display = L.an.quiet ? 'block' : 'none';
+  const recEl = $('#resRecord');
+  if (M && M.phase === 'retry') {
+    const it = curItem(), d = it.retry - it.score;
+    recEl.style.display = 'block';
+    recEl.textContent = `처음 ${it.score}점 → 지금 ${it.retry}점 ` + (d > 0 ? `🎉 +${d}` : d === 0 ? '(그대로)' : `(${d})`);
+  } else recEl.style.display = 'none';
 
   const rows = [
     ['타이밍', L.pts.timing, L.w.timing, true],
@@ -814,7 +1091,7 @@ function showResult(){
   $('#resBars').innerHTML = rows.map(([name, p, w, on]) => `
     <div class="bar-row${on ? '' : ' off'}"><span>${name}</span>
       <div class="bar"><div data-w="${on && w ? (p / w * 100).toFixed(1) : 0}"></div></div>
-      <span class="v">${on ? `${Math.round(p)}/${w}` : '인식 미지원'}</span></div>`).join('');
+      <span class="v">${on ? `${Math.round(p)}/${w}` : G.mission ? '반 전체 제외' : '인식 안 됨'}</span></div>`).join('');
 
   const fb = L.an.perBeat.map(b => {
     if (b.err === null) return '<span class="fb bad">놓침</span>';
@@ -824,12 +1101,21 @@ function showResult(){
   });
   renderChunks($('#resSentence'), L.chunks, fb);
 
-  $('#resHeard').innerHTML = !L.supported
+  $('#resHeard').innerHTML = M
+    ? '🏫 반 전체 모드 — 타이밍·단결력으로 채점했어요.'
+    : !L.supported
     ? '🔇 음성인식 ' + (REC_SUPPORTED ? '실패(' + esc(L.recRes.error || '') + ') — 타이밍·단결력으로만 채점했어요.' : '미지원 브라우저 — 타이밍·단결력으로만 채점했어요.')
-    : '인식된 문장: <b>' + (L.recRes.text ? esc(L.recRes.text) : '(들리지 않음)') + '</b>';
+    : '인식된 문장: <b>' + (L.recRes.text ? esc(L.recRes.text) : '(들리지 않음' + (L.recRes.error ? ' · 오류: ' + esc(L.recRes.error) : '') + ')') + '</b>';
 
-  const last = G.mode === 'battle' && G.turn === G.groups.length - 1;
-  $('#btnNext').innerHTML = (G.mode === 'practice' ? '다음 문장' : last ? '라운드 결과 보기' : '다음 모둠') + ' <kbd>Space</kbd>';
+  let nextLabel;
+  if (M) {
+    const lastItem = M.phase === 'retry' ? M.k === M.retry.length - 1 : M.i === M.rounds[M.r].items.length - 1;
+    nextLabel = !lastItem ? '다음 항목' : M.phase === 'retry' ? '재도전 결과 보기' : `${ROUND_LABEL[M.r]} 결과 보기`;
+  } else {
+    const last = G.mode === 'battle' && G.turn === G.groups.length - 1;
+    nextLabel = G.mode !== 'battle' ? '다음 문장' : last ? '라운드 결과 보기' : '다음 모둠';
+  }
+  $('#btnNext').innerHTML = nextLabel + ' <kbd>Space</kbd>';
   show('result');
 
   document.querySelectorAll('#resBars .bar div').forEach(d => d.style.width = '0');
@@ -846,19 +1132,87 @@ function countUp(el, to, ms){
 }
 function retry(){
   if (cur !== 'result') return;
+  if (G.mission) { const it = curItem(); if (G.mission.phase === 'retry') it.retry = null; else it.score = null; enterTurn(); return; }
   const g = G.groups[G.turn];
-  g.scores[G.mode === 'practice' ? 0 : G.round - 1] = null;
+  g.scores[G.mode === 'battle' ? G.round - 1 : 0] = null;
   enterTurn();
 }
 function next(){
   if (cur !== 'result') return;
-  if (G.mode === 'practice') { G.sentIdx = (G.sentIdx + 1) % G.set.sentences.length; enterTurn(); return; }
+  if (G.mission) {
+    const M = G.mission;
+    if (M.phase === 'retry') { if (M.k < M.retry.length - 1) { M.k++; enterTurn(); } else { M.phase = 'done'; showSummary(); } return; }
+    if (M.i < M.rounds[M.r].items.length - 1) { M.i++; enterTurn(); } else showSummary();
+    return;
+  }
+  if (G.mode !== 'battle') { G.sentIdx = (G.sentIdx + 1) % G.set.sentences.length; enterTurn(); return; }
   if (G.turn < G.groups.length - 1) { G.turn++; enterTurn(); return; }
   showBoard();
 }
 $('#btnRetry').addEventListener('click', retry);
 $('#btnNext').addEventListener('click', next);
 $('#btnResHome').addEventListener('click', goHome);
+
+/* ================= 단원 미션 결과 (막대그래프) ================= */
+let sumNext = null;
+const effScore = it => it.retry ?? it.score;
+function weakItems(M){
+  const all = [];
+  M.rounds.forEach((rd, r) => rd.items.forEach((it, i) => { if (it.score != null) all.push({ r, i, s: effScore(it) }); }));
+  return all.sort((a, b) => a.s - b.s).slice(0, 3);
+}
+function sumRow(it, weak){
+  const d = it.retry != null ? it.retry - it.score : null;
+  return `<div class="sum-row${weak ? ' weak' : ''}"><span>${weak ? '⚠️ ' : ''}${esc(it.text)}</span>
+    <div class="bars2"><div class="bar"><div data-w="${it.score ?? 0}"></div></div>
+      ${it.retry != null ? `<div class="bar re"><div data-w="${it.retry}"></div></div>` : ''}</div>
+    <span class="v">${it.score ?? '-'}${d != null ? ` → ${it.retry}<b class="${d < 0 ? 'down' : ''}">${d >= 0 ? '+' : ''}${d}</b>` : ''}</span></div>`;
+}
+function showSummary(){
+  const M = G.mission, U = UNITS[M.unit];
+  if (M.phase === 'main' && M.r === M.rounds.length - 1) M.phase = 'done';
+  $('#sumLesson').textContent = `${U.lesson} · ${U.title}`;
+  const legend = '<span class="sum-legend"><i style="background:var(--lime)"></i>처음 점수<i style="background:var(--gold)"></i>다시 도전</span>';
+  if (M.phase === 'main') {
+    // Round 하나가 끝났을 때: 그 Round 항목별 점수
+    const rd = M.rounds[M.r];
+    $('#sumTitle').textContent = `${ROUND_LABEL[M.r]} ${rd.name} 결과`;
+    $('#sumMeta').textContent = `평균 ${Math.round(avg(rd.items.map(it => it.score || 0)))}점`;
+    $('#sumWeak').innerHTML = '';
+    $('#sumList').innerHTML = rd.items.map(it => sumRow(it, false)).join('');
+    $('#btnSumRetry').style.display = 'none';
+    const nr = M.rounds[M.r + 1];
+    $('#btnSumNext').innerHTML = `${ROUND_LABEL[M.r + 1]} ${esc(nr.name)} 시작 <kbd>Space</kbd>`;
+    sumNext = () => { M.r++; M.i = 0; enterTurn(); };
+  } else {
+    // 전체 결과: Round별 항목 비교 + 가장 낮은 3개
+    const weak = weakItems(M), key = new Set(weak.map(w => w.r + ':' + w.i));
+    $('#sumTitle').textContent = M.retry.length && M.retry.every(x => M.rounds[x.r].items[x.i].retry != null) ? '🔁 재도전 결과' : '🏁 전체 결과';
+    $('#sumMeta').innerHTML = M.rounds.map((rd, r) => `${ROUND_LABEL[r]} ${esc(rd.name)} 평균 <b style="color:var(--lime)">${Math.round(avg(rd.items.map(it => effScore(it) || 0)))}</b>`).join(' &nbsp;·&nbsp; ') + '<br>' + legend;
+    $('#sumWeak').innerHTML = weak.length ? '가장 낮은 3개: ' + weak.map(w => esc(M.rounds[w.r].items[w.i].text)).join(' · ') : '';
+    $('#sumList').innerHTML = M.rounds.map((rd, r) =>
+      `<div class="sum-head">${ROUND_LABEL[r]} ${esc(rd.name)}</div>` + rd.items.map((it, i) => sumRow(it, key.has(r + ':' + i))).join('')).join('');
+    $('#btnSumRetry').style.display = weak.length ? '' : 'none';
+    $('#btnSumNext').innerHTML = '처음부터 다시 <kbd>Space</kbd>';
+    sumNext = () => { G.mission = buildMission(M.unit); enterTurn(); };
+  }
+  show('summary');
+  document.querySelectorAll('#sumList .bar div').forEach(d => d.style.width = '0');
+  requestAnimationFrame(() => requestAnimationFrame(() =>
+    document.querySelectorAll('#sumList .bar div').forEach(d => d.style.width = d.dataset.w + '%')));
+  if (M.phase === 'done') fanfare();
+}
+function retryWeak(){
+  const M = G.mission; if (!M || cur !== 'summary') return;
+  M.retry = weakItems(M).map(({ r, i }) => ({ r, i }));
+  if (!M.retry.length) return;
+  M.retry.forEach(({ r, i }) => { M.rounds[r].items[i].retry = null; });
+  M.phase = 'retry'; M.k = 0;
+  enterTurn();
+}
+$('#btnSumRetry').addEventListener('click', retryWeak);
+$('#btnSumNext').addEventListener('click', () => { if (cur === 'summary' && sumNext) sumNext(); });
+$('#btnSumHome').addEventListener('click', goHome);
 
 /* ================= 리더보드 ================= */
 function showBoard(){
@@ -932,6 +1286,7 @@ function flashSaved(){
 function openSettings(){
   const s = store.settings;
   $('#sBpm').value = s.bpm; $('#sWin').value = s.windowMs;
+  $('#sR2Half').checked = s.r2Half;
   $('#wT').value = s.w.timing; $('#wU').value = s.w.unity; $('#wA').value = s.w.accuracy;
   $('#wnT').value = s.wNoRec.timing; $('#wnU').value = s.wNoRec.unity;
   updateWSum();
@@ -1044,6 +1399,12 @@ $('#btnReset').addEventListener('click', () => {
   edId = null; flashSaved(); openSettings();
 });
 $('#btnSettings').addEventListener('click', openSettings);
+document.querySelectorAll('.backSlide').forEach(b => b.addEventListener('click', () => {
+  window.close();
+  // 브라우저가 닫기를 막으면 안내 표시
+  setTimeout(() => alert('Ctrl + W를 누르면 슬라이드로 돌아가요.'), 300);
+}));
+$('#sR2Half').addEventListener('change', e => { store.settings.r2Half = e.target.checked; flashSaved(); });
 $('#btnSetDone').addEventListener('click', goHome);
 
 /* ================= 공통 ================= */
@@ -1064,11 +1425,12 @@ document.addEventListener('keydown', e => {
   if (e.code === 'Space') {
     e.preventDefault();
     if (e.repeat) return;
-    if (cur === 'home') newGame('battle');
+    if (cur === 'home') newGame(store.settings.mode);
     else if (cur === 'calib') { if (A.calibrated && !calibrating) enterTurn(); else calibrate(); }
     else if (cur === 'round') runTurn();
     else if (cur === 'result') next();
     else if (cur === 'board') boardNext();
+    else if (cur === 'summary' && sumNext) sumNext();
   } else if (e.code === 'KeyR') {
     if (cur === 'result') retry();
   } else if (cur === 'round' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
@@ -1077,6 +1439,8 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('keyup', e => { if (e.code === 'Space' && !(e.target.matches && e.target.matches('input,textarea,select'))) e.preventDefault(); });
 
+// ?unit=8 / ?unit=9 로 열면 반 전체(단원 미션)로 바로 준비
+if (UNITS[urlUnit]) { store.settings.mode = 'class'; save(); }
 renderHome();
 })();
 </script>
