@@ -18,9 +18,9 @@ h1{font-family:"Black Han Sans","Noto Sans KR",sans-serif;font-weight:400;font-s
 header p{margin:0;color:#E4E9F4;font-size:16px}
 main{padding:20px 16px 60px}
 .card{background:#fff;border:2px solid var(--line);border-radius:18px;padding:22px}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
-label{display:grid;gap:6px;font-size:15px;font-weight:700}
-select,input[type=text]{font:inherit;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:12px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-bottom:14px}
+label{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;font-size:15px;font-weight:700;min-width:0}
+select,input[type=text]{font:inherit;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:12px;width:100%;min-width:0}
 select:focus,input:focus{outline:none;border-color:var(--ink);background:#fff}
 .file{margin-top:14px;border:3px dashed var(--ink);border-radius:16px;padding:22px;text-align:center;cursor:pointer;background:#FFFBEF}
 .file input{position:absolute;opacity:0;width:1px;height:1px}
@@ -34,7 +34,7 @@ button:disabled{opacity:.55;cursor:wait}
 #msg{margin-top:12px;font-size:16px;min-height:24px;text-align:center}
 #msg.ok{color:var(--ok);font-weight:700}#msg.bad{color:var(--bad);font-weight:700}
 .tips{margin-top:18px;font-size:15px;color:var(--muted);display:grid;gap:4px}
-@media (max-width:480px){.row{grid-template-columns:1fr}h1{font-size:34px}}
+@media (max-width:480px){.row{grid-template-columns:minmax(0,1fr)}h1{font-size:34px}}
 </style>
 </head>
 <body>
