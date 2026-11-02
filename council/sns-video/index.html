@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SNS 예절 캠페인 영상 제출</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#16294D;--sun:#FFC23D;--bg:#F2F5FA;--line:#C9D3E6;--muted:#45506B;--ok:#1F8A70;--bad:#C7362B}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans KR","Malgun Gothic",sans-serif;font-size:18px;line-height:1.5;word-break:keep-all}
+header{background:var(--ink);color:#fff;padding:28px 20px 30px}
+.wrap{max-width:640px;margin:0 auto}
+.tag{display:inline-block;background:var(--sun);color:var(--ink);font-weight:700;font-size:14px;padding:4px 12px;border-radius:999px}
+h1{font-family:"Black Han Sans","Noto Sans KR",sans-serif;font-weight:400;font-size:40px;line-height:1.15;margin:12px 0 6px}
+header p{margin:0;color:#E4E9F4;font-size:16px}
+main{padding:20px 16px 60px}
+.card{background:#fff;border:2px solid var(--line);border-radius:18px;padding:22px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+label{display:grid;gap:6px;font-size:15px;font-weight:700}
+select,input[type=text]{font:inherit;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:12px}
+select:focus,input:focus{outline:none;border-color:var(--ink);background:#fff}
+.file{margin-top:14px;border:3px dashed var(--ink);border-radius:16px;padding:22px;text-align:center;cursor:pointer;background:#FFFBEF}
+.file input{position:absolute;opacity:0;width:1px;height:1px}
+.file b{display:block;font-size:20px}
+.file span{font-size:14px;color:var(--muted)}
+.file:focus-within{outline:3px solid var(--sun);outline-offset:3px}
+button{font:inherit;font-weight:900;font-size:20px;width:100%;margin-top:18px;padding:16px;border:0;border-radius:14px;background:var(--ink);color:#fff;cursor:pointer}
+button:disabled{opacity:.55;cursor:wait}
+.bar{height:16px;background:var(--bg);border-radius:99px;overflow:hidden;margin-top:16px;display:none}
+.bar i{display:block;height:100%;width:0;background:var(--sun);transition:width .3s}
+#msg{margin-top:12px;font-size:16px;min-height:24px;text-align:center}
+#msg.ok{color:var(--ok);font-weight:700}#msg.bad{color:var(--bad);font-weight:700}
+.tips{margin-top:18px;font-size:15px;color:var(--muted);display:grid;gap:4px}
+@media (max-width:480px){.row{grid-template-columns:1fr}h1{font-size:34px}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <span class="tag">대구복명초등학교 학생회</span>
+  <h1>SNS 예절 영상 제출</h1>
+  <p>로그인 없이 바로 올릴 수 있어요 · 마감 11월 3일(화)</p>
+</div></header>
+
+<main><div class="wrap">
+  <div class="card">
+    <div class="row">
+      <label>학년
+        <select id="grade"><option value="">선택</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select>
+      </label>
+      <label>반
+        <select id="cls"><option value="">선택</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select>
+      </label>
+    </div>
+    <label>영상 제목 (이름은 적지 않아요)
+      <input type="text" id="title" maxlength="40" placeholder="예: 고운 말 챌린지">
+    </label>
+    <label class="file" id="drop">
+      <input type="file" id="file" accept="video/*">
+      <b id="fileName">영상 파일 고르기</b>
+      <span>눌러서 영상을 골라요 · 500MB 이하</span>
+    </label>
+    <button id="send" type="button">제출하기</button>
+    <div class="bar" id="bar"><i id="fill"></i></div>
+    <div id="msg" aria-live="polite"></div>
+  </div>
+  <div class="tips">
+    <div>· 올리는 동안 화면을 끄거나 다른 앱으로 넘어가지 마세요.</div>
+    <div>· 같은 반에서 여러 편을 올려도 괜찮아요.</div>
+    <div>· 잘 안 되면 와이파이를 확인하고 다시 제출해 주세요.</div>
+  </div>
+</div></main>
+
+<script>
+// 배포한 Apps Script 웹 앱 주소(/exec)를 붙여넣으세요.
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwAncssEFe4hCEWuREAxeCd2AQcOTHXNgxmunc1pWG19N62d5iv34HnRuGmMPrUqvmW/exec';
+const CHUNK = 8 * 1024 * 1024; // 256KB의 배수
+const MAX = 500 * 1024 * 1024;
+
+const $ = id => document.getElementById(id);
+const fileIn = $('file'), btn = $('send'), msg = $('msg'), bar = $('bar'), fill = $('fill');
+let uploading = false;
+
+fileIn.addEventListener('change', () => {
+  const f = fileIn.files[0];
+  $('fileName').textContent = f ? f.name + ' (' + (f.size / 1048576).toFixed(1) + 'MB)' : '영상 파일 고르기';
+});
+window.addEventListener('beforeunload', e => { if (uploading) { e.preventDefault(); e.returnValue = ''; } });
+
+function say(t, c) { msg.textContent = t; msg.className = c || ''; }
+
+async function post(body) {
+  const r = await fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(body)
+  });
+  const j = await r.json();
+  if (!j.ok) throw new Error(j.error || '서버 오류');
+  return j;
+}
+
+function toBase64(blob) {
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onload = () => res(String(fr.result).split(',')[1]);
+    fr.onerror = () => rej(new Error('파일을 읽지 못했어요.'));
+    fr.readAsDataURL(blob);
+  });
+}
+
+async function withRetry(fn, tries) {
+  for (let n = 1; ; n++) {
+    try { return await fn(); }
+    catch (e) { if (n >= tries) throw e; await new Promise(r => setTimeout(r, 2000 * n)); }
+  }
+}
+
+btn.addEventListener('click', async () => {
+  const grade = $('grade').value, cls = $('cls').value, title = $('title').value.trim();
+  const f = fileIn.files[0];
+  if (!grade || !cls) return say('학년과 반을 골라 주세요.', 'bad');
+  if (!title) return say('영상 제목을 적어 주세요.', 'bad');
+  if (!f) return say('영상 파일을 골라 주세요.', 'bad');
+  if (f.size > MAX) return say('500MB보다 커요. 화질을 낮춰서 다시 저장해 주세요.', 'bad');
+  if (SCRIPT_URL.indexOf('https:') !== 0) return say('선생님: SCRIPT_URL이 아직 비어 있어요.', 'bad');
+
+  const ext = (f.name.match(/\.[a-z0-9]{2,4}$/i) || ['.mp4'])[0];
+  const name = grade + '학년-' + cls + '반-' + title + ext;
+  uploading = true; btn.disabled = true; bar.style.display = 'block'; fill.style.width = '0%';
+  say('올릴 준비 중…');
+  try {
+    const { session } = await withRetry(() => post({ action: 'init', name, size: f.size, mime: f.type || 'video/mp4' }), 3);
+    let done = false;
+    for (let start = 0; start < f.size; start += CHUNK) {
+      const part = f.slice(start, Math.min(start + CHUNK, f.size));
+      const data = await toBase64(part);
+      const r = await withRetry(() => post({ action: 'chunk', session, start, total: f.size, data }), 4);
+      done = r.done;
+      const pct = Math.round(Math.min(start + CHUNK, f.size) / f.size * 100);
+      fill.style.width = pct + '%';
+      say('올리는 중… ' + pct + '%');
+    }
+    if (!done) throw new Error('마지막 조각이 확인되지 않았어요.');
+    say('제출 완료! ' + name, 'ok');
+    fileIn.value = ''; $('fileName').textContent = '영상 파일 고르기';
+  } catch (e) {
+    say('제출하지 못했어요. 와이파이를 확인하고 다시 눌러 주세요. (' + e.message + ')', 'bad');
+  } finally {
+    uploading = false; btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
