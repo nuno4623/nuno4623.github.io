@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>우리 반 라디오 방송 만들기 · 기획서</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1F2B3F;--navy2:#2A3A55;--paper:#EEF1F5;--line:#D3DAE5;--ink:#1A2233;--mute:#6B778C;--red:#E5383B;--voice:#1FA391;--bgm:#6E57D6;--sfx:#E39B12;
+  font-family:'Noto Sans KR',system-ui,'Malgun Gothic',sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-size:16px;line-height:1.55}
+#sheet{max-width:880px;margin:0 auto;background:#fff;padding:0 0 28px}
+.hero{background:var(--navy);color:#fff;padding:22px 28px 20px;display:flex;gap:18px;align-items:center}
+.lamp{font-family:'Do Hyeon',sans-serif;font-size:22px;padding:4px 14px;border-radius:6px;background:var(--red);box-shadow:0 0 16px rgba(229,56,59,.6);flex:none}
+.hero h1{font-family:'Do Hyeon',sans-serif;font-weight:400;font-size:32px;margin:0;line-height:1.2}
+.hero p{margin:2px 0 0;color:#AFC0D8;font-size:14px}
+.who{display:flex;flex-wrap:wrap;gap:10px;padding:14px 28px;background:var(--navy2);color:#fff;align-items:center}
+.who label{display:flex;align-items:center;gap:6px;font-size:14px}
+.who input[type=text],.who select{font:inherit;border:0;border-radius:6px;padding:6px 8px;width:56px}
+.who input.nm{width:110px}.who input.tm{width:150px}
+section{padding:22px 28px 6px;border-bottom:1px solid var(--line)}
+h2{font-family:'Do Hyeon',sans-serif;font-weight:400;font-size:24px;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+h2 .n{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--navy);color:#fff;font-size:18px}
+.guide{color:var(--mute);font-size:14px;margin:0 0 12px}
+input[type=text],textarea,select{font:inherit;border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;background:#fff;color:var(--ink)}
+textarea{resize:vertical;min-height:44px}
+input:focus,textarea:focus,select:focus{outline:none;border-color:#7FB2F0;box-shadow:0 0 0 3px #D6E8FF}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chips button{font:inherit;font-size:14px;border:1.5px solid var(--line);background:#fff;border-radius:20px;padding:5px 12px;cursor:pointer}
+.chips button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fl{font-size:13px;font-weight:700;color:var(--mute);margin:0 0 4px;display:block}
+/* 진행 순서 */
+.flow{display:flex;flex-direction:column;gap:8px}
+.frow{display:grid;grid-template-columns:34px 1.3fr 92px 1.4fr 32px;gap:8px;align-items:center}
+.frow .no{font-family:'Do Hyeon',sans-serif;font-size:20px;color:var(--mute);text-align:center}
+.frow .sec{display:flex;align-items:center;gap:4px;font-size:14px}
+.frow .sec input{text-align:right;padding:8px 6px}
+.del{border:0;background:transparent;color:var(--mute);font-size:20px;cursor:pointer;padding:0}
+.bar{height:14px;border-radius:7px;background:var(--paper);overflow:hidden;margin:12px 0 4px;position:relative}
+.bar div{height:100%;background:var(--voice);transition:width .2s}
+.bar.over div{background:var(--red)}
+.tsum{font-size:14px;color:var(--mute);margin-bottom:10px}
+.tsum b{color:var(--ink)}
+.addb{font:inherit;font-size:14px;border:1.5px dashed var(--line);background:#fff;border-radius:8px;padding:7px 12px;cursor:pointer;margin:8px 0 12px}
+/* 역할 */
+.roles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.role{border:1.5px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;position:relative}
+.role.mine{border-color:var(--red);box-shadow:0 0 0 3px #FBD5D6}
+.role.mine::after{content:"내 역할";position:absolute;top:-10px;right:10px;background:var(--red);color:#fff;font-size:12px;padding:1px 8px;border-radius:10px}
+.role h3{margin:0;font-family:'Do Hyeon',sans-serif;font-weight:400;font-size:21px}
+.role p{margin:0;font-size:13px;color:var(--mute);line-height:1.5;flex:1}
+.role input{padding:6px 8px}
+/* 대본 */
+.srow{display:grid;grid-template-columns:110px 110px 1fr 150px 30px;gap:6px;align-items:start;padding:8px 0;border-bottom:1px dashed var(--line)}
+.shead{font-size:13px;font-weight:700;color:var(--mute);border-bottom:2px solid var(--ink);padding-bottom:4px}
+.srow textarea{min-height:44px}
+.srow .snd{border-color:#E9D9B5;background:#FFFBF2}
+.copy{font:inherit;font-weight:700;border:0;border-radius:8px;padding:9px 14px;background:var(--navy);color:#fff;cursor:pointer}
+.row-acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0 14px}
+.row-acts .hint{font-size:13px;color:var(--mute)}
+/* 듣고 이야기 */
+.q{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line)}
+.q .qt{font-weight:500}
+.q .opts{display:flex;gap:4px}
+.q .opts button{font:inherit;font-size:13px;border:1.5px solid var(--line);background:#fff;border-radius:16px;padding:4px 10px;cursor:pointer}
+.q .opts button.on{background:var(--voice);border-color:var(--voice);color:#fff}
+.q input{grid-column:1/-1}
+.foot{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:22px 28px 0}
+.foot button,.foot a{font:inherit;font-weight:700;border:0;border-radius:10px;padding:13px 20px;cursor:pointer;text-decoration:none;font-size:16px}
+.b-studio{background:var(--red);color:#fff}
+.b-img{background:var(--navy);color:#fff}
+.b-pad{background:var(--bgm);color:#fff}
+.saved{text-align:center;font-size:13px;color:var(--mute);padding-top:10px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:22px;opacity:0;transition:opacity .25s;pointer-events:none;font-size:14px;z-index:9}
+#toast.show{opacity:1}
+@media (max-width:720px){
+  .roles{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}
+  .frow{grid-template-columns:26px 1fr 80px 28px}.frow .fs{grid-column:2/4}
+  .srow{grid-template-columns:1fr 1fr 28px}.srow .ln{grid-column:1/-1}.srow .sd{grid-column:1/3}.shead{display:none}
+}
+</style>
+</head>
+<body>
+<div id="sheet">
+  <div class="hero">
+    <div class="lamp">ON AIR</div>
+    <div><h1>우리 반 라디오 방송 만들기</h1><p>음악 에듀테크 · 방송 기획서</p></div>
+  </div>
+  <div class="who">
+    <label><select id="grade" aria-label="학년"><option value="5">5</option><option value="6" selected>6</option></select>학년</label>
+    <label><input id="ban" type="text" inputmode="numeric" maxlength="2" aria-label="반">반</label>
+    <label><input id="num" type="text" inputmode="numeric" maxlength="2" aria-label="번호">번</label>
+    <label>이름 <input id="name" class="nm" type="text" maxlength="8"></label>
+    <label>모둠 <input id="team" class="tm" type="text" maxlength="12" placeholder="예: 3모둠"></label>
+  </div>
+
+  <section>
+    <h2><span class="n">1</span>방송 주제 정하기</h2>
+    <p class="guide">친구들과 이야기 나누고 주제를 골라요. 직접 써도 좋아요.</p>
+    <div class="chips" id="topicChips"></div>
+    <div class="two">
+      <div><span class="fl">방송 주제</span><input id="topic" type="text" maxlength="30" placeholder="예: 안전 지킴이"></div>
+      <div><span class="fl">방송 이름</span><input id="show" type="text" maxlength="24" placeholder="예: 안전 OK 라디오"></div>
+    </div>
+    <div style="margin-top:10px"><span class="fl">이 방송을 듣는 친구들에게 전하고 싶은 것</span><input id="aim" type="text" maxlength="60" placeholder="예: 쉬는 시간에 복도에서 뛰지 않기"></div>
+    <p></p>
+  </section>
+
+  <section>
+    <h2><span class="n">2</span>진행 순서 정하기</h2>
+    <p class="guide">코너 순서와 시간을 정해요. 전체 방송은 <b>5분 안</b>으로 만들어요. 넣고 싶은 배경음악·효과음도 적어요.</p>
+    <div class="flow" id="flow"></div>
+    <button class="addb" id="addFlow" data-html2canvas-ignore>＋ 코너 추가</button>
+    <div class="bar" id="bar"><div></div></div>
+    <div class="tsum" id="tsum"></div>
+  </section>
+
+  <section>
+    <h2><span class="n">3</span>역할 정하기</h2>
+    <p class="guide">맡은 사람 이름을 쓰고, <b>내 역할</b> 카드를 눌러 표시해요.</p>
+    <div class="roles" id="roles"></div>
+  </section>
+
+  <section>
+    <h2><span class="n">4</span>대본 쓰기</h2>
+    <p class="guide">말할 사람과 대사를 쓰고, 소리가 들어갈 자리에 배경음악·효과음을 적어요.</p>
+    <div class="srow shead"><span>코너</span><span>말하는 사람</span><span>대사</span><span>소리 (음악·효과음)</span><span></span></div>
+    <div id="script"></div>
+    <div class="row-acts" data-html2canvas-ignore>
+      <button class="addb" id="addLine" style="margin:0">＋ 대사 추가</button>
+      <button class="copy" id="copyScript">대본 복사</button>
+      <span class="hint">복사한 대본은 스튜디오의 <b>대본 보기</b>에 붙여 넣어요.</span>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">5</span>친구들 방송 듣고 이야기 나누기</h2>
+    <p class="guide">다른 모둠 방송을 듣고 알맞은 것을 골라요. 그렇게 생각한 까닭도 짧게 써요.</p>
+    <div class="two" style="max-width:520px;margin-bottom:6px;grid-template-columns:150px 1fr">
+      <div><span class="fl">들은 모둠</span><select id="lHeard"><option value="">고르기</option><option>1모둠</option><option>2모둠</option><option>3모둠</option><option>4모둠</option><option>5모둠</option><option>6모둠</option><option>7모둠</option><option>8모둠</option></select></div>
+      <div><span class="fl">방송 이름</span><input id="lTeam" type="text" maxlength="30"></div>
+    </div>
+    <div id="qs"></div>
+    <div style="margin:12px 0"><span class="fl">이 방송에서 가장 좋았던 점</span><textarea id="lGood" maxlength="200"></textarea></div>
+    <div class="row-acts" data-html2canvas-ignore>
+      <button class="copy" id="sendEval" style="background:var(--voice)">평가 제출</button>
+      <button class="addb" id="nextEval" style="margin:0" hidden>다른 모둠 평가하기</button>
+      <span class="hint" id="sentList"></span>
+    </div>
+  </section>
+
+  <section style="border-bottom:0">
+    <h2><span class="n">6</span>돌아보기</h2>
+    <p class="guide">우리 모둠 방송에서 내가 맡은 일과, 다음에 더 잘하고 싶은 점을 써요.</p>
+    <textarea id="me" maxlength="300" style="min-height:80px"></textarea>
+  </section>
+
+  <div class="foot" data-html2canvas-ignore>
+    <a class="b-studio" id="goStudio" target="_blank" rel="noopener">라디오 스튜디오 열기</a>
+    <button class="b-img" id="saveImg">이미지로 저장</button>
+    <button class="b-pad" id="goPad">패들렛에 제출</button>
+  </div>
+  <div class="saved" data-html2canvas-ignore id="saved">쓰는 내용은 이 기기에 자동으로 저장돼요.</div>
+</div>
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+/* 스튜디오 주소: 배포한 위치에 맞게 바꿔 주세요 */
+const STUDIO_URL = 'https://nuno4623.github.io/lessons/6음악/radio-studio/';
+/* 평가 수집 주소: Apps Script 웹앱 배포 URL을 따옴표 안에 넣어 주세요 */
+const EVAL_URL = '';
+const PADLET = 'https://padlet.com/pear210/6-s025cffjg4zj2iwxfdq9';
+const KEY = 'radio-worksheet-v1';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+const toast = m => { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2400); };
+
+const TOPICS = ['우리 반 소식', '안전 지킴이', '환경 캠페인', '책 소개', '고민 상담', '상상 인터뷰', '공익 광고'];
+const SOUNDS = ['상쾌한 오프닝', '잔잔한 이야기', '두근두근 퀴즈', '신나는 시간', '뉴스 브리핑', '감동 엔딩', '장난꾸러기', '미스터리',
+  '딩동댕', '딩동! 정답', '땡!', '띠링', '짜잔', '박수', '두구두구', '뿅', '휘리릭', '따르릉', '똑딱똑딱', '정각 알림', '사이렌', '빵빵', '빗소리', '새소리', '똑똑', '두근두근'];
+const ROLES = [
+  { k: 'pd', t: 'PD', d: '방송을 이끄는 리더. 스튜디오를 열고 시간을 관리해요. 마지막 편집과 소리 크기를 맞춰요.' },
+  { k: 'writer', t: '작가', d: '방송 이야기꾼. 대본과 코너 아이디어를 쓰고 대사를 나눠요.' },
+  { k: 'dj', t: 'DJ', d: '방송 분위기 담당. 배경음악을 골라 알맞은 자리에 넣어요. 작가와 어떤 소리가 필요할지 의논해요.' },
+  { k: 'sound', t: '음향 감독', d: '소리 마술사. 친구들 목소리를 녹음하고 상황에 맞는 효과음을 넣어요.' }
+];
+const QS = ['방송 주제가 잘 드러났나요?', '목소리의 톤이나 빠르기가 알맞았나요?', '배경음악이 내용과 잘 어울렸나요?', '목소리와 음악 소리의 크기가 듣기 좋았나요?', '시작-중간-마무리가 자연스럽게 이어졌나요?'];
+const OPTS = ['아주 잘했어요', '잘했어요', '조금 아쉬워요'];
+
+function fresh() {
+  return { grade: '6', ban: '', num: '', name: '', team: '', topic: '', show: '', aim: '',
+    flow: [{ c: '오프닝', sec: 30, snd: '상쾌한 오프닝' }, { c: '', sec: 60, snd: '' }, { c: '', sec: 60, snd: '' }, { c: '엔딩', sec: 30, snd: '감동 엔딩' }],
+    roles: { pd: '', writer: '', dj: '', sound: '' }, mine: '',
+    script: [{ corner: '오프닝', who: '', line: '', snd: '상쾌한 오프닝' }, { corner: '', who: '', line: '', snd: '' }, { corner: '', who: '', line: '', snd: '' }],
+    lHeard: '', lTeam: '', sent: [], q: [null, null, null, null, null], qn: ['', '', '', '', ''], lGood: '', me: '' };
+}
+let W = fresh();
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) W = Object.assign(fresh(), s); } catch (e) {}
+let st = 0;
+function save() { clearTimeout(st); st = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(W)); $('#saved').textContent = '저장됨 ' + new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }); } catch (e) {} }, 400); }
+
+/* 공통 입력 */
+for (const k of ['grade', 'ban', 'num', 'name', 'team', 'topic', 'show', 'aim', 'lHeard', 'lTeam', 'lGood', 'me']) {
+  const e = $('#' + k); e.value = W[k] ?? '';
+  e.addEventListener('input', () => { W[k] = e.value; save(); if (k === 'topic') renderChips(); });
+}
+
+/* 1 주제 */
+function renderChips() {
+  $('#topicChips').innerHTML = TOPICS.map(t => `<button class="${W.topic === t ? 'on' : ''}">${t}</button>`).join('');
+  $('#topicChips').querySelectorAll('button').forEach(b => b.onclick = () => { W.topic = b.textContent; $('#topic').value = W.topic; renderChips(); save(); });
+}
+
+/* 2 진행 순서 */
+const dl = (id, list) => `<datalist id="${id}">${list.map(x => `<option value="${esc(x)}">`).join('')}</datalist>`;
+function renderFlow() {
+  const f = $('#flow');
+  f.innerHTML = dl('sounds', SOUNDS) + W.flow.map((r, i) => `<div class="frow" data-i="${i}">
+    <span class="no">${i + 1}</span>
+    <input type="text" data-f="c" maxlength="16" placeholder="코너 이름" value="${esc(r.c)}">
+    <span class="sec"><input type="text" inputmode="numeric" data-f="sec" maxlength="3" value="${esc(r.sec)}">초</span>
+    <input class="fs" type="text" data-f="snd" list="sounds" maxlength="30" placeholder="넣을 소리" value="${esc(r.snd)}">
+    <button class="del" data-html2canvas-ignore title="지우기">×</button></div>`).join('');
+  f.querySelectorAll('.frow').forEach(row => {
+    const i = +row.dataset.i;
+    row.querySelectorAll('input').forEach(inp => inp.addEventListener('input', () => {
+      W.flow[i][inp.dataset.f] = inp.dataset.f === 'sec' ? inp.value.replace(/\D/g, '') : inp.value;
+      if (inp.dataset.f === 'sec') inp.value = W.flow[i].sec;
+      sumFlow(); save(); if (inp.dataset.f === 'c') cornerList();
+    }));
+    row.querySelector('.del').onclick = () => { if (W.flow.length <= 1) return; W.flow.splice(i, 1); renderFlow(); save(); };
+  });
+  sumFlow(); cornerList();
+}
+function sumFlow() {
+  const t = W.flow.reduce((s, r) => s + (+r.sec || 0), 0), over = t > 300;
+  $('#bar').classList.toggle('over', over); $('#bar div').style.width = Math.min(100, t / 3) + '%';
+  $('#tsum').innerHTML = `전체 <b>${Math.floor(t / 60)}분 ${t % 60}초</b> / 5분` + (over ? ' · 5분이 넘었어요. 코너 시간을 줄여요.' : '');
+}
+$('#addFlow').onclick = () => { W.flow.push({ c: '', sec: 30, snd: '' }); renderFlow(); save(); };
+
+/* 3 역할 */
+function renderRoles() {
+  $('#roles').innerHTML = ROLES.map(r => `<div class="role${W.mine === r.k ? ' mine' : ''}" data-k="${r.k}"><h3>${r.t}</h3><p>${r.d}</p>
+    <input type="text" maxlength="20" placeholder="맡은 사람" value="${esc(W.roles[r.k])}"></div>`).join('');
+  $('#roles').querySelectorAll('.role').forEach(c => {
+    const k = c.dataset.k, inp = c.querySelector('input');
+    inp.addEventListener('input', () => { W.roles[k] = inp.value; save(); });
+    inp.addEventListener('click', e => e.stopPropagation());
+    c.onclick = () => { W.mine = W.mine === k ? '' : k; renderRoles(); save(); };
+  });
+}
+
+/* 4 대본 */
+function cornerList() { const d = document.getElementById('corners'); const html = W.flow.map(r => r.c).filter(Boolean).map(x => `<option value="${esc(x)}">`).join(''); if (d) d.innerHTML = html; }
+function grow(t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 2 + 'px'; }
+function renderScript() {
+  const s = $('#script');
+  s.innerHTML = '<datalist id="corners"></datalist>' + W.script.map((r, i) => `<div class="srow" data-i="${i}">
+    <input type="text" data-f="corner" list="corners" maxlength="16" placeholder="코너" value="${esc(r.corner)}">
+    <input type="text" data-f="who" maxlength="12" placeholder="누가" value="${esc(r.who)}">
+    <textarea class="ln" data-f="line" maxlength="400" placeholder="대사를 써요">${esc(r.line)}</textarea>
+    <input class="sd snd" type="text" data-f="snd" list="sounds" maxlength="30" placeholder="🎵 / 🔔" value="${esc(r.snd)}">
+    <button class="del" data-html2canvas-ignore title="지우기">×</button></div>`).join('');
+  cornerList();
+  s.querySelectorAll('.srow').forEach(row => {
+    const i = +row.dataset.i;
+    row.querySelectorAll('input,textarea').forEach(inp => inp.addEventListener('input', () => { W.script[i][inp.dataset.f] = inp.value; if (inp.tagName === 'TEXTAREA') grow(inp); save(); }));
+    row.querySelector('.del').onclick = () => { if (W.script.length <= 1) return; W.script.splice(i, 1); renderScript(); save(); };
+  });
+  s.querySelectorAll('textarea').forEach(grow);
+}
+$('#addLine').onclick = () => { const last = W.script[W.script.length - 1]; W.script.push({ corner: last ? last.corner : '', who: '', line: '', snd: '' }); renderScript(); save(); };
+
+function scriptText() {
+  const out = [`■ ${W.show || '우리 반 라디오'}${W.topic ? ' (' + W.topic + ')' : ''}`, ''];
+  let cur = null;
+  for (const r of W.script) {
+    if (!r.line.trim() && !r.snd.trim()) continue;
+    if (r.corner && r.corner !== cur) { cur = r.corner; out.push('', `[${cur}]`); }
+    if (r.snd.trim()) out.push(`  ♪ ${r.snd.trim()}`);
+    if (r.line.trim()) out.push(`${r.who.trim() || '?'}: ${r.line.trim()}`);
+  }
+  return out.join('\n').replace(/\n{3,}/g, '\n\n');
+}
+$('#copyScript').onclick = async () => {
+  const t = scriptText();
+  try { await navigator.clipboard.writeText(t); }
+  catch (e) { const a = document.createElement('textarea'); a.value = t; document.body.append(a); a.select(); document.execCommand('copy'); a.remove(); }
+  toast('대본을 복사했어요. 스튜디오 → 대본 보기에 붙여 넣어요.');
+};
+
+/* 5 듣고 이야기 */
+function renderQs() {
+  $('#qs').innerHTML = QS.map((q, i) => `<div class="q" data-i="${i}"><span class="qt">${i + 1}. ${q}</span>
+    <span class="opts">${OPTS.map((o, j) => `<button class="${W.q[i] === j ? 'on' : ''}" data-j="${j}">${o}</button>`).join('')}</span>
+    <input type="text" maxlength="80" placeholder="왜 그렇게 생각했나요?" value="${esc(W.qn[i])}"></div>`).join('');
+  $('#qs').querySelectorAll('.q').forEach(row => {
+    const i = +row.dataset.i;
+    row.querySelectorAll('button').forEach(b => b.onclick = () => { W.q[i] = +b.dataset.j; renderQs(); save(); });
+    row.querySelector('input').addEventListener('input', e => { W.qn[i] = e.target.value; save(); });
+  });
+}
+
+/* 저장·제출 */
+$('#goStudio').href = STUDIO_URL;
+$('#saveImg').onclick = async () => {
+  if (!W.name.trim()) { toast('이름을 먼저 써 주세요'); $('#name').focus(); return; }
+  if (!window.html2canvas) { toast('이미지 저장 도구를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.'); return; }
+  const tas = [...document.querySelectorAll('#sheet textarea')], keep = tas.map(t => t.style.height);
+  tas.forEach(t => t.style.height = t.scrollHeight + 4 + 'px');
+  try {
+    const cv = await html2canvas($('#sheet'), { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+    const a = document.createElement('a'); a.download = `라디오방송기획서_${W.grade}-${W.ban}-${W.num}_${W.name}.png`; a.href = cv.toDataURL('image/png'); a.click();
+    toast('이미지를 저장했어요. 패들렛에 올려 주세요.');
+  } catch (e) { toast('이미지를 만들지 못했어요. 한 번 더 눌러 주세요.'); }
+  finally { tas.forEach((t, i) => t.style.height = keep[i]); }
+};
+$('#goPad').onclick = () => window.open(PADLET, '_blank');
+
+/* 평가 제출 → 구글 시트 */
+function renderSent() { $('#sentList').textContent = W.sent.length ? '제출한 평가: ' + W.sent.join(', ') : ''; }
+async function postEval(d) {
+  try {
+    const r = await fetch(EVAL_URL, { method: 'POST', body: JSON.stringify(d) });
+    const j = await r.json(); if (!j.ok) throw new Error(j.error || 'fail'); return;
+  } catch (e) {
+    if (e instanceof TypeError) { await fetch(EVAL_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(d) }); return; }
+    throw e;
+  }
+}
+$('#sendEval').onclick = async () => {
+  if (!EVAL_URL) return toast('선생님이 아직 제출 주소를 연결하지 않았어요');
+  if (!W.ban.trim() || !W.num.trim() || !W.name.trim()) { toast('맨 위에 반·번호·이름을 먼저 써 주세요'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+  if (!W.lHeard) { toast('들은 모둠을 골라 주세요'); $('#lHeard').focus(); return; }
+  const miss = W.q.findIndex(v => v === null); if (miss >= 0) { toast(`${miss + 1}번 질문에 답을 골라 주세요`); return; }
+  const b = $('#sendEval'); b.disabled = true; b.textContent = '보내는 중…';
+  try {
+    await postEval({ grade: W.grade, ban: W.ban.trim(), num: W.num.trim(), name: W.name.trim(), team: W.team.trim(), heard: W.lHeard, show: W.lTeam.trim(), q: W.q, qn: W.qn, good: W.lGood.trim() });
+    if (!W.sent.includes(W.lHeard)) W.sent.push(W.lHeard); save(); renderSent();
+    toast(`${W.lHeard} 평가를 제출했어요`); $('#nextEval').hidden = false;
+  } catch (e) { toast('제출하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.'); }
+  finally { b.disabled = false; b.textContent = '평가 제출'; }
+};
+$('#nextEval').onclick = () => {
+  Object.assign(W, { lHeard: '', lTeam: '', q: [null, null, null, null, null], qn: ['', '', '', '', ''], lGood: '' });
+  for (const k of ['lHeard', 'lTeam', 'lGood']) $('#' + k).value = ''; renderQs(); save(); $('#nextEval').hidden = true;
+  $('#lHeard').scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+
+renderChips(); renderFlow(); renderRoles(); renderScript(); renderQs(); renderSent();
+</script>
+</body>
+</html>
