@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>목격자 인터뷰 | What Time Is It?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1c2a39; --paper:#eef3f9; --card:#ffffff; --blue:#2b5c8a; --blue-soft:#dce8f4;
+  --yellow:#ffd23f; --red:#e0483e; --mint:#2fa77a; --line:#c6d3e2;
+  --a:#2b6fd6; --b:#f07b24;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:'Jua','Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:var(--paper);color:var(--ink);font-size:20px;line-height:1.45}
+button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;border:none;background:none}
+button:disabled{cursor:not-allowed;opacity:.4}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:4px solid var(--yellow);outline-offset:2px}
+#app{max-width:880px;margin:0 auto;padding:14px 16px 48px}
+h1,h2,h3,p{margin:0}
+
+/* ---------- 시작 화면 ---------- */
+.hero{display:grid;grid-template-columns:200px 1fr;gap:24px;align-items:center;margin:18px 0 22px}
+.hero .clock-wrap{position:relative;background:var(--card);border-radius:20px;padding:14px;box-shadow:0 4px 0 var(--line)}
+.hero .clock-wrap::before{content:"";position:absolute;top:-10px;left:50%;width:84px;height:22px;margin-left:-42px;background:var(--yellow);opacity:.9;transform:rotate(-3deg)}
+.hero h1{font-size:52px;line-height:1.05;font-weight:400;color:var(--blue)}
+.hero .en{font-size:26px;margin-top:6px}
+.hero p.case{margin-top:12px;font-size:19px;color:#45566a}
+.steps{list-style:none;padding:0;margin:0 0 22px;display:grid;gap:8px}
+.steps li{background:var(--card);border-radius:14px;padding:10px 14px;display:flex;gap:12px;align-items:center;font-size:18px}
+.steps b{flex:0 0 32px;height:32px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:400}
+.form{background:var(--card);border-radius:20px;padding:18px;display:grid;gap:16px;box-shadow:0 4px 0 var(--line)}
+.field-row{display:grid;grid-template-columns:1fr 1fr 2fr;gap:10px}
+label.f{display:grid;gap:4px;font-size:17px;color:#45566a}
+select,input[type=text]{font-family:inherit;font-size:22px;padding:10px 12px;border:3px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);width:100%}
+.pick-title{font-size:18px;color:#45566a;margin-bottom:6px}
+.pick{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.pick.three{grid-template-columns:repeat(3,1fr)}
+.pick button{border:3px solid var(--line);border-radius:14px;padding:12px 8px;background:#fff;font-size:24px}
+.pick button.on{border-color:var(--ink);box-shadow:inset 0 0 0 3px var(--ink)}
+.pick .roleA.on{background:#e3edfc}.pick .roleB.on{background:#fdebdc}
+.pick button small{display:block;font-size:15px;color:#5b6b7e}
+.set1{color:#c23a31}.set2{color:#2b6fd6}.set3{color:#24885f}
+.warn{font-size:16px;color:var(--red);min-height:22px}
+.resume{background:var(--yellow);border-radius:14px;padding:12px;width:100%;font-size:21px;margin-bottom:14px}
+
+/* ---------- 게임 공통 ---------- */
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.who{font-size:20px}
+.tag{display:inline-block;min-width:34px;text-align:center;border-radius:8px;color:#fff;padding:0 8px;margin-left:4px}
+.tag-A{background:var(--a)}.tag-B{background:var(--b)}
+.rnd{font-size:20px}
+.st{display:inline-block;font-size:16px;padding:2px 10px;border-radius:999px;margin-left:6px;color:var(--ink)}
+.st1{background:#dff3e8}.st2{background:#dce8f4}.st3{background:#ffe9a8}.st4{background:#ffd6d2}
+.prog{display:flex;gap:4px;width:100%}
+.prog span{flex:1;height:9px;border-radius:5px;background:#d6dfea}
+.prog span.done{background:var(--blue)}
+.prog span.now{background:var(--yellow)}
+.banner{border-radius:16px;padding:12px 16px;font-size:22px;margin:4px 0 14px;color:#fff}
+.banner.speak{background:var(--blue)}
+.banner.listen{background:#3a4658}
+.banner small{display:block;font-size:16px;opacity:.85}
+.main{display:block;width:100%;margin-top:16px;background:var(--blue);color:#fff;border-radius:16px;padding:16px;font-size:24px;box-shadow:0 5px 0 #1c3d5e}
+.main:active:not(:disabled){transform:translateY(3px);box-shadow:0 2px 0 #1c3d5e}
+.ghost{border:3px solid var(--line);border-radius:16px;padding:14px;background:#fff;font-size:20px}
+.row{display:grid;grid-template-columns:1fr 2fr;gap:10px;align-items:end}
+.row .main{margin-top:0}
+
+/* ---------- 목격자(말하기) ---------- */
+.cover{width:100%;min-height:300px;border-radius:22px;background:repeating-linear-gradient(45deg,#2b5c8a 0 18px,#2f6496 18px 36px);color:#fff;font-size:34px;display:grid;place-content:center;gap:8px}
+.cover small{font-size:18px;opacity:.9}
+.evidence{position:relative;background:var(--card);border-radius:22px;padding:22px 18px 18px;box-shadow:0 4px 0 var(--line);display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center}
+.evidence::before{content:"";position:absolute;top:-11px;left:38px;width:96px;height:24px;background:var(--yellow);opacity:.92;transform:rotate(-4deg)}
+.evidence .clock{width:230px;height:230px}
+.ev-side{display:grid;gap:12px;justify-items:center;text-align:center}
+.digital{font-size:56px;letter-spacing:2px;background:var(--ink);color:#9ff0c4;border-radius:12px;padding:2px 18px}
+.actbig{font-size:84px;line-height:1}
+.actword{font-size:30px}
+.scene-card{background:var(--card);border-radius:22px;padding:12px;box-shadow:0 4px 0 var(--line)}
+.scene{width:100%;max-width:600px;height:auto;display:block;margin:0 auto;border-radius:14px}
+.boss{font-size:18px;color:#45566a;margin-top:8px;text-align:center}
+.frame{margin-top:14px;background:#fff;border:3px dashed var(--line);border-radius:16px;padding:12px 16px;font-size:26px;text-align:center}
+.blank{display:inline-block;width:110px;border-bottom:3px solid var(--ink);margin:0 4px}
+
+/* ---------- 탐정(듣기) ---------- */
+.ask{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:6px}
+.bubble{position:relative;background:#fff;border:3px solid var(--ink);border-radius:20px;padding:10px 20px;font-size:30px}
+.bubble small{display:block;font-size:15px;color:#5b6b7e}
+.again{border:3px solid var(--blue);color:var(--blue);background:#fff;border-radius:999px;padding:10px 18px;font-size:20px}
+.again.used{border-color:#9aa8b8;color:#6a7a8c;opacity:1}
+h3.q{font-size:20px;margin:16px 0 8px;color:#45566a;font-weight:400}
+.times{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.times.n3{grid-template-columns:repeat(3,1fr)}
+.chip{background:var(--ink);color:#9ff0c4;border-radius:14px;padding:12px 4px;font-size:34px;letter-spacing:1px;border:4px solid transparent}
+.chip.on{border-color:var(--yellow);box-shadow:0 0 0 3px var(--ink)}
+.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.act{background:#fff;border:3px solid var(--line);border-radius:16px;padding:10px 4px;font-size:22px;display:grid;justify-items:center;gap:2px}
+.act .em{font-size:48px;line-height:1.1}
+.act.on{border-color:var(--ink);background:#fff6cf;box-shadow:inset 0 0 0 3px var(--ink)}
+
+/* ---------- 결과·체크 ---------- */
+.result{border-radius:22px;padding:18px;text-align:center;color:#fff}
+.result.ok{background:var(--mint)}.result.no{background:var(--red)}
+.result .mark{font-size:36px}
+.result .pts{font-size:22px;opacity:.95}
+.answer{background:#fff;color:var(--ink);border-radius:14px;padding:12px;margin:12px auto 6px;font-size:28px;max-width:560px}
+.result .mine{font-size:18px}
+.result .hint{font-size:17px;opacity:.95}
+.panel{background:var(--card);border-radius:22px;padding:16px;margin-top:14px;box-shadow:0 4px 0 var(--line)}
+.panel .lead{font-size:20px;margin-bottom:10px}
+.panel .answer{border:3px solid var(--line);margin:0 0 12px;text-align:center}
+.check{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:2px solid #e3e9f1;font-size:21px}
+.check .ox-wrap{display:flex;gap:8px;flex:0 0 auto}
+.ox{width:70px;height:60px;border-radius:14px;border:3px solid var(--line);background:#fff;font-size:28px}
+.ox.o.on{background:#d8f3e6;border-color:var(--mint)}
+.ox.x.on{background:#fde0dd;border-color:var(--red)}
+
+/* ---------- 끝 화면 ---------- */
+.end{text-align:center}
+.end h2{font-size:40px;color:var(--blue);font-weight:400;margin:18px 0 4px}
+.scores{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}
+.score{background:var(--card);border-radius:18px;padding:14px;box-shadow:0 4px 0 var(--line)}
+.score .num{font-size:52px;line-height:1.1}
+.score .lab{font-size:18px;color:#45566a}
+.score.total{background:var(--yellow)}
+.send{font-size:19px;padding:12px;border-radius:14px;background:#fff}
+.send.done{background:#d8f3e6}.send.fail{background:#fde0dd}
+.restart{margin-top:22px;font-size:16px;color:#6a7a8c;text-decoration:underline}
+
+@media (max-width:640px){
+  .hero{grid-template-columns:1fr;justify-items:center;text-align:center}
+  .hero .clock-wrap{width:180px}
+  .hero h1{font-size:42px}
+  .field-row{grid-template-columns:1fr 1fr}
+  .field-row label:last-child{grid-column:1/-1}
+  .evidence{grid-template-columns:1fr;justify-items:center}
+  .times{grid-template-columns:repeat(2,1fr)}
+  .times.n3{grid-template-columns:repeat(3,1fr)}
+  .chip{font-size:28px}
+  .scores{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+
+<script>
+/* ===== 구글 시트 기록 주소: Apps Script 웹앱 URL을 따옴표 안에 붙여넣기 ===== */
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwPsQWEbBTAgtdXg53-txj49XucqE7OBy8d8pqn8B6e_P_Le9gtBY6beWy_kQDdG7gy/exec';
+
+const STORE = 'l10_witness_v1';
+const TOTAL = 12;
+const LISTEN_MAX = 20, SPEAK_MAX = 18;
+
+const STAGES = {
+  1:{name:'1단계', desc:'정각·30분', w:2},
+  2:{name:'2단계', desc:'10분 단위', w:3},
+  3:{name:'3단계', desc:'1분 단위', w:4},
+  4:{name:'보스', desc:'장면 보고 말하기', w:4}
+};
+const stageOf = i => i<2?1 : i<6?2 : i<10?3 : 4;
+const speakerOf = i => i%2===0 ? 'A' : 'B';
+
+const ACT = {
+  breakfast:{e:'🍳', bg:'#fff1c9'},
+  lunch:    {e:'🍱', bg:'#e3f3dc'},
+  dinner:   {e:'🍝', bg:'#fde2d6'},
+  school:   {e:'🏫', bg:'#dce8f4'},
+  music:    {e:'🎵', bg:'#ece1f7'},
+  movie:    {e:'🎬', bg:'#39406a'},
+  bed:      {e:'🛏️', bg:'#c3cdea'}
+};
+
+/* [정답 시각, 정답 일과, 시각 함정 보기, 일과 함정 보기] — 1~2: 1단계 / 3~6: 2단계 / 7~10: 3단계 / 11~12: 보스 */
+const SETS = {
+  1:[
+    ['7:00','breakfast',['7:30','11:00'],['dinner','bed']],
+    ['10:30','music',['10:00','11:30'],['movie','lunch']],
+    ['8:40','school',['8:14','9:40','8:50'],['breakfast','bed']],
+    ['12:20','lunch',['12:30','11:20','2:20'],['dinner','music']],
+    ['6:50','dinner',['6:15','5:50','6:40'],['breakfast','movie']],
+    ['9:10','bed',['9:20','10:10','9:50'],['school','music']],
+    ['4:58','movie',['4:18','5:58','4:48'],['music','school']],
+    ['7:13','breakfast',['7:30','11:13','7:31'],['lunch','bed']],
+    ['12:46','lunch',['12:56','2:46','12:16'],['dinner','movie']],
+    ['9:37','bed',['9:47','9:27','5:37'],['school','music']],
+    ['11:20','music',['11:30','12:20','11:12'],['movie','lunch']],
+    ['6:40','dinner',['6:14','7:40','6:50'],['breakfast','bed']]
+  ],
+  2:[
+    ['8:00','school',['8:30','6:00'],['bed','lunch']],
+    ['12:30','lunch',['12:00','2:30'],['breakfast','movie']],
+    ['7:20','breakfast',['7:30','11:20','7:12'],['dinner','music']],
+    ['10:50','music',['10:15','11:50','10:40'],['school','bed']],
+    ['6:40','dinner',['6:14','7:40','6:50'],['lunch','movie']],
+    ['8:10','movie',['8:20','9:10','6:10'],['music','school']],
+    ['9:52','bed',['9:42','5:52','9:25'],['breakfast','dinner']],
+    ['12:15','lunch',['12:50','2:15','11:15'],['school','movie']],
+    ['8:33','school',['8:43','8:13','6:33'],['music','bed']],
+    ['7:46','movie',['7:56','11:46','7:36'],['dinner','breakfast']],
+    ['12:20','lunch',['12:30','2:20','12:12'],['dinner','school']],
+    ['9:00','bed',['9:30','5:00','10:00'],['movie','music']]
+  ],
+  3:[
+    ['6:00','dinner',['6:30','7:00'],['breakfast','school']],
+    ['11:30','music',['11:00','7:30'],['lunch','bed']],
+    ['7:40','breakfast',['7:14','11:40','7:50'],['lunch','movie']],
+    ['12:50','lunch',['12:15','2:50','12:40'],['music','bed']],
+    ['8:20','school',['8:30','6:20','8:12'],['dinner','breakfast']],
+    ['9:30','bed',['9:13','5:30','9:40'],['movie','school']],
+    ['5:17','movie',['5:27','9:17','5:16'],['music','dinner']],
+    ['7:19','breakfast',['7:29','11:19','7:18'],['school','bed']],
+    ['12:44','lunch',['12:14','2:44','12:54'],['music','dinner']],
+    ['6:38','dinner',['6:48','7:38','6:28'],['movie','breakfast']],
+    ['10:40','music',['10:14','11:40','10:50'],['school','movie']],
+    ['7:30','breakfast',['7:13','11:30','7:00'],['dinner','lunch']]
+  ]
+};
+
+/* ---------- 영어 시각 문장 ---------- */
+const ONES=['','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+const TENS=['','','twenty','thirty','forty','fifty'];
+function minWord(m){ if(m<20) return ONES[m]; const t=Math.floor(m/10), o=m%10; return TENS[t]+(o?'-'+ONES[o]:''); }
+function timeSentence(h,m){ return m===0 ? `It's ${ONES[h]} o'clock.` : `It's ${ONES[h]} ${minWord(m)}.`; }
+function parseT(t){ const [h,m]=t.split(':').map(Number); return {h,m}; }
+
+/* ---------- 그림 ---------- */
+function clockInner(h,m){
+  let s='<circle cx="100" cy="100" r="94" fill="#fff" stroke="#1c2a39" stroke-width="6"/>';
+  for(let i=0;i<60;i++){
+    const a=i*6*Math.PI/180, long=i%5===0, r1=long?77:84, r2=90;
+    s+=`<line x1="${(100+r1*Math.sin(a)).toFixed(2)}" y1="${(100-r1*Math.cos(a)).toFixed(2)}" x2="${(100+r2*Math.sin(a)).toFixed(2)}" y2="${(100-r2*Math.cos(a)).toFixed(2)}" stroke="#1c2a39" stroke-width="${long?3.2:1.3}"/>`;
+  }
+  for(let n=1;n<=12;n++){
+    const a=n*30*Math.PI/180;
+    s+=`<text x="${(100+63*Math.sin(a)).toFixed(2)}" y="${(100-63*Math.cos(a)+7).toFixed(2)}" text-anchor="middle" font-size="20" font-family="Jua, sans-serif" fill="#1c2a39">${n}</text>`;
+  }
+  const ha=((h%12)+m/60)*30*Math.PI/180, ma=m*6*Math.PI/180;
+  s+=`<line x1="100" y1="100" x2="${(100+44*Math.sin(ha)).toFixed(2)}" y2="${(100-44*Math.cos(ha)).toFixed(2)}" stroke="#1c2a39" stroke-width="9" stroke-linecap="round"/>`;
+  s+=`<line x1="100" y1="100" x2="${(100+74*Math.sin(ma)).toFixed(2)}" y2="${(100-74*Math.cos(ma)).toFixed(2)}" stroke="#2b5c8a" stroke-width="5" stroke-linecap="round"/>`;
+  s+='<circle cx="100" cy="100" r="7" fill="#e0483e"/>';
+  return s;
+}
+const clockSVG=(h,m,cls='clock')=>`<svg viewBox="0 0 200 200" class="${cls}" role="img" aria-label="시계">${clockInner(h,m)}</svg>`;
+
+function sceneSVG(h,m,act){
+  const A=ACT[act], night=(act==='movie'||act==='bed');
+  return `<svg viewBox="0 0 400 260" class="scene" role="img" aria-label="장면 그림">
+    <rect width="400" height="260" fill="${A.bg}"/>
+    <rect y="205" width="400" height="55" fill="${night?'#2a3152':'#e2cba8'}"/>
+    <rect x="26" y="30" width="110" height="88" rx="6" fill="${night?'#1b2242':'#bfe3ff'}" stroke="#fff" stroke-width="6"/>
+    ${night?'<circle cx="108" cy="58" r="13" fill="#ffe27a"/>':'<circle cx="56" cy="58" r="13" fill="#ffd23f"/>'}
+    <line x1="81" y1="30" x2="81" y2="118" stroke="#fff" stroke-width="5"/>
+    <svg x="238" y="12" width="146" height="146" viewBox="0 0 200 200">${clockInner(h,m)}</svg>
+    <text x="160" y="236" text-anchor="middle" font-size="118">${A.e}</text>
+  </svg>`;
+}
+
+/* ---------- 상태 ---------- */
+let S = null;   // 저장되는 진행 상태
+let R = null;   // 현재 라운드 임시 상태
+const app = document.getElementById('app');
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+
+function save(){ try{ localStorage.setItem(STORE, JSON.stringify(S)); }catch(e){} }
+function load(){ try{ return JSON.parse(localStorage.getItem(STORE)); }catch(e){ return null; } }
+
+function getQ(i){
+  const [t,act,tD,aD]=SETS[S.set][i]; const {h,m}=parseT(t);
+  return {t,h,m,act,tD,aD};
+}
+
+/* ---------- 시작 화면 ---------- */
+let F = {cls:'', num:'', name:'', role:'', set:0};
+function renderStart(msg=''){
+  const saved = load();
+  const canResume = saved && saved.round>0 && saved.round<TOTAL;
+  const opt=(n,max,sel)=>Array.from({length:max},(_,k)=>k+1).map(v=>`<option value="${v}" ${String(sel)===String(v)?'selected':''}>${v}${n}</option>`).join('');
+  app.innerHTML = `
+  <section class="hero">
+    <div class="clock-wrap">${clockSVG(4,58)}</div>
+    <div>
+      <h1>목격자 인터뷰</h1>
+      <div class="en">What time is it?</div>
+      <p class="case">시계탑에서 사건이 일어났어요. 짝과 번갈아 목격자와 탐정이 되어 단서를 모아요.</p>
+    </div>
+  </section>
+  ${canResume?`<button class="resume" onclick="resume()">▶ ${esc(saved.name)} 이어하기 (라운드 ${saved.round+1})</button>`:''}
+  <ol class="steps">
+    <li><b>1</b>짝과 <u>같은 사건</u>을 고르고, 한 명은 A, 한 명은 B를 골라요.</li>
+    <li><b>2</b>탐정은 <u>What time is it?</u> 하고 묻고, 목격자는 카드를 보고 답해요.</li>
+    <li><b>3</b>정답을 확인한 뒤, 서로의 화면에 말하기 체크를 해 줘요.</li>
+  </ol>
+  <div class="form">
+    <div class="field-row">
+      <label class="f">반<select id="cls"><option value="">선택</option>${opt('반',6,F.cls)}</select></label>
+      <label class="f">번호<select id="num"><option value="">선택</option>${opt('번',30,F.num)}</select></label>
+      <label class="f">이름<input type="text" id="name" maxlength="10" value="${esc(F.name)}" autocomplete="off"></label>
+    </div>
+    <div>
+      <div class="pick-title">사건 고르기 (짝과 똑같이!)</div>
+      <div class="pick three">
+        ${[1,2,3].map(n=>`<button class="set${n} ${F.set===n?'on':''}" onclick="pickSet(${n})" aria-pressed="${F.set===n}">● 사건 ${n}</button>`).join('')}
+      </div>
+    </div>
+    <div>
+      <div class="pick-title">역할 고르기 (짝과 다르게!)</div>
+      <div class="pick">
+        <button class="roleA ${F.role==='A'?'on':''}" onclick="pickRole('A')" aria-pressed="${F.role==='A'}">A<small>1라운드에 먼저 말해요</small></button>
+        <button class="roleB ${F.role==='B'?'on':''}" onclick="pickRole('B')" aria-pressed="${F.role==='B'}">B<small>1라운드에 먼저 물어요</small></button>
+      </div>
+    </div>
+    <div class="warn">${esc(msg)}</div>
+    <button class="main" onclick="startGame()" style="margin-top:0">인터뷰 시작</button>
+  </div>`;
+}
+function readForm(){ F.cls=document.getElementById('cls').value; F.num=document.getElementById('num').value; F.name=document.getElementById('name').value.trim(); }
+function pickSet(n){ readForm(); F.set=n; renderStart(); }
+function pickRole(r){ readForm(); F.role=r; renderStart(); }
+function startGame(){
+  readForm();
+  if(!F.cls||!F.num||!F.name) return renderStart('반, 번호, 이름을 모두 적어 주세요.');
+  if(!F.set) return renderStart('짝과 같은 사건 번호를 골라 주세요.');
+  if(!F.role) return renderStart('A와 B 중 하나를 골라 주세요.');
+  S = {cls:F.cls, num:F.num, name:F.name, role:F.role, set:F.set, round:0, listen:0, speak:0, log:[], sendState:''};
+  save(); newRound();
+}
+function resume(){ S = load(); newRound(); }
+
+/* ---------- 라운드 ---------- */
+function newRound(){
+  if(S.round>=TOTAL) return renderEnd(true);
+  const q=getQ(S.round);
+  const speaking = speakerOf(S.round)===S.role;
+  R = {speaking, phase: speaking?'card':'ask', open:false, t:null, a:null, again:false, correct:null, pts:0, c1:null, c2:null,
+       tOpts: shuffle([q.t,...q.tD]), aOpts: shuffle([q.act,...q.aD])};
+  renderGame();
+  window.scrollTo({top:0});
+}
+
+function progressBar(i){
+  return Array.from({length:TOTAL},(_,k)=>`<span class="${k<i?'done':k===i?'now':''}"></span>`).join('');
+}
+function checkRow(key,label){
+  return `<div class="check"><span>${label}</span><div class="ox-wrap">
+    <button class="ox o ${R[key]===true?'on':''}" onclick="setChk('${key}',true)" aria-pressed="${R[key]===true}" aria-label="잘했어요">⭕</button>
+    <button class="ox x ${R[key]===false?'on':''}" onclick="setChk('${key}',false)" aria-pressed="${R[key]===false}" aria-label="못 했어요">❌</button>
+  </div></div>`;
+}
+
+function evidence(q,st){
+  if(st===4){
+    return `<div class="scene-card">${sceneSVG(q.h,q.m,q.act)}
+      <p class="boss">그림 속 시계를 읽고, 무엇을 할 시간인지 두 문장으로 말해요.</p></div>`;
+  }
+  return `<div class="evidence">
+    ${clockSVG(q.h,q.m)}
+    <div class="ev-side">
+      <div class="digital">${q.t}</div>
+      <div class="actbig">${ACT[q.act].e}</div>
+      ${st<3?`<div class="actword">${q.act}</div>`:''}
+    </div></div>`;
+}
+
+function renderGame(){
+  const i=S.round, st=stageOf(i), q=getQ(i);
+  let h = `<header class="top">
+      <div class="who">${esc(S.name)}<span class="tag tag-${S.role}">${S.role}</span></div>
+      <div class="rnd">라운드 ${i+1} / ${TOTAL}<span class="st st${st}">${STAGES[st].name} ${STAGES[st].desc}</span></div>
+      <div class="prog">${progressBar(i)}</div>
+    </header>`;
+  h += R.speaking ? speakerView(q,st) : listenerView(q,st);
+  app.innerHTML = h;
+}
+
+function speakerView(q,st){
+  let h = `<div class="banner speak">🗣️ 이번엔 내가 목격자!<small>짝이 What time is it? 하고 물으면 카드를 보고 답해요.</small></div>`;
+  if(R.phase==='card'){
+    if(!R.open){
+      h += `<button class="cover" onclick="openCard()">🔒 카드 열기<small>짝이 못 보게 화면을 살짝 돌려요</small></button>`;
+    }else{
+      h += evidence(q,st);
+      if(st<4) h += `<div class="frame">It's <span class="blank"></span>. It's time for <span class="blank"></span>.</div>`;
+      h += `<div class="row" style="margin-top:16px">
+        <button class="ghost" onclick="closeCard()">카드 가리기</button>
+        <button class="main" onclick="toCheck()">짝이 답을 골랐어요</button></div>`;
+    }
+  }else{
+    h += `<div class="panel">
+      <p class="lead">✋ 화면을 짝에게 보여 주세요. 체크는 <b>짝</b>이 눌러요.</p>
+      <div class="answer">${timeSentence(q.h,q.m)}<br>It's time for ${q.act}.</div>
+      ${checkRow('c1','① 시각을 맞게 말했어요')}
+      ${checkRow('c2',"② It's time for ~ 를 말했어요")}
+      <button class="main" ${R.c1===null||R.c2===null?'disabled':''} onclick="finishSpeak()">다음 라운드</button>
+    </div>`;
+  }
+  return h;
+}
+
+function listenerView(q,st){
+  let h = `<div class="banner listen">👂 이번엔 내가 탐정!<small>짝에게 묻고, 들은 대로 골라요.</small></div>`;
+  if(R.phase==='ask'){
+    h += `<div class="ask">
+        <div class="bubble"><small>짝에게 물어요</small>What time is it?</div>
+        <button class="again ${R.again?'used':''}" onclick="useAgain()" ${R.again?'disabled':''}>${R.again?'🔁 한 번 더 들었어요 (−1점)':'🔁 Again, please.'}</button>
+      </div>
+      <h3 class="q">몇 시인가요?</h3>
+      <div class="times ${R.tOpts.length===3?'n3':''}">${R.tOpts.map(t=>`<button class="chip ${R.t===t?'on':''}" onclick="pickT('${t}')" aria-pressed="${R.t===t}">${t}</button>`).join('')}</div>
+      <h3 class="q">무엇을 할 시간인가요?</h3>
+      <div class="acts">${R.aOpts.map(a=>`<button class="act ${R.a===a?'on':''}" onclick="pickA('${a}')" aria-pressed="${R.a===a}"><span class="em">${ACT[a].e}</span>${a}</button>`).join('')}</div>
+      <button class="main" ${!R.t||!R.a?'disabled':''} onclick="submitListen()">정답 확인</button>`;
+  }else{
+    h += `<div class="result ${R.correct?'ok':'no'}">
+        <div class="mark">${R.correct?'⭕ 단서 획득!':'❌ 아쉬워요'}</div>
+        <div class="pts">+${R.pts}점${R.again&&R.correct?' (Again 사용)':''}</div>
+        <div class="answer">${timeSentence(q.h,q.m)}<br>It's time for ${q.act}.</div>
+        ${R.correct?'':`<p class="mine">내가 고른 답: ${R.t}, ${R.a}</p>`}
+        <p class="hint">이 문장을 보고 짝의 화면에 체크해 주세요.</p>
+      </div>
+      <div class="panel">
+        <p class="lead">✋ 이제 <b>짝</b>이 내 화면에 체크해요.</p>
+        ${checkRow('c1','What time is it? 이라고 물었어요')}
+        <button class="main" ${R.c1===null?'disabled':''} onclick="finishListen()">다음 라운드</button>
+      </div>`;
+  }
+  return h;
+}
+
+/* ---------- 조작 ---------- */
+function openCard(){ R.open=true; renderGame(); }
+function closeCard(){ R.open=false; renderGame(); }
+function toCheck(){ R.phase='check'; renderGame(); }
+function useAgain(){ R.again=true; renderGame(); }
+function pickT(t){ R.t=t; renderGame(); }
+function pickA(a){ R.a=a; renderGame(); }
+function setChk(k,v){ R[k]=v; renderGame(); }
+
+function submitListen(){
+  const q=getQ(S.round), w=STAGES[stageOf(S.round)].w;
+  R.correct = (R.t===q.t && R.a===q.act);
+  R.pts = R.correct ? w-(R.again?1:0) : 0;
+  R.phase='result'; renderGame(); window.scrollTo({top:0});
+}
+function finishListen(){
+  const q=getQ(S.round), sp=R.c1?1:0;
+  S.listen += R.pts; S.speak += sp;
+  S.log.push(`R${S.round+1} 듣기 ${q.t} ${q.act} → ${R.correct?'정답':'오답('+R.t+' '+R.a+')'}${R.again?' Again':''} +${R.pts} / 질문${R.c1?'⭕':'❌'}`);
+  S.round++; save(); newRound();
+}
+function finishSpeak(){
+  const q=getQ(S.round), sp=(R.c1?1:0)+(R.c2?1:0);
+  S.speak += sp;
+  S.log.push(`R${S.round+1} 말하기 ${q.t} ${q.act} → 시각${R.c1?'⭕':'❌'} 일과${R.c2?'⭕':'❌'} +${sp}`);
+  S.round++; save(); newRound();
+}
+
+/* ---------- 끝 화면·기록 ---------- */
+function renderEnd(autoSend){
+  const total=S.listen+S.speak;
+  const msg = {
+    '':'', sending:'기록을 보내는 중이에요…',
+    done:'✅ 선생님께 기록을 보냈어요.',
+    fail:'⚠️ 기록을 보내지 못했어요. 인터넷 연결을 확인하고 다시 보내기를 눌러요.',
+    noURL:'⚠️ 기록 주소가 설정되지 않았어요. 선생님께 화면을 보여 주세요.'
+  }[S.sendState||''];
+  app.innerHTML = `<section class="end">
+    ${clockSVG(4,58,'clock')}
+    <h2>사건 ${S.set} 인터뷰 완료!</h2>
+    <p>${esc(S.cls)}반 ${esc(S.num)}번 ${esc(S.name)} (${S.role})</p>
+    <div class="scores">
+      <div class="score"><div class="num">${S.listen}</div><div class="lab">듣기 / ${LISTEN_MAX}</div></div>
+      <div class="score"><div class="num">${S.speak}</div><div class="lab">말하기 / ${SPEAK_MAX}</div></div>
+      <div class="score total"><div class="num">${total}</div><div class="lab">총점 / ${LISTEN_MAX+SPEAK_MAX}</div></div>
+    </div>
+    ${msg?`<div class="send ${S.sendState}">${msg}</div>`:''}
+    ${S.sendState==='fail'?`<button class="main" onclick="sendResult()">다시 보내기</button>`:''}
+    <button class="restart" onclick="resetAll()">처음부터 새로 하기</button>
+  </section>`;
+  const c=app.querySelector('.end .clock'); if(c){c.style.width='120px';c.style.height='120px';}
+  if(autoSend && S.sendState!=='done' && S.sendState!=='sending') sendResult();
+}
+async function sendResult(){
+  if(!GAS_URL){ S.sendState='noURL'; save(); return renderEnd(false); }
+  S.sendState='sending'; renderEnd(false);
+  try{
+    await fetch(GAS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({cls:S.cls,num:S.num,name:S.name,role:S.role,set:S.set,
+        listen:S.listen,speak:S.speak,total:S.listen+S.speak,detail:S.log.join('\n')})});
+    S.sendState='done';
+  }catch(e){ S.sendState='fail'; }
+  save(); renderEnd(false);
+}
+function resetAll(){
+  if(!confirm('처음부터 다시 할까요? 지금 점수는 지워져요.')) return;
+  try{ localStorage.removeItem(STORE); }catch(e){}
+  S=null; F={cls:'',num:'',name:'',role:'',set:0}; renderStart();
+}
+
+/* ---------- 시작 ---------- */
+(function init(){
+  const saved=load();
+  if(saved && saved.round>=TOTAL){ S=saved; renderEnd(saved.sendState!=='done'); }
+  else renderStart();
+})();
+</script>
+</body>
+</html>
