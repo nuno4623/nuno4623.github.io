@@ -42,7 +42,8 @@ select,input[type=text]{font-family:inherit;font-size:22px;padding:10px 12px;bor
 .pick.three{grid-template-columns:repeat(3,1fr)}
 .pick button{border:3px solid var(--line);border-radius:14px;padding:12px 8px;background:#fff;font-size:24px}
 .pick button.on{border-color:var(--ink);box-shadow:inset 0 0 0 3px var(--ink)}
-.pick .roleA.on{background:#e3edfc}.pick .roleB.on{background:#fdebdc}
+.pick .roleA.on{background:#e3edfc}.pick .roleB.on{background:#fdebdc}.pick .roleC.on{background:#e2f4e9}
+.tag-C{background:#24885f}
 .pick button small{display:block;font-size:15px;color:#5b6b7e}
 .set1{color:#c23a31}.set2{color:#2b6fd6}.set3{color:#24885f}
 .warn{font-size:16px;color:var(--red);min-height:22px}
@@ -155,7 +156,6 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbwPsQWEbBTAgtdXg53-txj4
 
 const STORE = 'l10_witness_v1';
 const TOTAL = 12;
-const LISTEN_MAX = 20, SPEAK_MAX = 18;
 
 const STAGES = {
   1:{name:'1단계', desc:'정각·30분', w:2},
@@ -163,8 +163,15 @@ const STAGES = {
   3:{name:'3단계', desc:'1분 단위', w:4},
   4:{name:'보스', desc:'장면 보고 말하기', w:4}
 };
-const stageOf = i => i<2?1 : i<6?2 : i<10?3 : 4;
-const speakerOf = i => i%2===0 ? 'A' : 'B';
+const MODE = () => (S && S.mode) || 2;
+/* 2인: 2·4·4·2라운드 / 3인: 단계마다 3라운드(한 사람이 단계마다 한 번씩 말함) */
+const stageOf = i => MODE()===3 ? Math.floor(i/3)+1 : (i<2?1 : i<6?2 : i<10?3 : 4);
+const speakerOf = i => MODE()===3 ? ['A','B','C'][i%3] : (i%2===0 ? 'A' : 'B');
+function maxScores(){
+  let L=0, Sp=0;
+  for(let i=0;i<TOTAL;i++){ if(speakerOf(i)===S.role) Sp+=2; else { L+=STAGES[stageOf(i)].w; Sp+=1; } }
+  return {L, Sp};
+}
 
 const ACT = {
   breakfast:{e:'🍳', bg:'#fff1c9'},
@@ -222,6 +229,52 @@ const SETS = {
   ]
 };
 
+/* 3인용: 1~3 1단계 / 4~6 2단계 / 7~9 3단계 / 10~12 보스 */
+const SETS3 = {
+  1:[
+    ['7:00','breakfast',['7:30','11:00'],['dinner','bed']],
+    ['10:30','music',['10:00','11:30'],['movie','lunch']],
+    ['12:00','lunch',['12:30','2:00'],['dinner','school']],
+    ['8:40','school',['8:14','9:40','8:50'],['breakfast','bed']],
+    ['12:20','lunch',['12:30','11:20','2:20'],['dinner','music']],
+    ['6:50','dinner',['6:15','5:50','6:40'],['breakfast','movie']],
+    ['4:58','movie',['4:18','5:58','4:48'],['music','school']],
+    ['7:13','breakfast',['7:30','11:13','7:31'],['lunch','bed']],
+    ['9:37','bed',['9:47','9:27','5:37'],['school','music']],
+    ['11:20','music',['11:30','12:20','11:12'],['movie','lunch']],
+    ['6:40','dinner',['6:14','7:40','6:50'],['breakfast','bed']],
+    ['8:10','school',['8:20','9:10','6:10'],['bed','breakfast']]
+  ],
+  2:[
+    ['8:00','school',['8:30','6:00'],['bed','lunch']],
+    ['12:30','lunch',['12:00','2:30'],['breakfast','movie']],
+    ['7:00','breakfast',['7:30','11:00'],['dinner','bed']],
+    ['10:50','music',['10:15','11:50','10:40'],['school','bed']],
+    ['6:40','dinner',['6:14','7:40','6:50'],['lunch','movie']],
+    ['8:10','movie',['8:20','9:10','6:10'],['music','school']],
+    ['9:52','bed',['9:42','5:52','9:25'],['breakfast','dinner']],
+    ['12:15','lunch',['12:50','2:15','11:15'],['school','movie']],
+    ['7:46','movie',['7:56','11:46','7:36'],['dinner','breakfast']],
+    ['12:20','lunch',['12:30','2:20','12:12'],['dinner','school']],
+    ['9:00','bed',['9:30','5:00','10:00'],['movie','music']],
+    ['7:30','breakfast',['7:13','11:30','7:00'],['dinner','lunch']]
+  ],
+  3:[
+    ['6:00','dinner',['6:30','7:00'],['breakfast','school']],
+    ['11:30','music',['11:00','7:30'],['lunch','bed']],
+    ['8:00','school',['8:30','6:00'],['bed','lunch']],
+    ['7:40','breakfast',['7:14','11:40','7:50'],['lunch','movie']],
+    ['12:50','lunch',['12:15','2:50','12:40'],['music','bed']],
+    ['9:30','bed',['9:13','5:30','9:40'],['movie','school']],
+    ['5:17','movie',['5:27','9:17','5:16'],['music','dinner']],
+    ['12:44','lunch',['12:14','2:44','12:54'],['music','dinner']],
+    ['6:38','dinner',['6:48','7:38','6:28'],['movie','breakfast']],
+    ['10:40','music',['10:14','11:40','10:50'],['school','movie']],
+    ['7:30','breakfast',['7:13','11:30','7:00'],['dinner','lunch']],
+    ['9:00','bed',['9:30','5:00','10:00'],['movie','music']]
+  ]
+};
+
 /* ---------- 영어 시각 문장 ---------- */
 const ONES=['','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
 const TENS=['','','twenty','thirty','forty','fifty'];
@@ -272,12 +325,12 @@ function save(){ try{ localStorage.setItem(STORE, JSON.stringify(S)); }catch(e){
 function load(){ try{ return JSON.parse(localStorage.getItem(STORE)); }catch(e){ return null; } }
 
 function getQ(i){
-  const [t,act,tD,aD]=SETS[S.set][i]; const {h,m}=parseT(t);
+  const [t,act,tD,aD]=(MODE()===3?SETS3:SETS)[S.set][i]; const {h,m}=parseT(t);
   return {t,h,m,act,tD,aD};
 }
 
 /* ---------- 시작 화면 ---------- */
-let F = {cls:'', num:'', name:'', role:'', set:0};
+let F = {cls:'', num:'', name:'', role:'', set:0, mode:2};
 function renderStart(msg=''){
   const saved = load();
   const canResume = saved && saved.round>0 && saved.round<TOTAL;
@@ -293,7 +346,7 @@ function renderStart(msg=''){
   </section>
   ${canResume?`<button class="resume" onclick="resume()">▶ ${esc(saved.name)} 이어하기 (라운드 ${saved.round+1})</button>`:''}
   <ol class="steps">
-    <li><b>1</b>짝과 <u>같은 사건</u>을 고르고, 한 명은 A, 한 명은 B를 골라요.</li>
+    <li><b>1</b>짝과 <u>같은 사건</u>을 고르고, 역할은 서로 다르게 골라요. (3명이면 A·B·C)</li>
     <li><b>2</b>탐정은 <u>What time is it?</u> 하고 묻고, 목격자는 카드를 보고 답해요.</li>
     <li><b>3</b>정답을 확인한 뒤, 서로의 화면에 말하기 체크를 해 줘요.</li>
   </ol>
@@ -310,10 +363,16 @@ function renderStart(msg=''){
       </div>
     </div>
     <div>
-      <div class="pick-title">역할 고르기 (짝과 다르게!)</div>
+      <div class="pick-title">몇 명이 함께 하나요?</div>
       <div class="pick">
-        <button class="roleA ${F.role==='A'?'on':''}" onclick="pickRole('A')" aria-pressed="${F.role==='A'}">A<small>1라운드에 먼저 말해요</small></button>
-        <button class="roleB ${F.role==='B'?'on':''}" onclick="pickRole('B')" aria-pressed="${F.role==='B'}">B<small>1라운드에 먼저 물어요</small></button>
+        <button class="${F.mode===2?'on':''}" onclick="pickMode(2)" aria-pressed="${F.mode===2}">2명<small>짝 활동</small></button>
+        <button class="${F.mode===3?'on':''}" onclick="pickMode(3)" aria-pressed="${F.mode===3}">3명<small>목격자 1명, 탐정 2명</small></button>
+      </div>
+    </div>
+    <div>
+      <div class="pick-title">역할 고르기 (서로 다르게!)</div>
+      <div class="pick ${F.mode===3?'three':''}">
+        ${(F.mode===3?['A','B','C']:['A','B']).map(r=>`<button class="role${r} ${F.role===r?'on':''}" onclick="pickRole('${r}')" aria-pressed="${F.role===r}">${r}<small>${r==='A'?'1라운드에 먼저 말해요':'1라운드에 먼저 물어요'}</small></button>`).join('')}
       </div>
     </div>
     <div class="warn">${esc(msg)}</div>
@@ -323,12 +382,13 @@ function renderStart(msg=''){
 function readForm(){ F.cls=document.getElementById('cls').value; F.num=document.getElementById('num').value; F.name=document.getElementById('name').value.trim(); }
 function pickSet(n){ readForm(); F.set=n; renderStart(); }
 function pickRole(r){ readForm(); F.role=r; renderStart(); }
+function pickMode(m){ readForm(); F.mode=m; if(m===2&&F.role==='C') F.role=''; renderStart(); }
 function startGame(){
   readForm();
   if(!F.cls||!F.num||!F.name) return renderStart('반, 번호, 이름을 모두 적어 주세요.');
   if(!F.set) return renderStart('짝과 같은 사건 번호를 골라 주세요.');
-  if(!F.role) return renderStart('A와 B 중 하나를 골라 주세요.');
-  S = {cls:F.cls, num:F.num, name:F.name, role:F.role, set:F.set, round:0, listen:0, speak:0, log:[], sendState:''};
+  if(!F.role) return renderStart('역할을 하나 골라 주세요.');
+  S = {cls:F.cls, num:F.num, name:F.name, role:F.role, set:F.set, mode:F.mode, round:0, listen:0, speak:0, log:[], sendState:''};
   save(); newRound();
 }
 function resume(){ S = load(); newRound(); }
@@ -380,7 +440,8 @@ function renderGame(){
 }
 
 function speakerView(q,st){
-  let h = `<div class="banner speak">🗣️ 이번엔 내가 목격자!<small>짝이 What time is it? 하고 물으면 카드를 보고 답해요.</small></div>`;
+  const pal = MODE()===3 ? '탐정들' : '짝';
+  let h = `<div class="banner speak">🗣️ 이번엔 내가 목격자!<small>${pal}이 What time is it? 하고 물으면 카드를 보고 답해요.</small></div>`;
   if(R.phase==='card'){
     if(!R.open){
       h += `<button class="cover" onclick="openCard()">🔒 카드 열기<small>짝이 못 보게 화면을 살짝 돌려요</small></button>`;
@@ -389,11 +450,11 @@ function speakerView(q,st){
       if(st<4) h += `<div class="frame">It's <span class="blank"></span>. It's time for <span class="blank"></span>.</div>`;
       h += `<div class="row" style="margin-top:16px">
         <button class="ghost" onclick="closeCard()">카드 가리기</button>
-        <button class="main" onclick="toCheck()">짝이 답을 골랐어요</button></div>`;
+        <button class="main" onclick="toCheck()">${pal}이 답을 골랐어요</button></div>`;
     }
   }else{
     h += `<div class="panel">
-      <p class="lead">✋ 화면을 짝에게 보여 주세요. 체크는 <b>짝</b>이 눌러요.</p>
+      <p class="lead">✋ 화면을 ${MODE()===3?'탐정 한 명':'짝'}에게 보여 주세요. 체크는 <b>${MODE()===3?'탐정':'짝'}</b>이 눌러요.</p>
       <div class="answer">${timeSentence(q.h,q.m)}<br>It's time for ${q.act}.</div>
       ${checkRow('c1','① 시각을 맞게 말했어요')}
       ${checkRow('c2',"② It's time for ~ 를 말했어요")}
@@ -404,10 +465,11 @@ function speakerView(q,st){
 }
 
 function listenerView(q,st){
-  let h = `<div class="banner listen">👂 이번엔 내가 탐정!<small>짝에게 묻고, 들은 대로 골라요.</small></div>`;
+  const sp = speakerOf(S.round);
+  let h = `<div class="banner listen">👂 이번엔 내가 탐정!<small>목격자 <span class="tag tag-${sp}">${sp}</span>에게 묻고, 들은 대로 골라요.${MODE()===3?' (탐정 2명이 함께 물어요)':''}</small></div>`;
   if(R.phase==='ask'){
     h += `<div class="ask">
-        <div class="bubble"><small>짝에게 물어요</small>What time is it?</div>
+        <div class="bubble"><small>목격자에게 물어요</small>What time is it?</div>
         <button class="again ${R.again?'used':''}" onclick="useAgain()" ${R.again?'disabled':''}>${R.again?'🔁 한 번 더 들었어요 (−1점)':'🔁 Again, please.'}</button>
       </div>
       <h3 class="q">몇 시인가요?</h3>
@@ -421,10 +483,10 @@ function listenerView(q,st){
         <div class="pts">+${R.pts}점${R.again&&R.correct?' (Again 사용)':''}</div>
         <div class="answer">${timeSentence(q.h,q.m)}<br>It's time for ${q.act}.</div>
         ${R.correct?'':`<p class="mine">내가 고른 답: ${R.t}, ${R.a}</p>`}
-        <p class="hint">이 문장을 보고 짝의 화면에 체크해 주세요.</p>
+        <p class="hint">이 문장을 보고 목격자의 화면에 체크해 주세요.</p>
       </div>
       <div class="panel">
-        <p class="lead">✋ 이제 <b>짝</b>이 내 화면에 체크해요.</p>
+        <p class="lead">✋ 이제 <b>목격자</b>가 내 화면에 체크해요.</p>
         ${checkRow('c1','What time is it? 이라고 물었어요')}
         <button class="main" ${R.c1===null?'disabled':''} onclick="finishListen()">다음 라운드</button>
       </div>`;
@@ -462,7 +524,7 @@ function finishSpeak(){
 
 /* ---------- 끝 화면·기록 ---------- */
 function renderEnd(autoSend){
-  const total=S.listen+S.speak;
+  const total=S.listen+S.speak, M=maxScores();
   const msg = {
     '':'', sending:'기록을 보내는 중이에요…',
     done:'✅ 선생님께 기록을 보냈어요.',
@@ -472,11 +534,11 @@ function renderEnd(autoSend){
   app.innerHTML = `<section class="end">
     ${clockSVG(4,58,'clock')}
     <h2>사건 ${S.set} 인터뷰 완료!</h2>
-    <p>${esc(S.cls)}반 ${esc(S.num)}번 ${esc(S.name)} (${S.role})</p>
+    <p>${esc(S.cls)}반 ${esc(S.num)}번 ${esc(S.name)} (${S.role}${MODE()===3?' · 3인':''})</p>
     <div class="scores">
-      <div class="score"><div class="num">${S.listen}</div><div class="lab">듣기 / ${LISTEN_MAX}</div></div>
-      <div class="score"><div class="num">${S.speak}</div><div class="lab">말하기 / ${SPEAK_MAX}</div></div>
-      <div class="score total"><div class="num">${total}</div><div class="lab">총점 / ${LISTEN_MAX+SPEAK_MAX}</div></div>
+      <div class="score"><div class="num">${S.listen}</div><div class="lab">듣기 / ${M.L}</div></div>
+      <div class="score"><div class="num">${S.speak}</div><div class="lab">말하기 / ${M.Sp}</div></div>
+      <div class="score total"><div class="num">${total}</div><div class="lab">총점 / ${M.L+M.Sp}</div></div>
     </div>
     ${msg?`<div class="send ${S.sendState}">${msg}</div>`:''}
     ${S.sendState==='fail'?`<button class="main" onclick="sendResult()">다시 보내기</button>`:''}
@@ -490,8 +552,10 @@ async function sendResult(){
   S.sendState='sending'; renderEnd(false);
   try{
     await fetch(GAS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({cls:S.cls,num:S.num,name:S.name,role:S.role,set:S.set,
-        listen:S.listen,speak:S.speak,total:S.listen+S.speak,detail:S.log.join('\n')})});
+      body:(()=>{ const M=maxScores(), tot=S.listen+S.speak;
+        return JSON.stringify({cls:S.cls,num:S.num,name:S.name,role:MODE()===3?S.role+' (3인)':S.role,set:S.set,
+          listen:S.listen,speak:S.speak,total:tot,
+          detail:`[${MODE()}인] 만점 듣기 ${M.L} / 말하기 ${M.Sp} / 총 ${M.L+M.Sp} → 환산 ${Math.round(tot/(M.L+M.Sp)*100)}점\n`+S.log.join('\n')}); })()});
     S.sendState='done';
   }catch(e){ S.sendState='fail'; }
   save(); renderEnd(false);
@@ -499,7 +563,7 @@ async function sendResult(){
 function resetAll(){
   if(!confirm('처음부터 다시 할까요? 지금 점수는 지워져요.')) return;
   try{ localStorage.removeItem(STORE); }catch(e){}
-  S=null; F={cls:'',num:'',name:'',role:'',set:0}; renderStart();
+  S=null; F={cls:'',num:'',name:'',role:'',set:0,mode:2}; renderStart();
 }
 
 /* ---------- 시작 ---------- */
